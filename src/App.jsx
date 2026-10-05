@@ -17,10 +17,10 @@ export default function App() {
           <ToastProvider>
             <BrowserRouter>
               <Routes>
-                <PublicRoutes />
-                <CandidateRoutes />
-                <CompanyRoutes />
-                <AdminRoutes />
+                {PublicRoutes()}
+                {CandidateRoutes()}
+                {CompanyRoutes()}
+                {AdminRoutes()}
               </Routes>
             </BrowserRouter>
           </ToastProvider>

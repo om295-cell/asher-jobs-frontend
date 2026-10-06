@@ -194,12 +194,12 @@ export default function HomePage() {
                 : 'Connect with top verified factories and employers, or search and hire qualified workers and professionals across 10th of Ramadan, El Roubiky, Badr, El Obour, and all of Egypt.'}
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem', alignItems: 'stretch' }}>
               <Link
                 to="/recommend"
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                  padding: '0.875rem 1.5rem', borderRadius: '10px',
+                  padding: '0.75rem 1.5rem', borderRadius: '10px',
                   background: '#ffffff', color: '#000000', fontWeight: 700, fontSize: '0.95rem',
                   transition: 'all 0.15s', textDecoration: 'none', border: '2px solid #ffffff'
                 }}
@@ -211,7 +211,7 @@ export default function HomePage() {
                 onClick={() => setShowCompanyModal(true)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
-                  padding: '0.75rem 1.25rem', borderRadius: '10px',
+                  padding: '0.75rem 1.5rem', borderRadius: '10px',
                   background: '#ffffff', border: '2px solid #ffffff',
                   color: '#000000', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
                   lineHeight: 1

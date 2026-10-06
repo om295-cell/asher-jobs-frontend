@@ -198,23 +198,25 @@ export default function HomePage() {
               <Link
                 to="/recommend"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                  padding: '0.75rem 1.5rem', borderRadius: '10px',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem',
+                  padding: '0.75rem 1.25rem', borderRadius: '10px',
+                  minHeight: '64px', flex: '1 1 270px', maxWidth: '340px', boxSizing: 'border-box',
                   background: '#ffffff', color: '#000000', fontWeight: 700, fontSize: '0.95rem',
                   transition: 'all 0.15s', textDecoration: 'none', border: '2px solid #ffffff'
                 }}
               >
-                <Users size={20} />
-                {isRtl ? 'أنا أبحث عن عمل — سجّل مجاناً' : "I'm Job Seeking — Register Free"}
+                <Users size={20} style={{ flexShrink: 0 }} />
+                <span>{isRtl ? 'أنا أبحث عن عمل — سجّل مجاناً' : "I'm Job Seeking — Register Free"}</span>
               </Link>
               <button
                 onClick={() => setShowCompanyModal(true)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
-                  padding: '0.75rem 1.5rem', borderRadius: '10px',
+                  padding: '0.75rem 1.25rem', borderRadius: '10px',
+                  minHeight: '64px', flex: '1 1 270px', maxWidth: '340px', boxSizing: 'border-box',
                   background: '#ffffff', border: '2px solid #ffffff',
                   color: '#000000', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-                  lineHeight: 1
+                  lineHeight: 1.2, transition: 'all 0.15s'
                 }}
               >
                 <Building2 size={20} style={{ flexShrink: 0 }} />

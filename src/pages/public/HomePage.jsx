@@ -206,15 +206,14 @@ export default function HomePage() {
               >
                 <Users size={20} />
                 {isRtl ? 'أنا أبحث عن عمل — سجّل مجاناً' : "I'm Job Seeking — Register Free"}
-                <ArrowIcon size={18} />
               </Link>
               <button
                 onClick={() => setShowCompanyModal(true)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
                   padding: '0.75rem 1.25rem', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)',
-                  color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+                  background: '#ffffff', border: '2px solid #ffffff',
+                  color: '#000000', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
                   lineHeight: 1
                 }}
               >
@@ -222,8 +221,8 @@ export default function HomePage() {
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: '0.15rem' }}>
                   <span>{isRtl ? 'تسجيل شركة أو مصنع' : 'Register as Employer'}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#a1a1aa', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#16a34a' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#71717a', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
                   </span>
                 </span>
               </button>

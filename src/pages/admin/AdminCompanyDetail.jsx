@@ -128,7 +128,7 @@ export default function AdminCompanyDetail() {
   }
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container" style={{ maxWidth: 900 }}>
         {/* Back Link */}
         <Link
@@ -148,7 +148,7 @@ export default function AdminCompanyDetail() {
         </Link>
 
         {/* Header Card */}
-        <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+        <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
               <div
@@ -212,9 +212,9 @@ export default function AdminCompanyDetail() {
         </div>
 
         {/* Company Info & Subscription Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
           {/* Company Details */}
-          <div className="card" style={{ padding: '1.5rem' }}>
+          <div className="card card-responsive">
             <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
               {isRtl ? 'بيانات المنشأة والمسؤول' : 'Company Details'}
             </h2>
@@ -272,7 +272,7 @@ export default function AdminCompanyDetail() {
           </div>
 
           {/* Subscription Manager */}
-          <div className="card" style={{ padding: '1.5rem' }}>
+          <div className="card card-responsive">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
               <CreditCard size={18} color="var(--accent)" />
               <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)', margin: 0 }}>

@@ -124,12 +124,12 @@ export default function AdminCategories() {
   }
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container">
         {/* Header */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+            <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
               {isRtl ? 'القطاعات والتخصصات الوظيفية' : 'Job Sectors & Categories'}
             </h1>
             <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
@@ -156,8 +156,8 @@ export default function AdminCategories() {
               description={isRtl ? 'اضغط على زر "إضافة قطاع جديد" للبدء.' : 'Click "New Category" to add one.'}
             />
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
+            <div className="table-responsive">
+              <table className="data-table" style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '0.875rem 1rem', fontWeight: 700, color: 'var(--slate-600)' }}>
@@ -238,8 +238,8 @@ export default function AdminCategories() {
 
       {/* Create / Edit Modal */}
       {modalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ maxWidth: 480, width: '100%', padding: '1.75rem' }}>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="card card-responsive modal-content" style={{ maxWidth: 480, width: '100%', padding: 'clamp(1.25rem, 4vw, 1.75rem)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--slate-900)', margin: 0 }}>
                 {editingCat ? (isRtl ? 'تعديل القطاع' : 'Edit Category') : (isRtl ? 'إضافة قطاع جديد' : 'New Category')}

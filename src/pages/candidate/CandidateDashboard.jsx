@@ -52,7 +52,7 @@ export default function CandidateDashboard() {
         )}
 
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[
             { icon: Eye, label: isRtl ? 'مشاهدات ملفك' : 'Profile Views', value: stats?.profileViews ?? 0, color: '#000000', bg: '#f4f4f5' },
             { icon: Star, label: isRtl ? 'اختصارات بالمفضّلة' : 'Saved by Companies', value: stats?.savedCount ?? 0, color: '#000000', bg: '#f4f4f5' },
@@ -71,10 +71,10 @@ export default function CandidateDashboard() {
           ))}
         </div>
 
-        {/* Profile Card */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'start' }}>
-          <div className="card" style={{ padding: '1.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        {/* Profile Card & Quick Links */}
+        <div className="split-layout">
+          <div className="card card-responsive">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--slate-800)' }}>
                 {isRtl ? 'ملفك المهني' : 'Your Profile'}
               </h2>
@@ -85,7 +85,7 @@ export default function CandidateDashboard() {
             </div>
 
             {profile ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem' }}>
                 {[
                   { icon: User, label: isRtl ? 'الاسم الكامل' : 'Full Name', value: profile.fullName },
                   { icon: Phone, label: isRtl ? 'رقم الهاتف' : 'Phone', value: profile.user?.phone || profile.phone },
@@ -111,7 +111,7 @@ export default function CandidateDashboard() {
           </div>
 
           {/* Quick Links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: 200 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', maxWidth: '100%' }}>
             {[
               { to: '/candidate/profile/edit', icon: Edit, label: isRtl ? 'تعديل الملف' : 'Edit Profile', color: '#000000' },
               { to: '/candidate/cv', icon: User, label: isRtl ? 'عرض / طباعة CV' : 'View / Print CV', color: '#000000' },

@@ -120,7 +120,7 @@ export default function CompanySearch() {
               {isRtl ? `${total} مرشح متاح في قاعدة البيانات (التصدير بحد أقصى 10 مرشحين في الملف)` : `${total} candidates available (export limited to max 10 candidates per file)`}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button onClick={() => setShowFilters(!showFilters)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
               <SlidersHorizontal size={16} />
               {isRtl ? 'فلاتر' : 'Filters'}
@@ -138,9 +138,9 @@ export default function CompanySearch() {
 
         {/* Filters */}
         {showFilters && (
-          <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <form onSubmit={handleSearch}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'المهنة' : 'Job Title'}</label>
                   <select className="form-control" value={filters.desiredJobId} onChange={e => setFilters(p => ({ ...p, desiredJobId: e.target.value }))}>
@@ -185,7 +185,7 @@ export default function CompanySearch() {
           />
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
               {candidates.map(candidate => (
                 <CandidateCard
                   key={candidate._id}

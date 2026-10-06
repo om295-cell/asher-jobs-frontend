@@ -77,7 +77,7 @@ export default function CompanyRegisterPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '2.5rem' }}>
+        <div className="card card-responsive">
           <form onSubmit={handleSubmit}>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--slate-700)', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
               {isRtl ? '١. بيانات الشركة' : '1. Company Details'}
@@ -88,7 +88,7 @@ export default function CompanyRegisterPage() {
               <input type="text" name="companyName" className="form-control" placeholder={isRtl ? 'الاسم التجاري الرسمي' : 'Official trading name'} value={form.companyName} onChange={handleChange} required />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('email')} *</label>
                 <input type="email" name="email" className="form-control" placeholder="company@example.com" value={form.email} onChange={handleChange} required dir="ltr" />
@@ -99,7 +99,7 @@ export default function CompanyRegisterPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'قطاع النشاط الصناعي' : 'Industry Sector'}</label>
                 <select name="industry" className="form-control" value={form.industry} onChange={handleChange}>
@@ -116,7 +116,7 @@ export default function CompanyRegisterPage() {
               {isRtl ? '٢. العنوان' : '2. Address'}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('governorate')}</label>
                 <select name="governorate" className="form-control" value={form.governorate} onChange={handleChange}>
@@ -138,7 +138,7 @@ export default function CompanyRegisterPage() {
               {isRtl ? '٣. المسؤول عن التواصل' : '3. Contact Person'} ({isRtl ? 'اختياري' : 'Optional'})
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'اسم الشخص المسؤول' : 'Contact Person Name'}</label>
                 <input type="text" name="contactPerson" className="form-control" placeholder={isRtl ? 'م. أحمد محمد' : 'Eng. Ahmed Mohamed'} value={form.contactPerson} onChange={handleChange} />
@@ -153,7 +153,7 @@ export default function CompanyRegisterPage() {
               {isRtl ? '٤. كلمة المرور' : '4. Account Password'}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('password')} *</label>
                 <input type="password" name="password" className="form-control" placeholder="6 أحرف على الأقل" value={form.password} onChange={handleChange} required minLength={6} dir="ltr" />

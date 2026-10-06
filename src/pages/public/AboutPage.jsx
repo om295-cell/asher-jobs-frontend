@@ -6,18 +6,18 @@ import { MapPin, Phone, Mail, Target } from 'lucide-react'
 export default function AboutPage() {
   const { isRtl } = useLanguage()
   return (
-    <div style={{ padding: '4rem 0', background: 'var(--bg-page)' }}>
+    <div style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', background: 'var(--bg-page)' }}>
       <div className="container" style={{ maxWidth: 760 }}>
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.25rem)', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.75rem' }}>
             {isRtl ? 'من نحن — عاشر جوبز' : 'About Us — Asher Jobs'}
           </h1>
-          <p style={{ fontSize: '1.0625rem', color: 'var(--slate-500)' }}>
+          <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.0625rem)', color: 'var(--slate-500)' }}>
             {isRtl ? 'قصة المنصة ومهمتها' : 'Platform Story & Mission'}
           </p>
         </div>
 
-        <div className="card" style={{ padding: '2.5rem', marginBottom: '1.5rem' }}>
+        <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
             <Target size={28} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.2rem' }} />
             <div>
@@ -43,7 +43,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card card-responsive">
           <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--slate-800)', marginBottom: '1.25rem' }}>
             {isRtl ? 'للتواصل معنا' : 'Contact Us'}
           </h2>

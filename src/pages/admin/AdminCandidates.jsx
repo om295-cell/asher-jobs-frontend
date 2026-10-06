@@ -145,12 +145,12 @@ export default function AdminCandidates() {
   }
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container">
         {/* Header */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+            <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
               {isRtl ? 'إدارة قاعدة بيانات المرشحين' : 'Candidate Database Management'}
             </h1>
             <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
@@ -160,8 +160,8 @@ export default function AdminCandidates() {
         </div>
 
         {/* Filters Box */}
-        <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-          <form onSubmit={handleFilterSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+        <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
+          <form onSubmit={handleFilterSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">{isRtl ? 'بحث بالاسم / الهاتف / المنطقة' : 'Search Name / Phone / Area'}</label>
               <div style={{ position: 'relative' }}>
@@ -197,15 +197,15 @@ export default function AdminCandidates() {
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button type="submit" className="btn btn-primary" style={{ flex: '1 1 120px' }}>
                 <Search size={16} />
                 {isRtl ? 'تصفية' : 'Filter'}
               </button>
               <button
                 type="button"
                 className="btn"
-                style={{ background: 'var(--slate-100)', color: 'var(--slate-700)' }}
+                style={{ flex: '1 1 100px', background: 'var(--slate-100)', color: 'var(--slate-700)' }}
                 onClick={() => {
                   setKeyword('')
                   setCategoryId('')
@@ -232,8 +232,8 @@ export default function AdminCandidates() {
               description={isRtl ? 'جرب تغيير شروط البحث أو الفلاتر أعلاه.' : 'Try adjusting your search criteria.'}
             />
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
+            <div className="table-responsive">
+              <table className="data-table" style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '0.875rem 1rem', fontWeight: 700, color: 'var(--slate-600)' }}>

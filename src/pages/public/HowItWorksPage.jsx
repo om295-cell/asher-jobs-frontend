@@ -21,21 +21,21 @@ export default function HowItWorksPage() {
   ]
 
   return (
-    <div style={{ padding: '4rem 0', background: 'var(--bg-page)' }}>
+    <div style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', background: 'var(--bg-page)' }}>
       <div className="container" style={{ maxWidth: 760 }}>
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.25rem)', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.75rem' }}>
             {isRtl ? 'كيف تعمل منصة عاشر جوبز؟' : 'How Does Asher Jobs Work?'}
           </h1>
-          <p style={{ fontSize: '1.0625rem', color: 'var(--slate-500)', maxWidth: 520, margin: '0 auto' }}>
+          <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.0625rem)', color: 'var(--slate-500)', maxWidth: 520, margin: '0 auto' }}>
             {isRtl ? 'دليل خطوة بخطوة لكل من باحثي العمل والشركات والمصانع.' : 'A step-by-step guide for both job seekers and employers.'}
           </p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {steps.map((step, i) => (
-            <div key={i} className="card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', padding: '1.75rem' }}>
-              <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: '14px', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <step.icon size={24} />
+            <div key={i} className="card card-responsive" style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+              <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: '12px', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <step.icon size={22} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>

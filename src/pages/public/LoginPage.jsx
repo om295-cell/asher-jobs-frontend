@@ -45,9 +45,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1rem', background: 'var(--bg-page)' }}>
+    <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(1.5rem, 4vw, 3rem) 1rem', background: 'var(--bg-page)' }}>
       <div style={{ width: '100%', maxWidth: 440 }}>
-        <div className="card" style={{ padding: '2.5rem' }}>
+        <div className="card card-responsive">
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
               <img

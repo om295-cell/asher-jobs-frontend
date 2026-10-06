@@ -56,19 +56,19 @@ export default function CompanyRequests() {
 
         {/* New Request Form */}
         {showForm && (
-          <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem', borderTop: '3px solid var(--primary)' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem', borderTop: '3px solid var(--primary)' }}>
             <h3 style={{ fontWeight: 700, color: 'var(--slate-800)', marginBottom: '1.25rem' }}>
               {isRtl ? 'طلب توظيف جديد' : 'New Recruitment Request'}
             </h3>
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', alignItems: 'end' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem', alignItems: 'end' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'المسمى الوظيفي المطلوب' : 'Required Job Title'} *</label>
                   <input type="text" className="form-control" value={form.jobTitle} onChange={e => setForm(p => ({ ...p, jobTitle: e.target.value }))} placeholder={isRtl ? 'مثال: فني كهرباء' : 'e.g. Electrical Technician'} required />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'العدد المطلوب' : 'Headcount'} *</label>
-                  <input type="number" className="form-control" min="1" max="200" value={form.count} onChange={e => setForm(p => ({ ...p, count: e.target.value }))} required style={{ width: 100 }} />
+                  <input type="number" className="form-control" min="1" max="200" value={form.count} onChange={e => setForm(p => ({ ...p, count: e.target.value }))} required style={{ minWidth: 100, width: '100%' }} />
                 </div>
               </div>
               <div className="form-group" style={{ marginTop: '1rem' }}>

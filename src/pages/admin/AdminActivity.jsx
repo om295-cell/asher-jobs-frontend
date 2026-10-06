@@ -51,12 +51,12 @@ export default function AdminActivity() {
   }, [fetchLogs])
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container">
         {/* Header */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+            <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
               {isRtl ? 'سجل النشاط والأمان (Audit Log)' : 'Security & Activity Audit Log'}
             </h1>
             <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
@@ -69,7 +69,7 @@ export default function AdminActivity() {
               className="form-control"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              style={{ minWidth: 160 }}
+              style={{ minWidth: 160, width: '100%' }}
             >
               <option value="">{isRtl ? 'جميع الفئات' : 'All Roles'}</option>
               <option value="admin">{isRtl ? 'الإدارة فقط (Admin)' : 'Admin Only'}</option>
@@ -92,8 +92,8 @@ export default function AdminActivity() {
               description={isRtl ? 'العمليات والتفاعلات الجديدة ستظهر هنا تلقائياً.' : 'New events will be recorded here.'}
             />
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
+            <div className="table-responsive">
+              <table className="data-table" style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: isRtl ? 'right' : 'left', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--slate-50)', borderBottom: '1px solid var(--border)' }}>
                     <th style={{ padding: '0.875rem 1rem', fontWeight: 700, color: 'var(--slate-600)' }}>

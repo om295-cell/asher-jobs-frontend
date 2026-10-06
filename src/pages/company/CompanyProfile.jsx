@@ -70,7 +70,7 @@ export default function CompanyProfile() {
         </div>
 
         {/* Editable fields */}
-        <div className="card" style={{ padding: '1.75rem' }}>
+        <div className="card card-responsive">
           <h3 style={{ fontWeight: 700, color: 'var(--slate-700)', marginBottom: '1.25rem', fontSize: '0.9375rem' }}>{isRtl ? 'معلومات إضافية (قابلة للتعديل)' : 'Additional Info (Editable)'}</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -81,7 +81,7 @@ export default function CompanyProfile() {
               <label className="form-label">{isRtl ? 'الموقع الإلكتروني' : 'Website'}</label>
               <input type="url" className="form-control" value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} dir="ltr" placeholder="https://" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'اسم مسؤول التواصل' : 'Contact Person'}</label>
                 <input type="text" className="form-control" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} />

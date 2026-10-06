@@ -105,7 +105,7 @@ export default function CandidateRegisterPage() {
           </p>
         </div>
 
-        <div className="card" style={{ padding: '2.5rem' }}>
+        <div className="card card-responsive">
           <form onSubmit={handleSubmit}>
             {/* Personal Info */}
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--slate-700)', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
@@ -117,7 +117,7 @@ export default function CandidateRegisterPage() {
               <input type="text" name="fullName" className="form-control" placeholder={isRtl ? 'الاسم ثلاثي أو رباعي كاملاً' : 'Full name'} value={form.fullName} onChange={handleChange} required />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('phone')} *</label>
                 <input type="tel" name="phone" className="form-control" placeholder="01XXXXXXXXX" value={form.phone} onChange={handleChange} required dir="ltr" />
@@ -156,7 +156,7 @@ export default function CandidateRegisterPage() {
               </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('yearsOfExp')}</label>
                 <input type="number" name="yearsOfExperience" className="form-control" min="0" max="50" value={form.yearsOfExperience} onChange={handleChange} />
@@ -179,7 +179,7 @@ export default function CandidateRegisterPage() {
               {isRtl ? '٣. موقع الإقامة' : '3. Location'}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('governorate')}</label>
                 <select name="governorate" className="form-control" value={form.governorate} onChange={handleChange}>
@@ -197,7 +197,7 @@ export default function CandidateRegisterPage() {
               {isRtl ? '٤. كلمة المرور والموافقة' : '4. Password & Consent'}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('password')} *</label>
                 <input type="password" name="password" className="form-control" placeholder="6 أحرف على الأقل" value={form.password} onChange={handleChange} required minLength={6} dir="ltr" />

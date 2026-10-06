@@ -148,7 +148,7 @@ export default function AdminCandidateDetail() {
   }
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container" style={{ maxWidth: 900 }}>
         {/* Back Link */}
         <Link
@@ -168,7 +168,7 @@ export default function AdminCandidateDetail() {
         </Link>
 
         {/* Profile Card Header */}
-        <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+        <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
               <div
@@ -249,12 +249,12 @@ export default function AdminCandidateDetail() {
 
         {/* Edit Form or Detail View */}
         {editing ? (
-          <form onSubmit={handleSave} className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+          <form onSubmit={handleSave} className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 800, marginBottom: '1.25rem' }}>
               {isRtl ? 'تعديل ملف المرشح' : 'Edit Candidate Profile'}
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'الاسم الكامل' : 'Full Name'}</label>
                 <input
@@ -357,9 +357,9 @@ export default function AdminCandidateDetail() {
             </button>
           </form>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
             {/* Contact & Personal */}
-            <div className="card" style={{ padding: '1.5rem' }}>
+            <div className="card card-responsive">
               <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
                 {isRtl ? 'بيانات التواصل والعنوان' : 'Contact & Location'}
               </h2>
@@ -417,7 +417,7 @@ export default function AdminCandidateDetail() {
             </div>
 
             {/* Professional Info */}
-            <div className="card" style={{ padding: '1.5rem' }}>
+            <div className="card card-responsive">
               <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
                 {isRtl ? 'الخبرة والمؤهلات' : 'Experience & Qualifications'}
               </h2>

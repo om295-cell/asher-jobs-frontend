@@ -70,7 +70,7 @@ export default function AdminSettings() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }}>
       <div className="container" style={{ maxWidth: 760 }}>
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
@@ -80,14 +80,14 @@ export default function AdminSettings() {
               {isRtl ? 'إعدادات المنصة العامة' : 'System Configuration'}
             </span>
           </div>
-          <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+          <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
             {isRtl ? 'إعدادات عاشر جوبز' : 'Asher Jobs Platform Settings'}
           </h1>
         </div>
 
         <form onSubmit={handleSave}>
           {/* Security & Access Controls */}
-          <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
               {isRtl ? 'سياسات الأمان واعتماد الحسابات' : 'Security & Access Policies'}
             </h2>
@@ -130,12 +130,12 @@ export default function AdminSettings() {
           </div>
 
           {/* Contact & Support Channels */}
-          <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
               {isRtl ? 'قنوات الدعم الفني والتواصل' : 'Support Channels'}
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'رقم هاتف / واتساب الدعم' : 'Support Phone / WhatsApp'}</label>
                 <input
@@ -170,12 +170,12 @@ export default function AdminSettings() {
           </div>
 
           {/* Default Quotas for New Companies */}
-          <div className="card" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
               {isRtl ? 'الحصة الافتراضية للشركات الجديدة' : 'Default Quotas for New Companies'}
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'حد عمليات البحث الأولي' : 'Starter Search Limit'}</label>
                 <input

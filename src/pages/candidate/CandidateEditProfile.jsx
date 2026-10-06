@@ -87,7 +87,7 @@ export default function CandidateEditProfile() {
           {isRtl ? 'تعديل الملف المهني' : 'Edit Professional Profile'}
         </h1>
 
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card card-responsive">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">{isRtl ? 'الاسم الكامل' : 'Full Name'} *</label>
@@ -104,7 +104,7 @@ export default function CandidateEditProfile() {
               </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'سنوات الخبرة' : 'Years of Experience'}</label>
                 <input type="number" name="yearsOfExperience" className="form-control" min="0" max="50" value={form.yearsOfExperience} onChange={handleChange} />
@@ -117,7 +117,7 @@ export default function CandidateEditProfile() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{isRtl ? 'المحافظة' : 'Governorate'}</label>
                 <select name="governorate" className="form-control" value={form.governorate} onChange={handleChange}>

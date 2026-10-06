@@ -103,11 +103,11 @@ export default function CompanySubscription() {
   ]
 
   return (
-    <div style={{ padding: '2rem 0 3rem', background: 'var(--bg-page)', minHeight: '80vh' }}>
+    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '80vh' }}>
       <div className="container">
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+          <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
             {isRtl ? 'إدارة الاشتراك والباقات' : 'Subscription & Plans'}
           </h1>
           <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
@@ -117,9 +117,8 @@ export default function CompanySubscription() {
 
         {/* Current Plan Overview Card */}
         <div
-          className="card"
+          className="card card-responsive"
           style={{
-            padding: '1.75rem',
             marginBottom: '2.5rem',
             background: '#000000',
             color: '#fff',
@@ -171,7 +170,7 @@ export default function CompanySubscription() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))',
               gap: '1rem',
               marginTop: '1.5rem',
               paddingTop: '1.5rem',
@@ -198,15 +197,15 @@ export default function CompanySubscription() {
           {isRtl ? 'مقارنة الباقات المتاحة للمصانع والشركات' : 'Available Employer Plans'}
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
           {plans.map((p) => {
             const features = isRtl ? p.featuresAr : p.featuresEn
             return (
               <div
                 key={p.id}
-                className="card"
+                className="card card-responsive"
                 style={{
-                  padding: '2rem',
+                  padding: 'clamp(1.25rem, 4vw, 2rem)',
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',

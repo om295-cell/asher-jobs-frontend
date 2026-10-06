@@ -37,7 +37,7 @@ export default function CandidateReferrals() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
           {[
             { icon: Users, label: isRtl ? 'إجمالي الإحالات' : 'Total Referrals', value: data?.totalReferrals ?? 0, color: '#000000' },
             { icon: CheckCircle, label: isRtl ? 'إحالات مكتملة' : 'Completed', value: data?.completedReferrals ?? 0, color: '#000000' },
@@ -52,23 +52,23 @@ export default function CandidateReferrals() {
         </div>
 
         {/* Referral Link Card */}
-        <div className="card" style={{ padding: '1.75rem' }}>
+        <div className="card card-responsive">
           <h3 style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--slate-800)' }}>
             {isRtl ? 'رابط الإحالة الخاص بك' : 'Your Referral Link'}
           </h3>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               readOnly
               value={referralLink}
               dir="ltr"
               style={{
-                flex: 1, padding: '0.75rem 1rem', background: 'var(--slate-50)',
+                flex: '1 1 200px', padding: '0.75rem 1rem', background: 'var(--slate-50)',
                 border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
                 fontSize: '0.875rem', color: 'var(--slate-600)', fontFamily: 'monospace',
-                textAlign: isRtl ? 'right' : 'left'
+                textAlign: isRtl ? 'right' : 'left', minWidth: 0
               }}
             />
-            <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.125rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.9375rem' }}>
+            <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.9375rem', flex: '0 0 auto' }}>
               <Copy size={16} />
               {isRtl ? 'نسخ' : 'Copy'}
             </button>

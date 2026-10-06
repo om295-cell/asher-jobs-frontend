@@ -59,7 +59,7 @@ export default function CandidateCv() {
           </button>
         </div>
 
-        <div className="card" style={{ padding: '2.5rem' }} ref={printRef}>
+        <div className="card card-responsive" ref={printRef}>
           {/* Header */}
           <div style={{ borderBottom: '3px solid var(--accent)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)', marginBottom: '0.5rem' }}>{profile.fullName}</h1>
@@ -70,7 +70,7 @@ export default function CandidateCv() {
           <h2 style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--accent)', borderBottom: '2px solid var(--accent)', paddingBottom: '0.375rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {isRtl ? 'بيانات التواصل' : 'Contact Information'}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
             {[
               { label: isRtl ? 'الهاتف' : 'Phone', value: profile.user?.phone },
               { label: isRtl ? 'البريد الإلكتروني' : 'Email', value: profile.user?.email },
@@ -88,7 +88,7 @@ export default function CandidateCv() {
           <h2 style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--accent)', borderBottom: '2px solid var(--accent)', paddingBottom: '0.375rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {isRtl ? 'الخبرة والمؤهلات' : 'Experience & Education'}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 700 }}>{isRtl ? 'سنوات الخبرة' : 'Years of Experience'}</div>
               <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--slate-800)' }}>{profile.yearsOfExperience ?? 0} {isRtl ? 'سنوات' : 'years'}</div>

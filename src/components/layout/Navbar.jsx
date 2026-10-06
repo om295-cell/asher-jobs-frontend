@@ -31,6 +31,11 @@ export default function Navbar() {
 
   const isActive = (path) => location.pathname === path;
 
+  // Automatically close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <header
       style={{
@@ -47,34 +52,35 @@ export default function Navbar() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          height: '70px'
+          height: '70px',
+          gap: '0.75rem'
         }}
       >
         {/* Brand Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', flexShrink: 0 }}>
           <img
             src="/logo.png"
             alt={t('brandName')}
             style={{
-              height: '42px',
+              height: '40px',
               width: 'auto',
-              maxHeight: '42px',
+              maxHeight: '40px',
               objectFit: 'contain',
               display: 'block'
             }}
           />
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>
+            <div style={{ fontSize: 'clamp(1.05rem, 3vw, 1.25rem)', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>
               {t('brandName')}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#52525b', fontWeight: 600 }}>
+            <div className="brand-subtitle" style={{ fontSize: '0.7rem', color: '#52525b', fontWeight: 600 }}>
               {isRtl ? 'العاشر من رمضان والمدن الصناعية' : '10th of Ramadan Industrial Jobs'}
             </div>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav style={{ display: 'none', gap: '1.5rem', alignItems: 'center' }} className="desktop-nav">
+        <nav style={{ display: 'none', gap: '1.25rem', alignItems: 'center' }} className="desktop-nav">
           <Link
             to="/"
             style={{
@@ -230,20 +236,20 @@ export default function Navbar() {
         </nav>
 
         {/* Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <button
             className="btn btn-outline btn-sm"
             onClick={toggleLang}
             title={lang === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
-            style={{ padding: '0.4rem 0.65rem' }}
+            style={{ padding: '0.35rem 0.6rem', fontSize: '0.8125rem' }}
           >
-            <Globe size={16} />
+            <Globe size={15} />
             <span style={{ fontWeight: 700 }}>{lang === 'ar' ? 'English' : 'عربي'}</span>
           </button>
 
-          {/* Auth State */}
+          {/* Desktop Auth State */}
           {!isAuthenticated ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link to="/login" className="btn btn-outline btn-sm">
                 {t('navLogin')}
               </Link>
@@ -252,7 +258,7 @@ export default function Navbar() {
               </Link>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link
                 to={
                   role === 'admin'
@@ -271,6 +277,7 @@ export default function Navbar() {
                 className="btn btn-outline btn-sm"
                 onClick={handleLogout}
                 title={t('navLogout')}
+                style={{ padding: '0.35rem 0.5rem' }}
               >
                 <LogOut size={16} />
               </button>
@@ -281,80 +288,168 @@ export default function Navbar() {
           <button
             className="btn btn-outline btn-sm mobile-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ display: 'none', padding: '0.4rem 0.5rem' }}
+            aria-label="Toggle navigation menu"
+            style={{ padding: '0.4rem 0.5rem' }}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Backdrop & Menu */}
       {mobileMenuOpen && (
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #000000',
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-          }}
-        >
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0', fontWeight: 700, color: '#000000' }}>
-            {t('navHome')}
-          </Link>
-          <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0', fontWeight: 700, color: '#000000' }}>
-            {t('navHowItWorks')}
-          </Link>
-          <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0', fontWeight: 700, color: '#000000' }}>
-            {t('navAbout')}
-          </Link>
-          <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0', fontWeight: 700, color: '#000000' }}>
-            {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
-          </Link>
+        <>
+          <div
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              top: '70px',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 99
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '70px',
+              left: 0,
+              right: 0,
+              backgroundColor: '#ffffff',
+              borderBottom: '2px solid #000000',
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+              maxHeight: 'calc(100vh - 70px)',
+              overflowY: 'auto',
+              zIndex: 100,
+              boxShadow: 'var(--shadow-xl)',
+              animation: 'modalIn 0.15s ease-out'
+            }}
+          >
+            {/* Core Links */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
+              <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/') ? '#f4f4f5' : 'transparent' }}>
+                {t('navHome')}
+              </Link>
+              <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/how-it-works') ? '#f4f4f5' : 'transparent' }}>
+                {t('navHowItWorks')}
+              </Link>
+              <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/about') ? '#f4f4f5' : 'transparent' }}>
+                {t('navAbout')}
+              </Link>
+              <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
+                {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+              </Link>
+            </div>
 
-          {!isAuthenticated ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
-                {t('navLogin')}
-              </Link>
-              <Link to="/register/candidate" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>
-                {t('navRegisterCandidate')}
-              </Link>
-              <Link to="/register/company" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
-                {t('navRegisterCompany')}
-              </Link>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <Link
-                to={role === 'admin' ? '/admin/dashboard' : role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
-                onClick={() => setMobileMenuOpen(false)}
-                className="btn btn-primary"
-                style={{ width: '100%' }}
-              >
-                {t('navDashboard')}
-              </Link>
-              <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%' }}>
-                {t('navLogout')}
-              </button>
-            </div>
-          )}
-        </div>
+            {/* Role Links */}
+            {isAuthenticated && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
+                {role === 'company' && (
+                  <>
+                    <Link to="/company/search" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Search size={16} />
+                      {t('navFindCandidates')}
+                    </Link>
+                    <Link to="/company/requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {t('navRequests')}
+                    </Link>
+                  </>
+                )}
+                {role === 'candidate' && (
+                  <>
+                    <Link to="/candidate/profile" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {t('navProfile')}
+                    </Link>
+                    <Link to="/candidate/cv" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {isRtl ? 'السيرة الذاتية (CV)' : 'View CV'}
+                    </Link>
+                    <Link to="/candidate/referrals" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {t('navReferrals')}
+                    </Link>
+                  </>
+                )}
+                {role === 'admin' && (
+                  <>
+                    <Link to="/admin/candidates" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {t('navCandidates')}
+                    </Link>
+                    <Link to="/admin/companies" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {t('navCompanies')}
+                    </Link>
+                    <Link to="/admin/recommendations" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                      {isRtl ? 'طلبات الترشيح' : 'Nominations'}
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Auth Actions in Drawer */}
+            {!isAuthenticated ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
+                  {t('navLogin')}
+                </Link>
+                <Link to="/register/candidate" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>
+                  {t('navRegisterCandidate')}
+                </Link>
+                <Link to="/register/company" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
+                  {t('navRegisterCompany')}
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
+                <Link
+                  to={role === 'admin' ? '/admin/dashboard' : role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="btn btn-primary"
+                  style={{ width: '100%' }}
+                >
+                  <User size={16} />
+                  <span>{t('navDashboard')}</span>
+                </Link>
+                <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%' }}>
+                  <LogOut size={16} />
+                  <span>{t('navLogout')}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       <style>{`
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
           .desktop-nav {
             display: flex !important;
           }
           .mobile-toggle {
             display: none !important;
           }
+          .desktop-auth-actions {
+            display: flex !important;
+          }
         }
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) {
+          .desktop-nav {
+            display: none !important;
+          }
           .mobile-toggle {
             display: inline-flex !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .desktop-auth-actions {
+            display: none !important;
+          }
+        }
+        @media (max-width: 440px) {
+          .brand-subtitle {
+            display: none !important;
           }
         }
       `}</style>

@@ -133,7 +133,7 @@ export default function AdminRecommendations() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
           gap: '1rem',
           marginBottom: '2rem'
         }}
@@ -213,7 +213,7 @@ export default function AdminRecommendations() {
           alignItems: 'center'
         }}
       >
-        <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
+        <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 0 }}>
           <Search
             size={16}
             style={{
@@ -411,7 +411,7 @@ export default function AdminRecommendations() {
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
-              padding: '2rem',
+              padding: 'clamp(1rem, 3.5vw, 2rem)',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
               position: 'relative'
             }}

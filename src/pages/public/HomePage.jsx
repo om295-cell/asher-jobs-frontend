@@ -129,10 +129,10 @@ export default function HomePage() {
       <section style={{
         backgroundColor: '#000000',
         color: '#ffffff',
-        padding: '5rem 0 6rem',
+        padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(3.5rem, 7vw, 6rem)',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: '620px',
+        minHeight: 'auto',
         display: 'flex',
         alignItems: 'center'
       }}>
@@ -167,20 +167,20 @@ export default function HomePage() {
           zIndex: 1
         }} />
 
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+        <div className="container" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
           <div style={{ maxWidth: 700 }}>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',
               padding: '0.375rem 1rem', borderRadius: '9999px',
               fontSize: '0.8125rem', fontWeight: 700, color: '#e4e4e7',
-              marginBottom: '1.5rem'
+              marginBottom: '1.25rem'
             }}>
               <MapPin size={14} />
               {isRtl ? 'العاشر من رمضان — الروبيكي — بدر — العبور' : '10th of Ramadan — El Roubiky — Badr — El Obour'}
             </div>
 
-            <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 900, lineHeight: 1.15, marginBottom: '1.25rem' }}>
+            <h1 style={{ fontSize: 'clamp(1.75rem, 5.5vw, 3.25rem)', fontWeight: 900, lineHeight: 1.15, marginBottom: '1.25rem' }}>
               {isRtl ? (
                 <>أكبر قاعدة بيانات<br /><span style={{ color: '#d4d4d8' }}>للعمال و الموظفين في مصر</span></>
               ) : (
@@ -188,19 +188,19 @@ export default function HomePage() {
               )}
             </h1>
 
-            <p style={{ fontSize: '1.125rem', color: '#a1a1aa', lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: 580 }}>
+            <p style={{ fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)', color: '#a1a1aa', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 580 }}>
               {isRtl
                 ? 'سجّل بياناتك كباحث عن عمل وابق متاحاً لكبرى الشركات والمصانع المعتمدة، أو ابحث ووظّف أفضل الكفاءات في العاشر من رمضان، الروبيكي، بدر، العبور وكافة أنحاء مصر.'
                 : 'Connect with top verified factories and employers, or search and hire qualified workers and professionals across 10th of Ramadan, El Roubiky, Badr, El Obour, and all of Egypt.'}
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
               <Link
                 to="/recommend"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.875rem 1.75rem', borderRadius: '10px',
-                  background: '#ffffff', color: '#000000', fontWeight: 700, fontSize: '1rem',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  padding: '0.875rem 1.5rem', borderRadius: '10px',
+                  background: '#ffffff', color: '#000000', fontWeight: 700, fontSize: '0.95rem',
                   transition: 'all 0.15s', textDecoration: 'none', border: '2px solid #ffffff'
                 }}
               >
@@ -211,10 +211,10 @@ export default function HomePage() {
               <button
                 onClick={() => setShowCompanyModal(true)}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.75rem 1.5rem', borderRadius: '10px',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+                  padding: '0.75rem 1.25rem', borderRadius: '10px',
                   background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)',
-                  color: '#fff', fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
+                  color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
                   lineHeight: 1
                 }}
               >
@@ -222,7 +222,7 @@ export default function HomePage() {
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: '0.15rem' }}>
                   <span>{isRtl ? 'تسجيل شركة أو مصنع' : 'Register as Employer'}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
                     <span style={{ fontSize: '0.72rem', color: '#a1a1aa', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
                   </span>
                 </span>
@@ -232,8 +232,11 @@ export default function HomePage() {
 
           {/* Stats strip */}
           <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: '2rem',
-            marginTop: '4rem', paddingTop: '3rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+            gap: '1.5rem',
+            marginTop: 'clamp(2.5rem, 5vw, 4rem)',
+            paddingTop: 'clamp(1.5rem, 4vw, 3rem)',
             borderTop: '1px solid rgba(255,255,255,0.15)'
           }}>
             {[
@@ -254,7 +257,7 @@ export default function HomePage() {
               },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: 42, height: 42, borderRadius: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+                <div style={{ width: 42, height: 42, borderRadius: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', flexShrink: 0 }}>
                   <Icon size={20} />
                 </div>
                 <div>
@@ -268,18 +271,18 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section style={{ padding: '5rem 0', background: '#f4f4f5' }}>
+      <section style={{ padding: 'clamp(3rem, 6vw, 5rem) 0', background: '#f4f4f5' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#000000', marginBottom: '0.75rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#000000', marginBottom: '0.75rem' }}>
               {isRtl ? 'كيف تعمل منصة عاشر جوبز؟' : 'How Asher Jobs Works'}
             </h2>
-            <p style={{ fontSize: '1.0625rem', color: '#52525b', maxWidth: 560, margin: '0 auto' }}>
+            <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.0625rem)', color: '#52525b', maxWidth: 560, margin: '0 auto' }}>
               {isRtl ? 'نظام بسيط وفعّال يربط الباحثين عن عمل بالمصانع المعتمدة بشكل آمن ومنظّم.' : 'A simple, effective system connecting verified job seekers with approved industrial employers.'}
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
             {[
               {
                 step: '01', icon: Users,
@@ -314,13 +317,13 @@ export default function HomePage() {
       </section>
 
       {/* Job Sectors */}
-      <section style={{ padding: '4rem 0', background: '#ffffff', borderTop: '1px solid #e4e4e7' }}>
+      <section style={{ padding: 'clamp(2.5rem, 5vw, 4rem) 0', background: '#ffffff', borderTop: '1px solid #e4e4e7' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 2.5rem' }}>
-            <h2 style={{ fontSize: '1.875rem', fontWeight: 800, marginBottom: '0.5rem', color: '#09090b' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 1.875rem)', fontWeight: 800, marginBottom: '0.5rem', color: '#09090b' }}>
               {isRtl ? 'التخصصات والمهن المتاحة' : 'Available Job Specializations'}
             </h2>
-            <p style={{ fontSize: '0.95rem', color: '#71717a', margin: 0 }}>
+            <p style={{ fontSize: 'clamp(0.875rem, 2vw, 0.95rem)', color: '#71717a', margin: 0 }}>
               {isRtl
                 ? 'دليل موحد لأبرز القطاعات والمهن المعتمدة في العاشر من رمضان والمناطق الصناعية'
                 : 'A unified directory of approved sectors and jobs in 10th of Ramadan industrial zones'}
@@ -328,7 +331,7 @@ export default function HomePage() {
           </div>
 
           {sectorsLoading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '1rem' }}>
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} style={{ height: '70px', borderRadius: '12px', background: '#f4f4f5' }} />
               ))}
@@ -356,7 +359,7 @@ export default function HomePage() {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
               gap: '1rem'
             }}>
               {categories.map((cat) => {
@@ -432,13 +435,13 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section style={{ padding: '5rem 0', background: '#000000', color: '#fff' }}>
+      <section style={{ padding: 'clamp(3rem, 6vw, 5rem) 0', background: '#000000', color: '#fff' }}>
         <div className="container" style={{ textAlign: 'center' }}>
           <TrendingUp size={40} style={{ color: '#ffffff', marginBottom: '1rem' }} />
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, marginBottom: '1rem' }}>
             {isRtl ? 'ابدأ التوظيف الذكي اليوم' : 'Start Smart Recruiting Today'}
           </h2>
-          <p style={{ fontSize: '1.0625rem', color: '#a1a1aa', marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>
+          <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.0625rem)', color: '#a1a1aa', marginBottom: '2rem', maxWidth: 500, margin: '0 auto 2rem' }}>
             {isRtl
               ? 'قاعدة بيانات واحدة، موحّدة، موثّقة — تربط كل المصانع والباحثين عن عمل في منطقة العاشر من رمضان.'
               : 'One unified, verified database connecting all factories and job seekers in the 10th of Ramadan industrial zone.'}
@@ -448,20 +451,20 @@ export default function HomePage() {
               href="https://wa.me/201556454666?text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D9%83%D8%A8%D8%A7%D8%AD%D8%AB%20%D8%B9%D9%86%20%D8%B9%D9%85%D9%84"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 2rem', background: '#ffffff', color: '#000000', borderRadius: '10px', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', border: '2px solid #ffffff' }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem 1.75rem', background: '#ffffff', color: '#000000', borderRadius: '10px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', border: '2px solid #ffffff' }}
             >
               <Users size={20} />
               {isRtl ? 'تسجيل كباحث عن عمل' : 'Register as Job Seeker'}
             </a>
             <button
               onClick={() => setShowCompanyModal(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.75rem', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: '10px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', lineHeight: 1 }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '0.75rem 1.5rem', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: '10px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', lineHeight: 1 }}
             >
               <Building2 size={20} style={{ flexShrink: 0 }} />
               <span style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: '0.15rem' }}>
                 <span>{isRtl ? 'تسجيل شركة أو مصنع' : 'Register as Employer'}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
                   <span style={{ fontSize: '0.72rem', color: '#a1a1aa', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
                 </span>
               </span>
@@ -484,7 +487,7 @@ export default function HomePage() {
             onClick={e => e.stopPropagation()}
             style={{
               background: '#18181b', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '20px', padding: '2rem', width: '100%', maxWidth: '400px',
+              borderRadius: '20px', padding: 'clamp(1.25rem, 4vw, 2rem)', width: '100%', maxWidth: '400px',
               boxShadow: '0 25px 60px rgba(0,0,0,0.6)', position: 'relative'
             }}
           >

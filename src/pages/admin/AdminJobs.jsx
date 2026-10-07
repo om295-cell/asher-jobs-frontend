@@ -1,3 +1,4 @@
+// v2 - includes JobTitleImportModal with file/text extraction
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'

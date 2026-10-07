@@ -45,31 +45,25 @@ export default function HomePage() {
   const [jobs, setJobs] = useState([])
   const [sectorsLoading, setSectorsLoading] = useState(true)
 
-  const getFallbackVisitors = () => {
-    try {
-      const stored = localStorage.getItem('asher_site_visitors');
-      return stored ? Math.max(1248, parseInt(stored, 10)) : 1248;
-    } catch (e) {
-      return 1248;
-    }
-  };
-
   useEffect(() => {
     let isMounted = true;
-    const initialLocalVisitors = getFallbackVisitors();
 
-    // 1. Fetch current live stats
+    // Clean up any old cached dummy visitor count from localStorage
+    try {
+      const cached = localStorage.getItem('asher_site_visitors');
+      if (cached && parseInt(cached, 10) >= 1248) {
+        localStorage.removeItem('asher_site_visitors');
+      }
+    } catch (e) {}
+
+    // 1. Fetch current live stats directly from database
     statsApi.getStats()
       .then((res) => {
         if (isMounted && res?.data?.data) {
-          const apiVisitors = res.data.data.visitors;
-          const resolvedVisitors = apiVisitors && apiVisitors > 0 ? Math.max(apiVisitors, initialLocalVisitors) : initialLocalVisitors;
-          try { localStorage.setItem('asher_site_visitors', String(resolvedVisitors)); } catch (e) {}
-
           setStats({
-            candidates: res.data.data.candidates ?? 250,
-            companies: res.data.data.companies ?? 45,
-            visitors: resolvedVisitors,
+            candidates: res.data.data.candidates ?? 0,
+            companies: res.data.data.companies ?? 0,
+            visitors: res.data.data.visitors ?? 0,
             loading: false
           });
         }
@@ -77,13 +71,7 @@ export default function HomePage() {
       .catch((err) => {
         console.error('Failed to load stats', err);
         if (isMounted) {
-          setStats((prev) => ({
-            ...prev,
-            candidates: prev.candidates ?? 250,
-            companies: prev.companies ?? 45,
-            visitors: initialLocalVisitors,
-            loading: false
-          }));
+          setStats((prev) => ({ ...prev, loading: false }));
         }
       });
 
@@ -91,28 +79,16 @@ export default function HomePage() {
     const sessionKey = 'asher_visit_session';
     if (!sessionStorage.getItem(sessionKey)) {
       try { sessionStorage.setItem(sessionKey, '1'); } catch (e) {}
-      const nextVisitors = initialLocalVisitors + 1;
-      try { localStorage.setItem('asher_site_visitors', String(nextVisitors)); } catch (e) {}
-      if (isMounted) {
-        setStats((prev) => ({ ...prev, visitors: nextVisitors }));
-      }
-
       statsApi.recordVisit()
         .then((res) => {
-          if (isMounted && res?.data?.data?.visitors) {
-            const finalVis = Math.max(res.data.data.visitors, nextVisitors);
-            try { localStorage.setItem('asher_site_visitors', String(finalVis)); } catch (e) {}
+          if (isMounted && res?.data?.data?.visitors !== undefined) {
             setStats((prev) => ({
               ...prev,
-              visitors: finalVis
+              visitors: res.data.data.visitors
             }));
           }
         })
         .catch(() => {});
-    } else {
-      if (isMounted) {
-        setStats((prev) => ({ ...prev, visitors: prev.visitors ?? initialLocalVisitors }));
-      }
     }
 
     return () => { isMounted = false };
@@ -285,7 +261,7 @@ export default function HomePage() {
               },
               {
                 label: isRtl ? 'زائر للموقع' : 'Website Visitors',
-                value: stats.loading ? '...' : (stats.visitors || getFallbackVisitors()).toLocaleString(),
+                value: stats.loading ? '...' : (stats.visitors ?? 0).toLocaleString(),
                 icon: Eye
               },
             ].map(({ label, value, icon: Icon }) => (

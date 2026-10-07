@@ -11,7 +11,11 @@
 const rawUrls = import.meta.env.VITE_API_URLS || import.meta.env.VITE_API_URL || '';
 
 const defaultBackends = [
-  'https://asher-jobs-backend.vercel.app/api'
+  'https://asher-jobs-backend-by44.vercel.app/api',
+  'https://asher-jobs-backend-1yds.vercel.app/api',
+  'https://asher-jobs-backend-dtgr.vercel.app/api',
+  'https://asher-jobs-backend.vercel.app/api',
+  'https://asher-jobs-backend-tn34.vercel.app/api'
 ];
 
 export const backendNodes = (rawUrls.trim().length > 0

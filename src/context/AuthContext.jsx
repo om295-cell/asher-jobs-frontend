@@ -34,6 +34,9 @@ export function AuthProvider({ children }) {
   const login = async (credential, password) => {
     const res = await authApi.login(credential, password);
     if (res.data?.success) {
+      if (res.data.data?.token) {
+        localStorage.setItem('token', res.data.data.token);
+      }
       setUser(res.data.data.user);
       setProfile(res.data.data.profile);
       return res.data.data;
@@ -44,6 +47,9 @@ export function AuthProvider({ children }) {
   const registerCandidate = async (formData) => {
     const res = await authApi.registerCandidate(formData);
     if (res.data?.success) {
+      if (res.data.data?.token) {
+        localStorage.setItem('token', res.data.data.token);
+      }
       setUser(res.data.data.user);
       setProfile(res.data.data.candidate);
       return res.data.data;
@@ -54,6 +60,9 @@ export function AuthProvider({ children }) {
   const registerCompany = async (formData) => {
     const res = await authApi.registerCompany(formData);
     if (res.data?.success) {
+      if (res.data.data?.token) {
+        localStorage.setItem('token', res.data.data.token);
+      }
       setUser(res.data.data.user);
       setProfile(res.data.data.company);
       return res.data.data;
@@ -67,6 +76,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.warn('Logout error:', e);
     } finally {
+      localStorage.removeItem('token');
       setUser(null);
       setProfile(null);
     }

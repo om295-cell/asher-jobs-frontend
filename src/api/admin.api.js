@@ -29,6 +29,13 @@ export const adminApi = {
   createJob: (data) => api.post('/admin/jobs', data),
   updateJob: (id, data) => api.put(`/admin/jobs/${id}`, data),
   deleteJob: (id) => api.delete(`/admin/jobs/${id}`),
+  extractJobTitles: (formData) => api.post('/admin/jobs/extract-titles', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  confirmSingleJobTitle: (data) => api.post('/admin/jobs/confirm-title', data),
+  batchConfirmJobTitles: (items) => api.post('/admin/jobs/batch-confirm-titles', { items }),
+  listJobSuggestions: (params) => api.get('/admin/jobs/suggestions', { params }),
+  reviewJobSuggestion: (id, data) => api.patch(`/admin/jobs/suggestions/${id}`, data),
 
   // Categories
   listCategories: () => api.get('/admin/categories'),

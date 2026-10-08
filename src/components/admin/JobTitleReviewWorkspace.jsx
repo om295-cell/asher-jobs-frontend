@@ -46,6 +46,8 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
   const [saving, setSaving] = useState(false);
   const [rejecting, setRejecting] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [bulkRejecting, setBulkRejecting] = useState(false);
+  const [bulkRejectReason, setBulkRejectReason] = useState('');
 
   const load = async (targetPage = page) => {
     setLoading(true);
@@ -165,6 +167,25 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     } finally { setSaving(false); }
   };
 
+  const bulkReject = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const response = await adminApi.bulkRejectTitleReviews(bulkRejectReason, filters.batchId || undefined);
+      const { rejectedCount } = response.data?.data || {};
+      setBulkRejecting(false);
+      setBulkRejectReason('');
+      showToast(`تم رفض ${rejectedCount} مسمى.`, 'info');
+      await refreshAfterAction();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'تعذر تنفيذ الرفض الجماعي.', 'error');
+    } finally { setSaving(false); }
+  };
+
+  const allPendingHaveIssues = reviews.length > 0 &&
+    reviews.filter((r) => ['Pending Review', 'Edited', 'Failed'].includes(r.status))
+           .every((r) => r.errorMessage);
+
   return <div dir="rtl" style={{ textAlign: 'right' }}>
     <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -173,6 +194,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
           <p style={{ margin: '0.25rem 0 0', color: 'var(--slate-500)', fontSize: '0.85rem' }}>لكل مسمى سجل مراجعة مستقل. الدفعة للتجميع فقط، ولا يؤدي فشل مسمى واحد إلى إيقاف بقية المسميات.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
           <button className="btn btn-outline" onClick={() => openSubmission('file')}><FileUp size={16} /> استيراد ملف</button>
           <button className="btn btn-primary" onClick={() => openSubmission('manual')}><Plus size={16} /> إضافة مسميات للمراجعة</button>
         </div>
@@ -229,6 +251,8 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     {selected && <div className="modal-overlay" onClick={() => setSelected(null)}><div className="modal-content" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 580, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>تفاصيل مراجعة المسمى</h3><button className="btn" onClick={() => setSelected(null)}><X size={18} /></button></div><div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem', fontSize: '0.9rem' }}><div><strong>الأصلي:</strong> {selected.originalTitle}</div><div><strong>النهائي:</strong> {selected.finalTitle || '—'}</div><div><strong>الحالة:</strong> <Badge status={selected.status} /></div><div><strong>الدفعة:</strong> {selected.batchId?.batchNumber || '—'}</div><div><strong>التصنيف:</strong> {selected.categoryId?.nameAr || selected.categoryId?.name || '—'}</div><div><strong>الخطأ / سبب الرفض:</strong> {selected.errorMessage || selected.rejectionReason || '—'}</div><div><strong>راجعه:</strong> {selected.reviewedBy?.email || '—'} {selected.reviewedAt ? ` بتاريخ ${readableDate(selected.reviewedAt)}` : ''}</div></div></div></div>}
 
     {edit && <div className="modal-overlay"><form className="modal-content" onSubmit={saveEdit} style={{ maxWidth: 560, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>تعديل المسمى قبل الاعتماد</h3><button type="button" className="btn" onClick={() => setEdit(null)}><X size={18} /></button></div><label style={{ display: 'block', fontWeight: 700, marginTop: '1rem' }}>المسمى النهائي<input className="form-control" value={edit.finalTitle || ''} onChange={(e) => setEdit({ ...edit, finalTitle: e.target.value })} /></label><label style={{ display: 'block', fontWeight: 700, marginTop: '1rem' }}>التصنيف<select className="form-control" value={edit.categoryId?._id || edit.categoryId || ''} onChange={(e) => setEdit({ ...edit, categoryId: e.target.value })}>{categories.map((category) => <option key={category._id} value={category._id}>{category.nameAr || category.name}</option>)}</select></label><div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setEdit(null)}>إلغاء</button><button className="btn btn-primary" disabled={saving}>{saving ? 'جارٍ الحفظ...' : 'حفظ التعديل'}</button></div></form></div>}
+
+    {bulkRejecting && <div className="modal-overlay"><form className="modal-content" onSubmit={bulkReject} style={{ maxWidth: 520, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>رفض جميع المسميات ذات المشكلات</h3><button type="button" className="btn" onClick={() => setBulkRejecting(false)}><X size={18} /></button></div><p style={{ color: 'var(--slate-600)', fontSize: '0.88rem', margin: '0.75rem 0' }}>سيتم رفض جميع السجلات في حالة «قيد المراجعة» أو «تم التعديل» أو «فشل» التي تحتوي على خطأ.</p><textarea className="form-control" required rows={4} value={bulkRejectReason} onChange={(e) => setBulkRejectReason(e.target.value)} placeholder="سبب الرفض الجماعي" /><div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setBulkRejecting(false)}>إلغاء</button><button className="btn btn-danger" disabled={saving}>رفض الكل</button></div></form></div>}
 
     {rejecting && <div className="modal-overlay"><form className="modal-content" onSubmit={reject} style={{ maxWidth: 520, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>رفض المسمى</h3><button type="button" className="btn" onClick={() => setRejecting(null)}><X size={18} /></button></div><p>{rejecting.finalTitle || rejecting.originalTitle}</p><textarea className="form-control" required rows={4} value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="سبب الرفض" /><div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setRejecting(null)}>إلغاء</button><button className="btn btn-danger" disabled={saving}>رفض المسمى</button></div></form></div>}
   </div>;

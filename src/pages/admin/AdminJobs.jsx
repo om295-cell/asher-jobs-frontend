@@ -226,10 +226,10 @@ export default function AdminJobs() {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
           <div>
             <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
-              {isRtl ? 'كتالوج المسميات الوظيفية المعتمدة' : 'Standard Job Titles Catalog'}
+              {activeTab === 'review' ? 'مراجعة المسميات الوظيفية' : (isRtl ? 'كتالوج المسميات الوظيفية المعتمدة' : 'Standard Job Titles Catalog')}
             </h1>
             <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
-              {isRtl ? 'إدارة المسميات واستخراجها من الملفات وفحص عدم التكرار' : 'Manage standard job titles, extract from documents, and prevent duplicates'}
+              {activeTab === 'review' ? 'إضافة ومراجعة واعتماد المسميات الوظيفية بصورة مستقلة.' : (isRtl ? 'إدارة المسميات واستخراجها من الملفات وفحص عدم التكرار' : 'Manage standard job titles, extract from documents, and prevent duplicates')}
             </p>
           </div>
 
@@ -240,11 +240,11 @@ export default function AdminJobs() {
               style={{ fontWeight: 700, borderColor: 'var(--primary)', color: 'var(--primary)', background: '#fff' }}
             >
               <FileSpreadsheet size={18} />
-              {isRtl ? 'استيراد وفحص مسميات (ملف / نص)' : 'Import & Extract Titles'}
+              استيراد مسميات للمراجعة
             </button>
             <button onClick={() => setActiveTab('review')} className="btn btn-primary" style={{ fontWeight: 600 }}>
               <Plus size={18} />
-              {isRtl ? 'إضافة مسمى وظيفي جديد' : 'Add New Job Title'}
+              إضافة مسميات للمراجعة
             </button>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function AdminJobs() {
             style={{ fontSize: '0.875rem', fontWeight: 700 }}
           >
             <FileSpreadsheet size={16} />
-            Title Review Queue
+            قائمة مراجعة المسميات
           </button>
           <button
             onClick={() => {

@@ -180,6 +180,19 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     } finally { setSaving(false); }
   };
 
+  const deleteAllArchived = async () => {
+    if (!window.confirm('حذف جميع سجلات الأرشيف نهائيًا؟ لا يمكن التراجع.')) return;
+    setSaving(true);
+    try {
+      const response = await adminApi.deleteAllArchivedTitleReviews(filters.batchId || undefined);
+      const { deletedCount } = response.data?.data || {};
+      showToast(`تم حذف ${deletedCount} سجل نهائيًا.`, 'info');
+      await refreshAfterAction();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'تعذر الحذف الجماعي.', 'error');
+    } finally { setSaving(false); }
+  };
+
   const bulkReject = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -208,6 +221,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
+          {filters.archived === 'true' && reviews.length > 0 && <button className="btn btn-danger" onClick={deleteAllArchived} disabled={saving}><Trash2 size={16} /> حذف الكل</button>}
           <button
             className={`btn ${filters.archived === 'true' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => { const next = filters.archived === 'true' ? '' : 'true'; const updated = { ...filters, archived: next, status: '' }; setFilters(updated); setPage(1); load(1, updated); }}

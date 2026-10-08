@@ -52,6 +52,7 @@ export const adminApi = {
   retryTitleReview: (id) => api.post(`/admin/job-title-reviews/${id}/retry`),
   bulkRejectTitleReviews: (reason, batchId) => api.post('/admin/job-title-reviews/bulk-reject', { reason, batchId }),
   deleteArchivedTitleReview: (id) => api.delete(`/admin/job-title-reviews/${id}`),
+  deleteAllArchivedTitleReviews: (batchId) => api.delete('/admin/job-title-reviews', { params: batchId ? { batchId } : {} }),
 
   // Categories
   listCategories: () => api.get('/admin/categories'),

@@ -37,6 +37,20 @@ export const adminApi = {
   listJobSuggestions: (params) => api.get('/admin/jobs/suggestions', { params }),
   reviewJobSuggestion: (id, data) => api.patch(`/admin/jobs/suggestions/${id}`, data),
 
+  // Persisted Super Admin job-title review workflow
+  createManualTitleBatch: (data) => api.post('/admin/job-title-batches/manual', data),
+  createFileTitleBatch: (formData) => api.post('/admin/job-title-batches/file', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  listTitleBatches: (params) => api.get('/admin/job-title-batches', { params }),
+  getTitleBatch: (id) => api.get(`/admin/job-title-batches/${id}`),
+  listTitleReviews: (params) => api.get('/admin/job-title-reviews', { params }),
+  getTitleReview: (id) => api.get(`/admin/job-title-reviews/${id}`),
+  editTitleReview: (id, data) => api.patch(`/admin/job-title-reviews/${id}`, data),
+  approveTitleReview: (id, data = {}) => api.post(`/admin/job-title-reviews/${id}/approve`, data),
+  rejectTitleReview: (id, reason) => api.post(`/admin/job-title-reviews/${id}/reject`, { reason }),
+  retryTitleReview: (id) => api.post(`/admin/job-title-reviews/${id}/retry`),
+
   // Categories
   listCategories: () => api.get('/admin/categories'),
   createCategory: (data) => api.post('/admin/categories', data),

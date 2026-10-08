@@ -24,6 +24,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 import EmptyState from '../../components/ui/EmptyState'
 import JobTitleImportModal from '../../components/modals/JobTitleImportModal'
+import JobTitleReviewWorkspace from '../../components/admin/JobTitleReviewWorkspace'
 
 export default function AdminJobs() {
   const { isRtl } = useLanguage()
@@ -33,7 +34,7 @@ export default function AdminJobs() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Tabs: 'catalog' | 'suggestions'
+  // Tabs: 'catalog' | 'review' | 'suggestions'
   const [activeTab, setActiveTab] = useState('catalog')
   const [suggestions, setSuggestions] = useState([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
@@ -234,14 +235,14 @@ export default function AdminJobs() {
 
           <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setImportModalOpen(true)}
+              onClick={() => setActiveTab('review')}
               className="btn btn-outline"
               style={{ fontWeight: 700, borderColor: 'var(--primary)', color: 'var(--primary)', background: '#fff' }}
             >
               <FileSpreadsheet size={18} />
               {isRtl ? 'استيراد وفحص مسميات (ملف / نص)' : 'Import & Extract Titles'}
             </button>
-            <button onClick={handleOpenCreate} className="btn btn-primary" style={{ fontWeight: 600 }}>
+            <button onClick={() => setActiveTab('review')} className="btn btn-primary" style={{ fontWeight: 600 }}>
               <Plus size={18} />
               {isRtl ? 'إضافة مسمى وظيفي جديد' : 'Add New Job Title'}
             </button>
@@ -257,6 +258,14 @@ export default function AdminJobs() {
           >
             <Briefcase size={16} />
             {isRtl ? `كتالوج المسميات المعتمدة (${jobs.length})` : `Approved Catalog (${jobs.length})`}
+          </button>
+          <button
+            onClick={() => setActiveTab('review')}
+            className={`btn ${activeTab === 'review' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ fontSize: '0.875rem', fontWeight: 700 }}
+          >
+            <FileSpreadsheet size={16} />
+            Title Review Queue
           </button>
           <button
             onClick={() => {
@@ -410,6 +419,13 @@ export default function AdminJobs() {
           )}
         </div>
       </>
+    )}
+
+    {activeTab === 'review' && (
+      <JobTitleReviewWorkspace
+        categories={categories}
+        onCatalogChanged={loadData}
+      />
     )}
 
     {/* SUGGESTIONS TAB */}
@@ -615,6 +631,7 @@ export default function AdminJobs() {
           loadSuggestions();
         }}
       />
+      </div>
     </div>
   )
 }

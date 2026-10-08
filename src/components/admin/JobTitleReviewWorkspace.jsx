@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Archive, Check, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, X, XCircle } from 'lucide-react';
+import { Archive, Check, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, Trash2, X, XCircle } from 'lucide-react';
 import { adminApi } from '../../api/admin.api';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../ui/EmptyState';
@@ -168,6 +168,18 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     } finally { setSaving(false); }
   };
 
+  const deleteArchived = async (review) => {
+    if (!window.confirm(`حذف نهائي: "${review.finalTitle || review.originalTitle}"؟`)) return;
+    setSaving(true);
+    try {
+      await adminApi.deleteArchivedTitleReview(review._id);
+      showToast('تم الحذف النهائي.', 'info');
+      await refreshAfterAction();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'تعذر الحذف.', 'error');
+    } finally { setSaving(false); }
+  };
+
   const bulkReject = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -239,6 +251,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
               {['Pending Review', 'Edited'].includes(review.status) && <button className="btn" onClick={() => approve(review)} disabled={saving} title="اعتماد" style={{ padding: '0.35rem', color: '#15803d' }}><Check size={15} /></button>}
               {!['Approved', 'Rejected'].includes(review.status) && <button className="btn" onClick={() => { setRejecting(review); setRejectionReason(''); }} title="رفض" style={{ padding: '0.35rem', color: '#b91c1c' }}><XCircle size={15} /></button>}
               {review.status === 'Failed' && <button className="btn" onClick={() => retry(review)} disabled={saving} title="إعادة المحاولة" style={{ padding: '0.35rem', color: '#1d4ed8' }}><RefreshCw size={15} /></button>}
+              {review.isArchived && <button className="btn" onClick={() => deleteArchived(review)} disabled={saving} title="حذف نهائي" style={{ padding: '0.35rem', color: '#b91c1c' }}><Trash2 size={15} /></button>}
             </div></td>
           </tr>)}</tbody>
         </table></div>}
@@ -253,7 +266,8 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setSubmission({ ...submission, open: false })}>إلغاء</button><button className="btn btn-primary" disabled={submitting}>{submitting ? <Loader2 size={16} className="spin" /> : <Send size={16} />}{submitting ? 'جارٍ إنشاء السجلات...' : 'إنشاء دفعة المراجعة'}</button></div>
     </form></div>}
 
-    {selected && <div className="modal-overlay" onClick={() => setSelected(null)}><div className="modal-content" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 580, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>تفاصيل مراجعة المسمى</h3><button className="btn" onClick={() => setSelected(null)}><X size={18} /></button></div><div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem', fontSize: '0.9rem' }}><div><strong>الأصلي:</strong> {selected.originalTitle}</div><div><strong>النهائي:</strong> {selected.finalTitle || '—'}</div><div><strong>الحالة:</strong> <Badge status={selected.status} /></div><div><strong>الدفعة:</strong> {selected.batchId?.batchNumber || '—'}</div><div><strong>التصنيف:</strong> {selected.categoryId?.nameAr || selected.categoryId?.name || '—'}</div><div><strong>الخطأ / سبب الرفض:</strong> {selected.errorMessage || selected.rejectionReason || '—'}</div><div><strong>راجعه:</strong> {selected.reviewedBy?.email || '—'} {selected.reviewedAt ? ` بتاريخ ${readableDate(selected.reviewedAt)}` : ''}</div></div></div></div>}
+    {selected && <div className="modal-overlay" onClick={() => setSelected(null)}><div className="modal-content" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 580, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>تفاصيل مراجعة المسمى</h3><button className="btn" onClick={() => setSelected(null)}><X size={18} /></button></div><div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem', fontSize: '0.9rem' }}><div><strong>الأصلي:</strong> {selected.originalTitle}</div><div><strong>النهائي:</strong> {selected.finalTitle || '—'}</div><div><strong>الحالة:</strong> <Badge status={selected.status} /></div><div><strong>الدفعة:</strong> {selected.batchId?.batchNumber || '—'}</div><div><strong>التصنيف:</strong> {selected.categoryId?.nameAr || selected.categoryId?.name || '—'}</div><div><strong>الخطأ / سبب الرفض:</strong> {selected.errorMessage || selected.rejectionReason || '—'}</div><div><strong>راجعه:</strong> {selected.reviewedBy?.email || '—'} {selected.reviewedAt ? ` بتاريخ ${readableDate(selected.reviewedAt)}` : ''}</div>
+              {selected.isArchived && <div style={{ color: '#b91c1c', fontSize: '0.82rem' }}><strong>الأرشيف:</strong> تم الأرشفة {readableDate(selected.archivedAt)} — يُحذف تلقائيًا بعد 60 يومًا.</div>}</div></div></div>}
 
     {edit && <div className="modal-overlay"><form className="modal-content" onSubmit={saveEdit} style={{ maxWidth: 560, padding: '1.5rem' }} dir="rtl"><div style={{ display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0 }}>تعديل المسمى قبل الاعتماد</h3><button type="button" className="btn" onClick={() => setEdit(null)}><X size={18} /></button></div><label style={{ display: 'block', fontWeight: 700, marginTop: '1rem' }}>المسمى النهائي<input className="form-control" value={edit.finalTitle || ''} onChange={(e) => setEdit({ ...edit, finalTitle: e.target.value })} /></label><label style={{ display: 'block', fontWeight: 700, marginTop: '1rem' }}>التصنيف<select className="form-control" value={edit.categoryId?._id || edit.categoryId || ''} onChange={(e) => setEdit({ ...edit, categoryId: e.target.value })}>{categories.map((category) => <option key={category._id} value={category._id}>{category.nameAr || category.name}</option>)}</select></label><div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setEdit(null)}>إلغاء</button><button className="btn btn-primary" disabled={saving}>{saving ? 'جارٍ الحفظ...' : 'حفظ التعديل'}</button></div></form></div>}
 

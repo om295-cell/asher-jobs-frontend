@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, X, XCircle } from 'lucide-react';
+import { Archive, Check, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, X, XCircle } from 'lucide-react';
 import { adminApi } from '../../api/admin.api';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../ui/EmptyState';
@@ -39,7 +39,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ status: '', batchId: '', search: '' });
+  const [filters, setFilters] = useState({ status: '', batchId: '', search: '', archived: '' });
   const [submission, setSubmission] = useState({ open: false, mode: 'manual', text: '', file: null });
   const [selected, setSelected] = useState(null);
   const [edit, setEdit] = useState(null);
@@ -49,10 +49,11 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
   const [bulkRejecting, setBulkRejecting] = useState(false);
   const [bulkRejectReason, setBulkRejectReason] = useState('');
 
-  const load = async (targetPage = page) => {
+  const load = async (targetPage = page, overrideFilters) => {
     setLoading(true);
     try {
-      const params = { page: targetPage, limit: 25, ...filters };
+      const activeFilters = overrideFilters || filters;
+      const params = { page: targetPage, limit: 25, ...activeFilters };
       Object.keys(params).forEach((key) => !params[key] && delete params[key]);
       const [reviewRes, batchRes] = await Promise.all([
         adminApi.listTitleReviews(params),
@@ -195,6 +196,10 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
+          <button
+            className={`btn ${filters.archived === 'true' ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => { const next = filters.archived === 'true' ? '' : 'true'; const updated = { ...filters, archived: next, status: '' }; setFilters(updated); setPage(1); load(1, updated); }}
+          ><Archive size={16} /> {filters.archived === 'true' ? 'عرض النشطة' : 'الأرشيف'}</button>
           <button className="btn btn-outline" onClick={() => openSubmission('file')}><FileUp size={16} /> استيراد ملف</button>
           <button className="btn btn-primary" onClick={() => openSubmission('manual')}><Plus size={16} /> إضافة مسميات للمراجعة</button>
         </div>

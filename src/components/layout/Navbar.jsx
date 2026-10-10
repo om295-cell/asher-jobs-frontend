@@ -1,28 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
+  Activity,
+  AlertCircle,
   Briefcase,
+  Building2,
+  ChevronDown,
+  ExternalLink,
+  FileCheck,
+  FileText,
   Globe,
-  User,
+  LayoutDashboard,
   LogOut,
   Menu,
-  X,
   Search,
-  Users,
-  Building2,
-  FileCheck,
+  Settings,
   Shield,
-  Layers
+  User,
+  Users,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function Navbar() {
-  const { user, profile, isAuthenticated, role, logout } = useAuth();
+  const { user, isAuthenticated, role, logout } = useAuth();
   const { t, lang, toggleLang, isRtl } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminMoreOpen, setAdminMoreOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -31,10 +38,24 @@ export default function Navbar() {
 
   const isActive = (path) => location.pathname === path;
 
-  // Automatically close mobile menu on route change
+  // Automatically close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
+    setAdminMoreOpen(false);
   }, [location.pathname]);
+
+  // Close admin "More" dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (adminMoreOpen && !e.target.closest?.('.admin-more-dropdown')) {
+        setAdminMoreOpen(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [adminMoreOpen]);
+
+  const isAdmin = isAuthenticated && role === 'admin';
 
   return (
     <header
@@ -53,187 +74,432 @@ export default function Navbar() {
           alignItems: 'center',
           justifyContent: 'space-between',
           height: '70px',
-          gap: '0.75rem'
+          gap: '0.75rem',
+          maxWidth: isAdmin ? '1440px' : '1200px'
         }}
       >
         {/* Brand Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', flexShrink: 0 }}>
+        <Link
+          to={isAdmin ? '/admin/dashboard' : '/'}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none', flexShrink: 0 }}
+        >
           <img
             src="/logo.png"
             alt={t('brandName')}
             style={{
-              height: '40px',
+              height: '38px',
               width: 'auto',
-              maxHeight: '40px',
+              maxHeight: '38px',
               objectFit: 'contain',
               display: 'block'
             }}
           />
           <div>
-            <div style={{ fontSize: 'clamp(1.05rem, 3vw, 1.25rem)', fontWeight: 900, color: '#000000', lineHeight: 1.1 }}>
-              {t('brandName')}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', lineHeight: 1.1 }}>
+              <span style={{ fontSize: 'clamp(1.05rem, 3vw, 1.25rem)', fontWeight: 900, color: '#000000' }}>
+                {t('brandName')}
+              </span>
+              {isAdmin && (
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    background: '#09090b',
+                    color: '#ffffff',
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '4px',
+                    fontWeight: 800,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    letterSpacing: '0.02em'
+                  }}
+                >
+                  <Shield size={11} /> {isRtl ? 'لوحة الإدارة' : 'Admin'}
+                </span>
+              )}
             </div>
             <div className="brand-subtitle" style={{ fontSize: '0.7rem', color: '#52525b', fontWeight: 600 }}>
-              {isRtl ? 'العاشر من رمضان والمدن الصناعية' : '10th of Ramadan Industrial Jobs'}
+              {isAdmin
+                ? (isRtl ? 'الإدارة والتحكم المركزي' : 'Central Admin Portal')
+                : (isRtl ? 'العاشر من رمضان والمدن الصناعية' : '10th of Ramadan Industrial Jobs')}
             </div>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav style={{ display: 'none', gap: '1.25rem', alignItems: 'center' }} className="desktop-nav">
-          <Link
-            to="/"
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: isActive('/') ? '#000000' : '#52525b',
-              borderBottom: isActive('/') ? '2px solid #000000' : '2px solid transparent',
-              paddingBottom: '2px',
-              transition: 'all 0.15s'
-            }}
-          >
-            {t('navHome')}
-          </Link>
-          <Link
-            to="/how-it-works"
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: isActive('/how-it-works') ? '#000000' : '#52525b',
-              borderBottom: isActive('/how-it-works') ? '2px solid #000000' : '2px solid transparent',
-              paddingBottom: '2px',
-            }}
-          >
-            {t('navHowItWorks')}
-          </Link>
-          <Link
-            to="/about"
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: isActive('/about') ? '#000000' : '#52525b',
-              borderBottom: isActive('/about') ? '2px solid #000000' : '2px solid transparent',
-              paddingBottom: '2px',
-            }}
-          >
-            {t('navAbout')}
-          </Link>
-          <Link
-            to="/recommend"
-            style={{
-              fontSize: '0.9375rem',
-              fontWeight: 700,
-              color: isActive('/recommend') ? '#000000' : '#52525b',
-              borderBottom: isActive('/recommend') ? '2px solid #000000' : '2px solid transparent',
-              paddingBottom: '2px',
-            }}
-          >
-            {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
-          </Link>
+        {isAdmin ? (
+          /* SUPER ADMIN DESKTOP NAVIGATION */
+          <nav style={{ display: 'none', gap: '0.35rem', alignItems: 'center' }} className="desktop-nav">
+            <Link
+              to="/admin/dashboard"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: isActive('/admin/dashboard') ? '#000000' : '#52525b',
+                background: isActive('/admin/dashboard') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <LayoutDashboard size={15} />
+              <span>{isRtl ? 'لوحة التحكم' : 'Dashboard'}</span>
+            </Link>
 
-          {isAuthenticated && role === 'company' && (
-            <>
-              <Link
-                to="/company/search"
+            <Link
+              to="/admin/candidates"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: location.pathname.startsWith('/admin/candidates') ? '#000000' : '#52525b',
+                background: location.pathname.startsWith('/admin/candidates') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <Users size={15} />
+              <span>{isRtl ? 'المرشحون' : 'Candidates'}</span>
+            </Link>
+
+            <Link
+              to="/admin/companies"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: location.pathname.startsWith('/admin/companies') ? '#000000' : '#52525b',
+                background: location.pathname.startsWith('/admin/companies') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <Building2 size={15} />
+              <span>{isRtl ? 'الشركات والمصانع' : 'Companies'}</span>
+            </Link>
+
+            <Link
+              to="/admin/jobs"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: location.pathname.startsWith('/admin/jobs') ? '#000000' : '#52525b',
+                background: location.pathname.startsWith('/admin/jobs') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <Briefcase size={15} />
+              <span>{isRtl ? 'الوظائف والمراجعة' : 'Jobs & Catalog'}</span>
+            </Link>
+
+            <Link
+              to="/admin/recommendations"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: location.pathname.startsWith('/admin/recommendations') ? '#000000' : '#52525b',
+                background: location.pathname.startsWith('/admin/recommendations') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <FileCheck size={15} />
+              <span>{isRtl ? 'طلبات الترشيح' : 'Nominations'}</span>
+            </Link>
+
+            {/* Admin More Dropdown */}
+            <div className="admin-more-dropdown" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAdminMoreOpen(!adminMoreOpen);
+                }}
+                className="btn"
                 style={{
-                  fontSize: '0.9375rem',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
-                  color: isActive('/company/search') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/company/search') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
+                  color: ['/admin/recruitment-requests', '/admin/reports', '/admin/activity', '/admin/settings'].some((p) => location.pathname.startsWith(p)) ? '#000000' : '#52525b',
+                  background: ['/admin/recruitment-requests', '/admin/reports', '/admin/activity', '/admin/settings'].some((p) => location.pathname.startsWith(p)) ? '#f4f4f5' : 'transparent',
+                  padding: '0.35rem 0.6rem',
+                  borderRadius: '6px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem'
+                  gap: '0.25rem',
+                  border: 'none',
+                  cursor: 'pointer'
                 }}
               >
-                <Search size={16} />
-                <span>{t('navFindCandidates')}</span>
-              </Link>
-              <Link
-                to="/company/requests"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/company/requests') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/company/requests') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {t('navRequests')}
-              </Link>
-            </>
-          )}
+                <Settings size={15} />
+                <span>{isRtl ? 'المزيد' : 'More'}</span>
+                <ChevronDown size={13} style={{ transform: adminMoreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              </button>
 
-          {isAuthenticated && role === 'candidate' && (
-            <>
-              <Link
-                to="/candidate/profile"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/candidate/profile') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/candidate/profile') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {t('navProfile')}
-              </Link>
-              <Link
-                to="/candidate/referrals"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/candidate/referrals') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/candidate/referrals') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {t('navReferrals')}
-              </Link>
-            </>
-          )}
+              {adminMoreOpen && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    [isRtl ? 'left' : 'right']: 0,
+                    background: '#ffffff',
+                    border: '1px solid #e4e4e7',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                    minWidth: '200px',
+                    padding: '0.35rem',
+                    zIndex: 150,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.2rem',
+                    textAlign: isRtl ? 'right' : 'left'
+                  }}
+                >
+                  <Link
+                    to="/admin/recruitment-requests"
+                    onClick={() => setAdminMoreOpen(false)}
+                    style={{
+                      padding: '0.5rem 0.65rem',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      color: '#18181b',
+                      borderRadius: '5px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: isActive('/admin/recruitment-requests') ? '#f4f4f5' : 'transparent'
+                    }}
+                  >
+                    <FileText size={15} />
+                    <span>{isRtl ? 'طلبات التوظيف' : 'Recruitment Requests'}</span>
+                  </Link>
+                  <Link
+                    to="/admin/reports"
+                    onClick={() => setAdminMoreOpen(false)}
+                    style={{
+                      padding: '0.5rem 0.65rem',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      color: '#18181b',
+                      borderRadius: '5px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: isActive('/admin/reports') ? '#f4f4f5' : 'transparent'
+                    }}
+                  >
+                    <AlertCircle size={15} />
+                    <span>{isRtl ? 'البلاغات والشكاوى' : 'Issue Reports'}</span>
+                  </Link>
+                  <Link
+                    to="/admin/activity"
+                    onClick={() => setAdminMoreOpen(false)}
+                    style={{
+                      padding: '0.5rem 0.65rem',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      color: '#18181b',
+                      borderRadius: '5px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: isActive('/admin/activity') ? '#f4f4f5' : 'transparent'
+                    }}
+                  >
+                    <Activity size={15} />
+                    <span>{isRtl ? 'سجل النشاط الإداري' : 'Activity Logs'}</span>
+                  </Link>
+                  <Link
+                    to="/admin/settings"
+                    onClick={() => setAdminMoreOpen(false)}
+                    style={{
+                      padding: '0.5rem 0.65rem',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      color: '#18181b',
+                      borderRadius: '5px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: isActive('/admin/settings') ? '#f4f4f5' : 'transparent'
+                    }}
+                  >
+                    <Settings size={15} />
+                    <span>{isRtl ? 'إعدادات النظام' : 'System Settings'}</span>
+                  </Link>
+                </div>
+              )}
+            </div>
 
-          {isAuthenticated && role === 'admin' && (
-            <>
-              <Link
-                to="/admin/candidates"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/admin/candidates') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/admin/candidates') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {t('navCandidates')}
-              </Link>
-              <Link
-                to="/admin/companies"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/admin/companies') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/admin/companies') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {t('navCompanies')}
-              </Link>
-              <Link
-                to="/admin/recommendations"
-                style={{
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  color: isActive('/admin/recommendations') ? '#000000' : '#52525b',
-                  borderBottom: isActive('/admin/recommendations') ? '2px solid #000000' : '2px solid transparent',
-                  paddingBottom: '2px',
-                }}
-              >
-                {isRtl ? 'طلبات الترشيح' : 'Nominations'}
-              </Link>
-            </>
-          )}
-        </nav>
+            {/* Preview Public Site */}
+            <Link
+              to="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title={isRtl ? 'معاينة الموقع العام في نافذة جديدة' : 'Preview Public Site in New Tab'}
+              style={{
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: '#71717a',
+                padding: '0.35rem 0.55rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                textDecoration: 'none',
+                border: '1px solid #e4e4e7',
+                background: '#fafafa',
+                marginInlineStart: '0.4rem',
+                transition: 'all 0.15s'
+              }}
+            >
+              <ExternalLink size={13} />
+              <span>{isRtl ? 'الموقع العام' : 'Public Site'}</span>
+            </Link>
+          </nav>
+        ) : (
+          /* PUBLIC / COMPANY / CANDIDATE DESKTOP NAVIGATION */
+          <nav style={{ display: 'none', gap: '1.25rem', alignItems: 'center' }} className="desktop-nav">
+            <Link
+              to="/"
+              style={{
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                color: isActive('/') ? '#000000' : '#52525b',
+                borderBottom: isActive('/') ? '2px solid #000000' : '2px solid transparent',
+                paddingBottom: '2px',
+                transition: 'all 0.15s'
+              }}
+            >
+              {t('navHome')}
+            </Link>
+            <Link
+              to="/how-it-works"
+              style={{
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                color: isActive('/how-it-works') ? '#000000' : '#52525b',
+                borderBottom: isActive('/how-it-works') ? '2px solid #000000' : '2px solid transparent',
+                paddingBottom: '2px',
+              }}
+            >
+              {t('navHowItWorks')}
+            </Link>
+            <Link
+              to="/about"
+              style={{
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                color: isActive('/about') ? '#000000' : '#52525b',
+                borderBottom: isActive('/about') ? '2px solid #000000' : '2px solid transparent',
+                paddingBottom: '2px',
+              }}
+            >
+              {t('navAbout')}
+            </Link>
+            <Link
+              to="/recommend"
+              style={{
+                fontSize: '0.9375rem',
+                fontWeight: 700,
+                color: isActive('/recommend') ? '#000000' : '#52525b',
+                borderBottom: isActive('/recommend') ? '2px solid #000000' : '2px solid transparent',
+                paddingBottom: '2px',
+              }}
+            >
+              {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+            </Link>
+
+            {isAuthenticated && role === 'company' && (
+              <>
+                <Link
+                  to="/company/search"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/company/search') ? '#000000' : '#52525b',
+                    borderBottom: isActive('/company/search') ? '2px solid #000000' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                >
+                  <Search size={16} />
+                  <span>{t('navFindCandidates')}</span>
+                </Link>
+                <Link
+                  to="/company/requests"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/company/requests') ? '#000000' : '#52525b',
+                    borderBottom: isActive('/company/requests') ? '2px solid #000000' : '2px solid transparent',
+                    paddingBottom: '2px',
+                  }}
+                >
+                  {t('navRequests')}
+                </Link>
+              </>
+            )}
+
+            {isAuthenticated && role === 'candidate' && (
+              <>
+                <Link
+                  to="/candidate/profile"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/candidate/profile') ? '#000000' : '#52525b',
+                    borderBottom: isActive('/candidate/profile') ? '2px solid #000000' : '2px solid transparent',
+                    paddingBottom: '2px',
+                  }}
+                >
+                  {t('navProfile')}
+                </Link>
+                <Link
+                  to="/candidate/referrals"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/candidate/referrals') ? '#000000' : '#52525b',
+                    borderBottom: isActive('/candidate/referrals') ? '2px solid #000000' : '2px solid transparent',
+                    paddingBottom: '2px',
+                  }}
+                >
+                  {t('navReferrals')}
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
 
         {/* Right Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
@@ -257,16 +523,46 @@ export default function Navbar() {
                 {t('btnLookingForJob')}
               </Link>
             </div>
+          ) : isAdmin ? (
+            <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.35rem 0.65rem',
+                  background: '#f4f4f5',
+                  borderRadius: '6px',
+                  border: '1px solid #e4e4e7',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  color: '#18181b'
+                }}
+              >
+                <Shield size={14} style={{ color: '#000000' }} />
+                <span>{user?.email ? user.email.split('@')[0] : (isRtl ? 'مدير النظام' : 'Super Admin')}</span>
+              </div>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={handleLogout}
+                title={t('navLogout')}
+                style={{
+                  padding: '0.35rem 0.6rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  color: '#dc2626',
+                  borderColor: '#fca5a5'
+                }}
+              >
+                <LogOut size={15} />
+                <span style={{ fontWeight: 700 }}>{isRtl ? 'خروج' : 'Logout'}</span>
+              </button>
+            </div>
           ) : (
             <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Link
-                to={
-                  role === 'admin'
-                    ? '/admin/dashboard'
-                    : role === 'company'
-                    ? '/company/dashboard'
-                    : '/candidate/dashboard'
-                }
+                to={role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
                 className="btn btn-primary btn-sm"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               >
@@ -329,63 +625,100 @@ export default function Navbar() {
               animation: 'modalIn 0.15s ease-out'
             }}
           >
-            {/* Core Links */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
-              <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/') ? '#f4f4f5' : 'transparent' }}>
-                {t('navHome')}
-              </Link>
-              <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/how-it-works') ? '#f4f4f5' : 'transparent' }}>
-                {t('navHowItWorks')}
-              </Link>
-              <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/about') ? '#f4f4f5' : 'transparent' }}>
-                {t('navAbout')}
-              </Link>
-              <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
-                {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
-              </Link>
-            </div>
-
-            {/* Role Links */}
-            {isAuthenticated && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
-                {role === 'company' && (
-                  <>
-                    <Link to="/company/search" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Search size={16} />
-                      {t('navFindCandidates')}
-                    </Link>
-                    <Link to="/company/requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {t('navRequests')}
-                    </Link>
-                  </>
-                )}
-                {role === 'candidate' && (
-                  <>
-                    <Link to="/candidate/profile" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {t('navProfile')}
-                    </Link>
-                    <Link to="/candidate/cv" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {isRtl ? 'السيرة الذاتية (CV)' : 'View CV'}
-                    </Link>
-                    <Link to="/candidate/referrals" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {t('navReferrals')}
-                    </Link>
-                  </>
-                )}
-                {role === 'admin' && (
-                  <>
-                    <Link to="/admin/candidates" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {t('navCandidates')}
-                    </Link>
-                    <Link to="/admin/companies" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {t('navCompanies')}
-                    </Link>
-                    <Link to="/admin/recommendations" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                      {isRtl ? 'طلبات الترشيح' : 'Nominations'}
-                    </Link>
-                  </>
-                )}
+            {isAdmin ? (
+              /* SUPER ADMIN MOBILE MENU */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#71717a', padding: '0.25rem 0.5rem', textTransform: 'uppercase' }}>
+                  {isRtl ? 'لوحة تحكم مدير النظام' : 'Super Admin Portal'}
+                </div>
+                <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', background: isActive('/admin/dashboard') ? '#f4f4f5' : 'transparent' }}>
+                  <LayoutDashboard size={16} />
+                  <span>{isRtl ? 'لوحة التحكم' : 'Dashboard'}</span>
+                </Link>
+                <Link to="/admin/candidates" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', background: location.pathname.startsWith('/admin/candidates') ? '#f4f4f5' : 'transparent' }}>
+                  <Users size={16} />
+                  <span>{isRtl ? 'المرشحون' : 'Candidates'}</span>
+                </Link>
+                <Link to="/admin/companies" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', background: location.pathname.startsWith('/admin/companies') ? '#f4f4f5' : 'transparent' }}>
+                  <Building2 size={16} />
+                  <span>{isRtl ? 'الشركات والمصانع' : 'Companies'}</span>
+                </Link>
+                <Link to="/admin/jobs" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', background: location.pathname.startsWith('/admin/jobs') ? '#f4f4f5' : 'transparent' }}>
+                  <Briefcase size={16} />
+                  <span>{isRtl ? 'الوظائف والمراجعة' : 'Jobs & Catalog'}</span>
+                </Link>
+                <Link to="/admin/recommendations" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', background: location.pathname.startsWith('/admin/recommendations') ? '#f4f4f5' : 'transparent' }}>
+                  <FileCheck size={16} />
+                  <span>{isRtl ? 'طلبات الترشيح' : 'Nominations'}</span>
+                </Link>
+                <Link to="/admin/recruitment-requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={16} />
+                  <span>{isRtl ? 'طلبات التوظيف' : 'Recruitment Requests'}</span>
+                </Link>
+                <Link to="/admin/reports" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <AlertCircle size={16} />
+                  <span>{isRtl ? 'البلاغات والملاحظات' : 'Reports'}</span>
+                </Link>
+                <Link to="/admin/activity" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Activity size={16} />
+                  <span>{isRtl ? 'سجل النشاط' : 'Activity'}</span>
+                </Link>
+                <Link to="/admin/settings" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.55rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Settings size={16} />
+                  <span>{isRtl ? 'إعدادات النظام' : 'Settings'}</span>
+                </Link>
+                <Link to="/" onClick={() => setMobileMenuOpen(false)} target="_blank" rel="noopener noreferrer" style={{ padding: '0.55rem 0.75rem', fontWeight: 600, color: '#71717a', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                  <ExternalLink size={15} />
+                  <span>{isRtl ? 'زيارة الموقع العام' : 'Visit Public Site'}</span>
+                </Link>
               </div>
+            ) : (
+              /* PUBLIC / REGULAR USER MOBILE MENU */
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/') ? '#f4f4f5' : 'transparent' }}>
+                    {t('navHome')}
+                  </Link>
+                  <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/how-it-works') ? '#f4f4f5' : 'transparent' }}>
+                    {t('navHowItWorks')}
+                  </Link>
+                  <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/about') ? '#f4f4f5' : 'transparent' }}>
+                    {t('navAbout')}
+                  </Link>
+                  <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
+                    {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+                  </Link>
+                </div>
+
+                {isAuthenticated && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.75rem' }}>
+                    {role === 'company' && (
+                      <>
+                        <Link to="/company/search" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Search size={16} />
+                          {t('navFindCandidates')}
+                        </Link>
+                        <Link to="/company/requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                          {t('navRequests')}
+                        </Link>
+                      </>
+                    )}
+                    {role === 'candidate' && (
+                      <>
+                        <Link to="/candidate/profile" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                          {t('navProfile')}
+                        </Link>
+                        <Link to="/candidate/cv" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                          {isRtl ? 'السيرة الذاتية (CV)' : 'View CV'}
+                        </Link>
+                        <Link to="/candidate/referrals" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
+                          {t('navReferrals')}
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
             {/* Auth Actions in Drawer */}
@@ -401,10 +734,21 @@ export default function Navbar() {
                   {t('navRegisterCompany')}
                 </Link>
               </div>
+            ) : isAdmin ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
+                <div style={{ padding: '0.5rem 0.75rem', background: '#f4f4f5', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <Shield size={15} />
+                  <span>{user?.email || (isRtl ? 'مدير النظام' : 'Super Admin')}</span>
+                </div>
+                <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%', color: '#dc2626', borderColor: '#fca5a5' }}>
+                  <LogOut size={16} />
+                  <span>{t('navLogout')}</span>
+                </button>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
                 <Link
-                  to={role === 'admin' ? '/admin/dashboard' : role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
+                  to={role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
                   onClick={() => setMobileMenuOpen(false)}
                   className="btn btn-primary"
                   style={{ width: '100%' }}

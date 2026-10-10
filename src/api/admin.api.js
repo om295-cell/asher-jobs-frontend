@@ -50,6 +50,7 @@ export const adminApi = {
   approveTitleReview: (id, data = {}) => api.post(`/admin/job-title-reviews/${id}/approve`, data),
   rejectTitleReview: (id, reason) => api.post(`/admin/job-title-reviews/${id}/reject`, { reason }),
   retryTitleReview: (id) => api.post(`/admin/job-title-reviews/${id}/retry`),
+  bulkApproveTitleReviews: (batchId) => api.post('/admin/job-title-reviews/bulk-approve', { batchId }),
   bulkRejectTitleReviews: (reason, batchId) => api.post('/admin/job-title-reviews/bulk-reject', { reason, batchId }),
   deleteArchivedTitleReview: (id) => api.delete(`/admin/job-title-reviews/${id}`),
   deleteAllArchivedTitleReviews: (batchId) => api.delete('/admin/job-title-reviews', { params: batchId ? { batchId } : {} }),

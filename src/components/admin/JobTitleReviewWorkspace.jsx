@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Archive, Check, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, Trash2, X, XCircle } from 'lucide-react';
+import { Archive, Check, CheckCheck, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, Trash2, X, XCircle } from 'lucide-react';
 import { adminApi } from '../../api/admin.api';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../ui/EmptyState';
@@ -120,8 +120,8 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
       const response = await adminApi.approveTitleReview(review._id, {});
       const updated = response.data?.data;
       if (updated?.status === 'Failed') showToast(updated.errorMessage || 'تعذر اعتماد المسمى.', 'error');
-      else showToast('تم اعتماد المسمى وإضافته إلى الكتالوج.', 'success');
-      setSelected(updated || review);
+      else showToast('تم اعتماد المسمى ونقله إلى الكتالوج.', 'success');
+      setSelected(null);
       await refreshAfterAction();
     } catch (error) {
       showToast(error.response?.data?.message || 'فشل اعتماد المسمى.', 'error');
@@ -208,9 +208,30 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     } finally { setSaving(false); }
   };
 
+  const bulkApprove = async () => {
+    if (!window.confirm('هل تريد اعتماد جميع المسميات الصالحة ونقلها إلى كتالوج المسميات المعتمدة؟ (لن يتم قبول أي مسمى مكرر)')) return;
+    setSaving(true);
+    try {
+      const response = await adminApi.bulkApproveTitleReviews(filters.batchId || undefined);
+      const { approvedCount, failedCount } = response.data?.data || {};
+      if (approvedCount > 0) {
+        showToast(`تم اعتماد ${approvedCount} مسمى ونقله إلى الكتالوج بنجاح.${failedCount > 0 ? ` وتعذر اعتماد ${failedCount} مسمى بسبب التكرار أو أخطاء.` : ''}`, 'success');
+      } else if (failedCount > 0) {
+        showToast(`تعذر اعتماد ${failedCount} مسمى بسبب وجودها مسبقاً في الكتالوج أو وجود أخطاء.`, 'warning');
+      } else {
+        showToast('لا توجد مسميات قابلة للاعتماد حالياً.', 'info');
+      }
+      await refreshAfterAction();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'تعذر الاعتماد الجماعي.', 'error');
+    } finally { setSaving(false); }
+  };
+
   const allPendingHaveIssues = reviews.length > 0 &&
     reviews.filter((r) => ['Pending Review', 'Edited', 'Failed'].includes(r.status))
            .every((r) => r.errorMessage);
+
+  const hasApprovable = reviews.some((r) => ['Pending Review', 'Edited'].includes(r.status));
 
   return <div dir="rtl" style={{ textAlign: 'right' }}>
     <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
@@ -220,6 +241,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
           <p style={{ margin: '0.25rem 0 0', color: 'var(--slate-500)', fontSize: '0.85rem' }}>لكل مسمى سجل مراجعة مستقل. الدفعة للتجميع فقط، ولا يؤدي فشل مسمى واحد إلى إيقاف بقية المسميات.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {hasApprovable && <button className="btn" onClick={bulkApprove} disabled={saving} style={{ background: '#16a34a', color: '#fff', borderColor: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.35rem' }}><CheckCheck size={16} /> قبول الكل</button>}
           {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
           {reviews.length > 0 && <button className="btn btn-danger" onClick={deleteAllArchived} disabled={saving}><Trash2 size={16} /> حذف الكل</button>}
           <button
@@ -275,7 +297,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
     {submission.open && <div className="modal-overlay"><form className="modal-content" onSubmit={submitBatch} style={{ maxWidth: 640, padding: '1.5rem' }} dir="rtl">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}><h3 style={{ margin: 0 }}>{submission.mode === 'manual' ? 'إضافة مسميات للمراجعة' : 'استيراد مسميات للمراجعة'}</h3><button type="button" className="btn" onClick={() => setSubmission({ ...submission, open: false })}><X size={18} /></button></div>
       <p style={{ color: 'var(--slate-600)', fontSize: '0.88rem' }}>{submission.mode === 'manual' ? 'أدخل مسمى واحدًا في كل سطر. ينشئ كل سطر سجل مراجعة مستقلًا.' : 'الصيغ المدعومة: TXT وCSV وXLS/XLSX وDOC/DOCX وPDF، حتى 15 ميجابايت. ينشئ كل مسمى مستخرج سجل مراجعة مستقلًا.'}</p>
-      <p style={{ color: 'var(--slate-600)', fontSize: '0.82rem' }}>سيتم إنشاء وتصنيف المسميات الجديدة تلقائيًا ضمن «غير مصنف»، ويمكنك تغيير التصنيف لاحقًا من شاشة المراجعة.</p>
+      <p style={{ color: 'var(--slate-600)', fontSize: '0.82rem' }}>يتم تصنيف المسميات تلقائياً تحت تخصصاتها المناسبة، وإن لم يكن التصنيف موجوداً فسيتم إنشاؤه تلقائياً. يمكنك تعديل التصنيف يدوياً ولن يقوم النظام بتغييره بعد ذلك.</p>
       {submission.mode === 'manual' ? <textarea className="form-control" value={submission.text} onChange={(e) => setSubmission({ ...submission, text: e.target.value })} rows={10} placeholder={'كهربائي\nمشغل ماكينات\nمفتش جودة'} /> : <input className="form-control" type="file" accept=".txt,.csv,.xls,.xlsx,.doc,.docx,.pdf" onChange={(e) => setSubmission({ ...submission, file: e.target.files?.[0] || null })} />}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}><button type="button" className="btn btn-outline" onClick={() => setSubmission({ ...submission, open: false })}>إلغاء</button><button className="btn btn-primary" disabled={submitting}>{submitting ? <Loader2 size={16} className="spin" /> : <Send size={16} />}{submitting ? 'جارٍ إنشاء السجلات...' : 'إنشاء دفعة المراجعة'}</button></div>
     </form></div>}

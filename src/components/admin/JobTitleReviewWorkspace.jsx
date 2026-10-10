@@ -241,7 +241,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
           <p style={{ margin: '0.25rem 0 0', color: 'var(--slate-500)', fontSize: '0.85rem' }}>لكل مسمى سجل مراجعة مستقل. الدفعة للتجميع فقط، ولا يؤدي فشل مسمى واحد إلى إيقاف بقية المسميات.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {hasApprovable && <button className="btn" onClick={bulkApprove} disabled={saving} style={{ background: '#16a34a', color: '#fff', borderColor: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.35rem' }}><CheckCheck size={16} /> قبول الكل</button>}
+          {filters.archived !== 'true' && reviews.length > 0 && <button className="btn" onClick={bulkApprove} disabled={saving} style={{ background: '#16a34a', color: '#fff', borderColor: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}><CheckCheck size={16} /> اعتماد الكل</button>}
           {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
           {reviews.length > 0 && <button className="btn btn-danger" onClick={deleteAllArchived} disabled={saving}><Trash2 size={16} /> حذف الكل</button>}
           <button
@@ -279,7 +279,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
           <thead><tr><th>المسمى</th><th>المسمى الأصلي</th><th>المصدر</th><th>الحالة</th><th>الدفعة</th><th>تاريخ الإنشاء</th><th>الخطأ / سبب الرفض</th><th>راجعه</th><th style={{ textAlign: 'center' }}>الإجراءات</th></tr></thead>
           <tbody>{reviews.map((review) => <tr key={review._id}>
             <td style={{ fontWeight: 750 }}>{review.finalTitle || '—'}</td><td>{review.originalTitle}</td><td>{review.source === 'file' ? 'ملف' : 'إدخال يدوي'}</td><td><Badge status={review.status} /></td>
-            <td>{review.batchId?.batchNumber || '—'}</td><td>{readableDate(review.createdAt)}</td><td style={{ color: review.errorMessage || review.rejectionReason ? '#b91c1c' : 'inherit', maxWidth: 220 }}>{review.errorMessage || review.rejectionReason || '—'}</td>
+            <td>{review.batchId?.batchNumber || '—'}</td><td>{readableDate(review.createdAt)}</td><td style={{ maxWidth: 280 }}>{review.errorMessage ? <span style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600, display: 'inline-block', fontSize: '0.78rem', border: '1px solid #fecaca' }}>{review.errorMessage}</span> : review.rejectionReason ? <span style={{ color: '#b91c1c' }}>{review.rejectionReason}</span> : '—'}</td>
             <td>{review.reviewedBy?.email || '—'}</td>
             <td><div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center' }}>
               <button className="btn" onClick={() => setSelected(review)} title="عرض" style={{ padding: '0.35rem' }}><Eye size={15} /></button>

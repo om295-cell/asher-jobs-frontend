@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Archive, Check, CheckCheck, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, Trash2, X, XCircle } from 'lucide-react';
+import { AlertCircle, Archive, Check, CheckCheck, Edit3, Eye, FileUp, Loader2, Plus, RefreshCw, Send, Trash2, X, XCircle } from 'lucide-react';
 import { adminApi } from '../../api/admin.api';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../ui/EmptyState';
@@ -110,7 +110,8 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
   };
 
   const refreshAfterAction = async () => {
-    await load(page);
+    setPage(1);
+    await load(1);
     if (onCatalogChanged) onCatalogChanged();
   };
 
@@ -181,7 +182,7 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
   };
 
   const deleteAllArchived = async () => {
-    if (!window.confirm('حذف جميع سجلات الأرشيف نهائيًا؟ لا يمكن التراجع.')) return;
+    if (!window.confirm(filters.archived === 'true' ? 'حذف جميع سجلات الأرشيف نهائيًا؟ لا يمكن التراجع.' : 'حذف جميع سجلات المراجعة نهائيًا؟ لا يمكن التراجع.')) return;
     setSaving(true);
     try {
       const response = await adminApi.deleteAllArchivedTitleReviews(filters.batchId || undefined);
@@ -241,9 +242,45 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
           <p style={{ margin: '0.25rem 0 0', color: 'var(--slate-500)', fontSize: '0.85rem' }}>لكل مسمى سجل مراجعة مستقل. الدفعة للتجميع فقط، ولا يؤدي فشل مسمى واحد إلى إيقاف بقية المسميات.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {filters.archived !== 'true' && reviews.length > 0 && <button className="btn" onClick={bulkApprove} disabled={saving} style={{ background: '#16a34a', color: '#fff', borderColor: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}><CheckCheck size={16} /> اعتماد الكل</button>}
-          {allPendingHaveIssues && <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }}><XCircle size={16} /> رفض الكل</button>}
-          {reviews.length > 0 && <button className="btn btn-danger" onClick={deleteAllArchived} disabled={saving}><Trash2 size={16} /> حذف الكل</button>}
+          {filters.archived !== 'true' && (
+            <button
+              className="btn btn-success"
+              onClick={bulkApprove}
+              disabled={saving || reviews.length === 0}
+              style={{
+                background: '#16a34a',
+                color: '#fff',
+                borderColor: '#16a34a',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 700,
+                opacity: (saving || reviews.length === 0) ? 0.6 : 1,
+                cursor: (saving || reviews.length === 0) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <CheckCheck size={16} /> اعتماد الكل
+            </button>
+          )}
+          {allPendingHaveIssues && (
+            <button className="btn btn-danger" onClick={() => { setBulkRejecting(true); setBulkRejectReason(''); }} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <XCircle size={16} /> رفض الكل
+            </button>
+          )}
+          <button
+            className="btn btn-danger"
+            onClick={deleteAllArchived}
+            disabled={saving || reviews.length === 0}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              opacity: (saving || reviews.length === 0) ? 0.6 : 1,
+              cursor: (saving || reviews.length === 0) ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <Trash2 size={16} /> حذف الكل
+          </button>
           <button
             className={`btn ${filters.archived === 'true' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => { const next = filters.archived === 'true' ? '' : 'true'; const updated = { ...filters, archived: next, status: '' }; setFilters(updated); setPage(1); load(1, updated); }}
@@ -278,13 +315,31 @@ export default function JobTitleReviewWorkspace({ categories, onCatalogChanged }
         <div className="table-responsive"><table className="data-table" style={{ minWidth: 1200, width: '100%', fontSize: '0.82rem' }}>
           <thead><tr><th>المسمى</th><th>المسمى الأصلي</th><th>المصدر</th><th>الحالة</th><th>الدفعة</th><th>تاريخ الإنشاء</th><th>الخطأ / سبب الرفض</th><th>راجعه</th><th style={{ textAlign: 'center' }}>الإجراءات</th></tr></thead>
           <tbody>{reviews.map((review) => <tr key={review._id}>
-            <td style={{ fontWeight: 750 }}>{review.finalTitle || '—'}</td><td>{review.originalTitle}</td><td>{review.source === 'file' ? 'ملف' : 'إدخال يدوي'}</td><td><Badge status={review.status} /></td>
-            <td>{review.batchId?.batchNumber || '—'}</td><td>{readableDate(review.createdAt)}</td><td style={{ maxWidth: 280 }}>{review.errorMessage ? <span style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600, display: 'inline-block', fontSize: '0.78rem', border: '1px solid #fecaca' }}>{review.errorMessage}</span> : review.rejectionReason ? <span style={{ color: '#b91c1c' }}>{review.rejectionReason}</span> : '—'}</td>
+            <td style={{ fontWeight: 750 }}>
+              <div>{review.finalTitle || review.originalTitle || '—'}</div>
+              {review.errorMessage && (
+                <div style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.45rem', borderRadius: '4px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.74rem', border: '1px solid #fecaca' }}>
+                  <AlertCircle size={12} style={{ flexShrink: 0 }} />
+                  <span>{review.errorMessage}</span>
+                </div>
+              )}
+            </td>
+            <td>{review.originalTitle}</td>
+            <td>{review.source === 'file' ? 'ملف' : 'إدخال يدوي'}</td>
+            <td><Badge status={review.status} /></td>
+            <td>{review.batchId?.batchNumber || '—'}</td>
+            <td>{readableDate(review.createdAt)}</td>
+            <td style={{ maxWidth: 280 }}>{review.errorMessage ? (
+              <span style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.78rem', border: '1px solid #fecaca' }}>
+                <AlertCircle size={13} style={{ flexShrink: 0 }} />
+                <span>{review.errorMessage}</span>
+              </span>
+            ) : review.rejectionReason ? <span style={{ color: '#b91c1c' }}>{review.rejectionReason}</span> : '—'}</td>
             <td>{review.reviewedBy?.email || '—'}</td>
             <td><div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center' }}>
               <button className="btn" onClick={() => setSelected(review)} title="عرض" style={{ padding: '0.35rem' }}><Eye size={15} /></button>
               {!['Approved', 'Rejected'].includes(review.status) && <button className="btn" onClick={() => setEdit({ ...review })} title="تعديل" style={{ padding: '0.35rem' }}><Edit3 size={15} /></button>}
-              {['Pending Review', 'Edited'].includes(review.status) && <button className="btn" onClick={() => approve(review)} disabled={saving} title="اعتماد" style={{ padding: '0.35rem', color: '#15803d' }}><Check size={15} /></button>}
+              {!['Approved', 'Rejected'].includes(review.status) && <button className="btn" onClick={() => approve(review)} disabled={saving} title="اعتماد ونقل للكتالوج" style={{ padding: '0.35rem', color: '#15803d' }}><Check size={15} /></button>}
               {!['Approved', 'Rejected'].includes(review.status) && <button className="btn" onClick={() => { setRejecting(review); setRejectionReason(''); }} title="رفض" style={{ padding: '0.35rem', color: '#b91c1c' }}><XCircle size={15} /></button>}
               {review.status === 'Failed' && <button className="btn" onClick={() => retry(review)} disabled={saving} title="إعادة المحاولة" style={{ padding: '0.35rem', color: '#1d4ed8' }}><RefreshCw size={15} /></button>}
               {review.isArchived && <button className="btn" onClick={() => deleteArchived(review)} disabled={saving} title="حذف نهائي" style={{ padding: '0.35rem', color: '#b91c1c' }}><Trash2 size={15} /></button>}

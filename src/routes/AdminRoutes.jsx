@@ -14,6 +14,7 @@ import AdminActivity from '../pages/admin/AdminActivity'
 import AdminSettings from '../pages/admin/AdminSettings'
 import AdminRequests from '../pages/admin/AdminRequests'
 import AdminRecommendations from '../pages/admin/AdminRecommendations'
+import AdminNotifications from '../pages/admin/AdminNotifications'
 
 const AR = ({ children }) => (
   <ProtectedRoute roles={['admin']}>{children}</ProtectedRoute>
@@ -23,6 +24,7 @@ export default function AdminRoutes() {
   return (
     <>
       <Route path="/admin/dashboard"             element={<AdminLayout><AR><AdminDashboard /></AR></AdminLayout>} />
+      <Route path="/admin/notifications"         element={<AdminLayout><AR><AdminNotifications /></AR></AdminLayout>} />
       <Route path="/admin/candidates"            element={<AdminLayout><AR><AdminCandidates /></AR></AdminLayout>} />
       <Route path="/admin/candidates/:id"        element={<AdminLayout><AR><AdminCandidateDetail /></AR></AdminLayout>} />
       <Route path="/admin/companies"             element={<AdminLayout><AR><AdminCompanies /></AR></AdminLayout>} />

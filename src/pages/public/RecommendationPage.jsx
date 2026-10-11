@@ -483,7 +483,11 @@ export default function RecommendationPage() {
 
       const res = await recommendationApi.submitRecommendation(payload);
       setSubmittedData(res.data?.data);
-      showToast('تم إرسال الطلب بنجاح وهو الآن قيد المراجعة والتدقيق', 'success');
+      if (res.data?.data?.isPendingConflict || res.data?.data?.status === 'phone_duplicate_pending') {
+        showToast('تم تسجيل طلبك برقم مرجعي. الطلب قيد التدقيق الإداري (متابعة بعد 24 ساعة).', 'warning');
+      } else {
+        showToast('تم إرسال الطلب بنجاح وهو الآن قيد المراجعة والتدقيق', 'success');
+      }
     } catch (err) {
       const errData = err.response?.data;
       if (errData?.code === 'DUPLICATE_PHONE') {
@@ -659,12 +663,18 @@ export default function RecommendationPage() {
                 </div>
 
                 <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#09090b', marginBottom: '0.5rem' }}>
-                  {isRtl ? 'تم تقديم طلب الترشيحات بنجاح!' : 'Recommendation Request Submitted!'}
+                  {submittedData.isPendingConflict || submittedData.status === 'phone_duplicate_pending'
+                    ? (isRtl ? 'تم تسجيل طلبك برقم مرجعي — قيد التدقيق الإداري' : 'Request Registered — Pending Verification')
+                    : (isRtl ? 'تم تقديم طلب الترشيحات بنجاح!' : 'Recommendation Request Submitted!')}
                 </h2>
-                <p style={{ fontSize: '0.95rem', color: '#64748b', marginBottom: '2rem' }}>
-                  {isRtl
-                    ? 'تم حفظ بيانات الـ 11 كادراً بنجاح، وطلبك الآن قيد المراجعة والتدقيق الإداري.'
-                    : 'All 11 candidate profiles have been recorded and are pending review.'}
+                <p style={{ fontSize: '0.95rem', color: (submittedData.isPendingConflict || submittedData.status === 'phone_duplicate_pending') ? '#b45309' : '#64748b', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem', lineHeight: 1.6 }}>
+                  {submittedData.isPendingConflict || submittedData.status === 'phone_duplicate_pending'
+                    ? (isRtl
+                        ? 'نظراً لتطابق رقم الهاتف مع طلب سابق باسم مختلف، تم تحويل الطلب للمراجعة الإدارية للتحقق من صحة البيانات. يُرجى المتابعة بعد 24 ساعة برقم الطلب المرجعي أدناه.'
+                        : 'Due to duplicate phone verification, your request is under administrative review. Please follow up after 24 hours using the reference number below.')
+                    : (isRtl
+                        ? 'تم حفظ بيانات الـ 11 كادراً بنجاح، وطلبك الآن قيد المراجعة والتدقيق الإداري.'
+                        : 'All 11 candidate profiles have been recorded and are pending review.')}
                 </p>
 
                 {/* Request Number Box */}
@@ -1409,6 +1419,25 @@ export default function RecommendationPage() {
 
                   {/* Status Badge */}
                   <div>
+                    {trackResult.status === 'phone_duplicate_pending' && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          padding: '0.45rem 1rem',
+                          borderRadius: '9999px',
+                          background: '#fef3c7',
+                          color: '#b45309',
+                          border: '1px solid #fde68a',
+                          fontWeight: 800,
+                          fontSize: '0.85rem'
+                        }}
+                      >
+                        <Clock size={16} />
+                        {isRtl ? '⚠️ قيد التدقيق الإداري (متابعة بعد 24 ساعة)' : 'Pending Verification (24h)'}
+                      </span>
+                    )}
                     {trackResult.status === 'pending' && (
                       <span
                         style={{
@@ -1427,7 +1456,7 @@ export default function RecommendationPage() {
                         {isRtl ? 'قيد المراجعة والتدقيق' : 'Pending Review'}
                       </span>
                     )}
-                    {trackResult.status === 'approved' && (
+                    {(trackResult.status === 'approved' || trackResult.status === 'partially_approved') && (
                       <span
                         style={{
                           display: 'inline-flex',
@@ -1442,7 +1471,9 @@ export default function RecommendationPage() {
                         }}
                       >
                         <CheckCircle2 size={16} />
-                        {isRtl ? 'تم القبول والاعتماد' : 'Approved'}
+                        {trackResult.status === 'partially_approved'
+                          ? isRtl ? 'تم قبول الترشيحات المرفقة' : 'Recommendations Approved'
+                          : isRtl ? 'تم القبول والاعتماد' : 'Approved'}
                       </span>
                     )}
                     {trackResult.status === 'rejected' && (
@@ -1465,6 +1496,29 @@ export default function RecommendationPage() {
                     )}
                   </div>
                 </div>
+
+                {trackResult.status === 'phone_duplicate_pending' && (
+                  <div
+                    style={{
+                      background: '#fffbeb',
+                      border: '1.5px solid #f59e0b',
+                      borderRadius: '10px',
+                      padding: '1rem 1.25rem',
+                      marginBottom: '1.5rem',
+                      display: 'flex',
+                      gap: '0.75rem',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Clock size={20} style={{ color: '#d97706', flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.875rem', color: '#92400e', fontWeight: 600, lineHeight: 1.5 }}>
+                      {trackResult.conflictFollowUpMessage ||
+                        (isRtl
+                          ? 'الطلب قيد المراجعة والتدقيق الإداري للتحقق من تطابق رقم الهاتف. يُرجى المتابعة بعد مرور 24 ساعة برقم الطلب.'
+                          : 'This request is pending administrative verification for phone number matching. Please follow up after 24 hours.')}
+                    </div>
+                  </div>
+                )}
 
                 {/* Submitter & Meta Details */}
                 <div

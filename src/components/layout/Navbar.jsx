@@ -18,10 +18,12 @@ import {
   Shield,
   User,
   Users,
+  Bell,
   X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { adminNotificationApi } from '../../api/adminNotification.api';
 
 export default function Navbar() {
   const { user, isAuthenticated, role, logout } = useAuth();
@@ -30,6 +32,18 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminMoreOpen, setAdminMoreOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  const isAdmin = isAuthenticated && role === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) {
+      adminNotificationApi
+        .getBadgeCounts()
+        .then((res) => setUnreadNotificationsCount(res.data?.data?.unreadCount || 0))
+        .catch(() => {});
+    }
+  }, [isAdmin, location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -54,8 +68,6 @@ export default function Navbar() {
     document.addEventListener('click', handleOutsideClick);
     return () => document.removeEventListener('click', handleOutsideClick);
   }, [adminMoreOpen]);
-
-  const isAdmin = isAuthenticated && role === 'admin';
 
   return (
     <header
@@ -228,6 +240,42 @@ export default function Navbar() {
             >
               <FileCheck size={15} />
               <span>{isRtl ? 'طلبات الترشيح' : 'Nominations'}</span>
+            </Link>
+
+            <Link
+              to="/admin/notifications"
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                color: location.pathname.startsWith('/admin/notifications') ? '#000000' : '#52525b',
+                background: location.pathname.startsWith('/admin/notifications') ? '#f4f4f5' : 'transparent',
+                padding: '0.35rem 0.6rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+                position: 'relative'
+              }}
+            >
+              <Bell size={15} />
+              <span>{isRtl ? 'الإشعارات والتدقيق' : 'Notifications'}</span>
+              {unreadNotificationsCount > 0 && (
+                <span
+                  style={{
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.65rem',
+                    fontWeight: 900,
+                    padding: '0.1rem 0.35rem',
+                    borderRadius: '999px',
+                    lineHeight: 1
+                  }}
+                >
+                  {unreadNotificationsCount}
+                </span>
+              )}
             </Link>
 
             {/* Admin More Dropdown */}
@@ -503,6 +551,51 @@ export default function Navbar() {
 
         {/* Right Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          {isAdmin && (
+            <Link
+              to="/admin/notifications"
+              title={isRtl ? 'مركز الإشعارات والتدقيق' : 'Notification Center'}
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                background: location.pathname === '/admin/notifications' ? '#09090b' : '#f4f4f5',
+                color: location.pathname === '/admin/notifications' ? '#ffffff' : '#18181b',
+                border: '1px solid #e4e4e7',
+                textDecoration: 'none',
+                transition: 'all 0.15s'
+              }}
+            >
+              <Bell size={18} />
+              {unreadNotificationsCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    [isRtl ? 'left' : 'right']: '-4px',
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.65rem',
+                    fontWeight: 900,
+                    minWidth: '18px',
+                    height: '18px',
+                    lineHeight: '18px',
+                    borderRadius: '999px',
+                    textAlign: 'center',
+                    padding: '0 4px',
+                    boxShadow: '0 0 0 2px #ffffff'
+                  }}
+                >
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           <button
             className="btn btn-outline btn-sm"
             onClick={toggleLang}

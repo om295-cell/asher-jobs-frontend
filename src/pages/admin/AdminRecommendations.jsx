@@ -93,6 +93,30 @@ export default function AdminRecommendations() {
     }
   };
 
+  // Resolve Phone Conflict directly from modal
+  const handleResolveConflictAction = async (action) => {
+    if (!selectedReq) return;
+    setActionLoading(true);
+    try {
+      await recommendationApi.resolveConflict(selectedReq._id, {
+        action,
+        notes: adminNotes
+      });
+      let msg = 'تم تنفيذ الإجراء بنجاح';
+      if (action === 'approve_both') msg = 'تم قبول واعتماد الطلبين معاً للشركات';
+      else if (action === 'reject_main_keep_recommendations') msg = 'تم استبعاد الرقم الأساسي وقبول الـ 10 ترشيحات للشركات';
+      else if (action === 'reject_whole_listing') msg = 'تم رفض وإلغاء الطلب بالكامل';
+
+      showToast(msg, 'success');
+      setSelectedReq(null);
+      fetchRequests(page);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'حدث خطأ أثناء تنفيذ الإجراء', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 1rem 4rem' }}>
       {/* Title */}
@@ -257,7 +281,9 @@ export default function AdminRecommendations() {
         >
           <option value="">{isRtl ? 'جميع الحالات' : 'All Statuses'}</option>
           <option value="pending">{isRtl ? 'قيد المراجعة' : 'Pending'}</option>
+          <option value="phone_duplicate_pending">{isRtl ? '⚠️ تضارب هاتف (24 ساعة)' : 'Phone Conflict (24h)'}</option>
           <option value="approved">{isRtl ? 'تم القبول والاعتماد' : 'Approved'}</option>
+          <option value="partially_approved">{isRtl ? 'اعتماد الترشيحات فقط' : 'Recommendations Only'}</option>
           <option value="rejected">{isRtl ? 'مرفوض' : 'Rejected'}</option>
         </select>
       </div>
@@ -319,7 +345,17 @@ export default function AdminRecommendations() {
                   return (
                     <tr key={req._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '0.85rem 1rem', fontWeight: 800, fontFamily: 'monospace', fontSize: '0.95rem' }}>
-                        {req.requestNumber}
+                        <div>{req.requestNumber}</div>
+                        {req.isChainLinked && (
+                          <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#e0e7ff', color: '#4338ca', fontWeight: 800, display: 'inline-block', marginTop: '0.2rem' }}>
+                            {isRtl ? '🔗 سلسلة ترشيح' : 'Referral Chain'}
+                          </span>
+                        )}
+                        {req.hasPhoneConflict && (
+                          <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#fef3c7', color: '#b45309', fontWeight: 800, display: 'inline-block', marginTop: '0.2rem' }}>
+                            {isRtl ? '⚠️ تضارب هاتف' : 'Phone Conflict'}
+                          </span>
+                        )}
                       </td>
                       <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#09090b' }}>
                         {submitter.fullName || '-'}
@@ -334,6 +370,11 @@ export default function AdminRecommendations() {
                         {req.createdAt ? new Date(req.createdAt).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US') : '-'}
                       </td>
                       <td style={{ padding: '0.85rem 1rem' }}>
+                        {req.status === 'phone_duplicate_pending' && (
+                          <span style={{ padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#fef3c7', color: '#b45309', fontSize: '0.75rem', fontWeight: 800, border: '1px solid #fde68a' }}>
+                            {isRtl ? '⚠️ تضارب هاتف (24 ساعة)' : 'Pending Conflict (24h)'}
+                          </span>
+                        )}
                         {req.status === 'pending' && (
                           <span style={{ padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#fef3c7', color: '#92400e', fontSize: '0.75rem', fontWeight: 800 }}>
                             {isRtl ? 'قيد المراجعة' : 'Pending'}
@@ -342,6 +383,11 @@ export default function AdminRecommendations() {
                         {req.status === 'approved' && (
                           <span style={{ padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#dcfce7', color: '#16a34a', fontSize: '0.75rem', fontWeight: 800 }}>
                             {isRtl ? 'معتمد' : 'Approved'}
+                          </span>
+                        )}
+                        {req.status === 'partially_approved' && (
+                          <span style={{ padding: '0.25rem 0.65rem', borderRadius: '6px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontSize: '0.75rem', fontWeight: 800 }}>
+                            {isRtl ? 'اعتماد الترشيحات فقط' : 'Recommendations Only'}
                           </span>
                         )}
                         {req.status === 'rejected' && (
@@ -454,6 +500,54 @@ export default function AdminRecommendations() {
               </div>
             </div>
 
+            {/* Chain Linking Banner */}
+            {selectedReq.isChainLinked && (
+              <div
+                style={{
+                  background: '#eef2ff',
+                  border: '1.5px solid #c7d2fe',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  color: '#3730a3',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.5
+                }}
+              >
+                <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                  <span>🔗 ارتباط شبكي (سلسلة ترشيح متصلة)</span>
+                </div>
+                <div>
+                  مقدم هذا الطلب كان مرشحاً موصى به سابقاً في الطلب <strong>[{selectedReq.chainParentRequestNumber}]</strong> بواسطة <strong>{selectedReq.chainParentSubmitterName || 'مقدم الطلب الأصلي'}</strong>، وقام الآن بالتسجيل كمرشح رئيسي بإضافة قائمته الخاصة المكونة من 10 ترشيحات.
+                </div>
+              </div>
+            )}
+
+            {/* Phone Conflict Banner */}
+            {selectedReq.hasPhoneConflict && (
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1.5px solid #f59e0b',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  color: '#92400e',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.5
+                }}
+              >
+                <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                  <AlertCircle size={18} style={{ color: '#d97706' }} />
+                  <span>⚠️ تنبيه تضارب رقم هاتف (تسجيل نفس الرقم باسمين مختلفين)</span>
+                </div>
+                <div>
+                  رقم الهاتف مسجل في طلب سابق <strong>[{selectedReq.phoneConflictDetails?.firstRequestNumber || 'طلب سابق'}]</strong> باسم <strong>({selectedReq.phoneConflictDetails?.firstSubmitterName || 'الاسم السابق'})</strong>.
+                  الطلب الحالي قيد التدقيق الإداري ومطلوب من المستخدم المتابعة بعد 24 ساعة.
+                </div>
+              </div>
+            )}
+
             {/* 11 People List Table */}
             <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#09090b', marginBottom: '0.75rem' }}>
               {isRtl ? 'قائمة الكوادر الـ 11 المرفقة في الطلب:' : 'Attached 11 Candidates List:'}
@@ -549,49 +643,121 @@ export default function AdminRecommendations() {
                 {isRtl ? 'إغلاق' : 'Close'}
               </button>
 
-              <button
-                type="button"
-                disabled={actionLoading}
-                onClick={() => handleUpdateStatus('rejected')}
-                style={{
-                  padding: '0.65rem 1.25rem',
-                  borderRadius: '8px',
-                  background: '#fee2e2',
-                  color: '#dc2626',
-                  border: 'none',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem'
-                }}
-              >
-                <XCircle size={16} />
-                {isRtl ? 'رفض الطلب' : 'Reject Request'}
-              </button>
+              {selectedReq.hasPhoneConflict ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={actionLoading}
+                    onClick={() => handleResolveConflictAction('reject_whole_listing')}
+                    style={{
+                      padding: '0.65rem 1.15rem',
+                      borderRadius: '8px',
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      border: '1px solid #fecaca',
+                      fontWeight: 700,
+                      fontSize: '0.825rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <XCircle size={16} />
+                    {isRtl ? '3. رفض الطلب بالكامل' : 'Reject Whole Listing'}
+                  </button>
 
-              <button
-                type="button"
-                disabled={actionLoading}
-                onClick={() => handleUpdateStatus('approved')}
-                style={{
-                  padding: '0.65rem 1.5rem',
-                  borderRadius: '8px',
-                  background: '#16a34a',
-                  color: '#ffffff',
-                  border: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem'
-                }}
-              >
-                <CheckCircle2 size={16} />
-                {isRtl ? 'قبول واعتماد الطلب' : 'Approve Request'}
-              </button>
+                  <button
+                    type="button"
+                    disabled={actionLoading}
+                    onClick={() => handleResolveConflictAction('reject_main_keep_recommendations')}
+                    style={{
+                      padding: '0.65rem 1.15rem',
+                      borderRadius: '8px',
+                      background: '#fef3c7',
+                      color: '#b45309',
+                      border: '1px solid #fde68a',
+                      fontWeight: 700,
+                      fontSize: '0.825rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <AlertCircle size={16} />
+                    {isRtl ? '2. استبعاد الرقم وقبول الترشيحات' : 'Reject Main & Keep Recommendations'}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={actionLoading}
+                    onClick={() => handleResolveConflictAction('approve_both')}
+                    style={{
+                      padding: '0.65rem 1.25rem',
+                      borderRadius: '8px',
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '0.825rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {isRtl ? '1. قبول الطلبين معاً' : 'Approve Both Listings'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled={actionLoading}
+                    onClick={() => handleUpdateStatus('rejected')}
+                    style={{
+                      padding: '0.65rem 1.25rem',
+                      borderRadius: '8px',
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <XCircle size={16} />
+                    {isRtl ? 'رفض الطلب' : 'Reject Request'}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={actionLoading}
+                    onClick={() => handleUpdateStatus('approved')}
+                    style={{
+                      padding: '0.65rem 1.5rem',
+                      borderRadius: '8px',
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {isRtl ? 'قبول واعتماد الطلب' : 'Approve Request'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

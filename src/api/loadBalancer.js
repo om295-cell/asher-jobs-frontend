@@ -1,9 +1,9 @@
 /**
- * Intelligent Multi-Backend Load Balancer & Failover Manager
+ * Intelligent Multi-Backend Failover & Warm Instance Manager
  * 
  * Features:
- * - Round-robin traffic distribution across multiple Vercel backend instances.
- * - Automatic circuit breaker & cooldown for failed backends.
+ * - Sticky active backend: Keeps requests on the warm node to avoid serverless cold starts.
+ * - Automatic circuit breaker & failover: Switches immediately if active node encounters network error or 5xx.
  * - Seamless request retry on alternative healthy nodes.
  */
 
@@ -11,11 +11,9 @@
 const rawUrls = import.meta.env.VITE_API_URLS || import.meta.env.VITE_API_URL || '';
 
 const defaultBackends = [
-  'https://asher-jobs-backend-by44.vercel.app/api',
-  'https://asher-jobs-backend-1yds.vercel.app/api',
-  'https://asher-jobs-backend-dtgr.vercel.app/api',
+  'https://asher-jobs-backend-tn34.vercel.app/api',
   'https://asher-jobs-backend.vercel.app/api',
-  'https://asher-jobs-backend-tn34.vercel.app/api'
+  'https://asher-jobs-backend-dtgr.vercel.app/api'
 ];
 
 export const backendNodes = (rawUrls.trim().length > 0
@@ -30,10 +28,10 @@ export const backendNodes = (rawUrls.trim().length > 0
 
 // Cooldown time before attempting to re-use an unhealthy node (30 seconds)
 const COOLDOWN_MS = 30000;
-let currentIndex = 0;
+let activeIndex = 0;
 
 /**
- * Returns the next healthy backend URL using round-robin.
+ * Returns the sticky healthy backend URL (avoids serverless cold starts).
  */
 export function getNextBackendUrl() {
   if (backendNodes.length === 0) return 'http://localhost:5000/api';
@@ -49,22 +47,32 @@ export function getNextBackendUrl() {
     }
   });
 
-  // Find healthy nodes
-  const healthyNodes = backendNodes.filter((n) => n.healthy);
-  const candidates = healthyNodes.length > 0 ? healthyNodes : backendNodes;
+  // If the current active node is healthy, STICK TO IT (keeps serverless container warm)
+  if (backendNodes[activeIndex] && backendNodes[activeIndex].healthy) {
+    return backendNodes[activeIndex].url;
+  }
 
-  currentIndex = (currentIndex + 1) % candidates.length;
-  return candidates[currentIndex].url;
+  // Active node is not healthy, switch to the first available healthy node
+  const healthyIndex = backendNodes.findIndex((n) => n.healthy);
+  if (healthyIndex !== -1) {
+    activeIndex = healthyIndex;
+    return backendNodes[activeIndex].url;
+  }
+
+  // Fallback to primary node
+  return backendNodes[0].url;
 }
 
 /**
  * Marks a backend URL as having succeeded.
  */
 export function markBackendSuccess(baseUrl) {
-  const node = backendNodes.find((n) => baseUrl.startsWith(n.url));
-  if (node) {
+  const nodeIndex = backendNodes.findIndex((n) => baseUrl.startsWith(n.url));
+  if (nodeIndex !== -1) {
+    const node = backendNodes[nodeIndex];
     node.healthy = true;
     node.consecutiveFailures = 0;
+    activeIndex = nodeIndex;
   }
 }
 
@@ -72,14 +80,18 @@ export function markBackendSuccess(baseUrl) {
  * Marks a backend URL as having failed.
  */
 export function markBackendFailure(baseUrl) {
-  const node = backendNodes.find((n) => baseUrl.startsWith(n.url));
-  if (node) {
+  const nodeIndex = backendNodes.findIndex((n) => baseUrl.startsWith(n.url));
+  if (nodeIndex !== -1) {
+    const node = backendNodes[nodeIndex];
     node.consecutiveFailures += 1;
     node.lastFailureTime = Date.now();
-    // After 2 consecutive failures or high-severity errors, temporarily disable node
-    if (node.consecutiveFailures >= 2) {
-      node.healthy = false;
-      console.warn(`[LoadBalancer] Backend node ${node.url} temporarily cooled down.`);
+    node.healthy = false;
+    console.warn(`[LoadBalancer] Backend node ${node.url} failed. Failover in progress...`);
+
+    // Immediately switch active index to a healthy alternative
+    const nextHealthy = backendNodes.findIndex((n, idx) => idx !== nodeIndex && n.healthy);
+    if (nextHealthy !== -1) {
+      activeIndex = nextHealthy;
     }
   }
 }
@@ -93,7 +105,7 @@ export function getAlternativeBackend(failedBaseUrl) {
     (n) => !failedBaseUrl.startsWith(n.url) && (n.healthy || now - n.lastFailureTime > COOLDOWN_MS)
   );
   if (available.length > 0) {
-    return available[Math.floor(Math.random() * available.length)].url;
+    return available[0].url;
   }
   return null;
 }

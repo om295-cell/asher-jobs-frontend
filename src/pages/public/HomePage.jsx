@@ -13,57 +13,6 @@ import { jobsApi } from '../../api/jobs.api'
 // 14 existing valid landscape videos for desktop/tablet (excluding missing 4 & 6)
 const HERO_VIDEOS = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => `/hero-videos/${i}.mp4`)
 
-// Live in-demand roles ticker for mobile motion hero
-const OPPORTUNITY_TICKER = [
-  {
-    roleAr: 'فني صيانة ميكانيكية وكهربائية',
-    roleEn: 'Mechanical & Electrical Maintenance Tech',
-    cityAr: 'العاشر من رمضان',
-    cityEn: '10th of Ramadan',
-    badgeAr: 'مطلوب فوراً',
-    badgeEn: 'Urgent'
-  },
-  {
-    roleAr: 'أمين مخزن ومسؤول لوجستيات',
-    roleEn: 'Warehouse & Logistics Supervisor',
-    cityAr: 'الروبيكي',
-    cityEn: 'El Roubiky',
-    badgeAr: 'وظيفة حديثة',
-    badgeEn: 'New Role'
-  },
-  {
-    roleAr: 'مشغل ماكينات إنتاج وCNC',
-    roleEn: 'Production & CNC Machine Operator',
-    cityAr: 'المنطقة الصناعية - بدر',
-    cityEn: 'Badr Industrial',
-    badgeAr: 'تعيين عاجل',
-    badgeEn: 'Hiring Now'
-  },
-  {
-    roleAr: 'مهندس كهرباء وتحكم آلي',
-    roleEn: 'Electrical & Automation Engineer',
-    cityAr: 'العبور',
-    cityEn: 'El Obour',
-    badgeAr: 'رواتب مجزية',
-    badgeEn: 'Competitive'
-  },
-  {
-    roleAr: 'محاسب تكاليف ومخازن',
-    roleEn: 'Cost & Inventory Accountant',
-    cityAr: 'العاشر من رمضان',
-    cityEn: '10th of Ramadan',
-    badgeAr: 'متاح الآن',
-    badgeEn: 'Available'
-  },
-  {
-    roleAr: 'سائق رخصة مهنية أولى وثانية',
-    roleEn: 'Commercial Heavy Driver',
-    cityAr: 'العاشر من رمضان والعبور',
-    cityEn: '10th of Ramadan & Obour',
-    badgeAr: 'تعيين فوري',
-    badgeEn: 'Immediate'
-  }
-]
 
 function getCategoryIcon(catNameAr, catName) {
   const text = `${catNameAr || ''} ${catName || ''}`.toLowerCase()
@@ -88,7 +37,6 @@ export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
   const videoRef = useRef(null)
-  const [tickerIndex, setTickerIndex] = useState(0)
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 768
@@ -105,15 +53,6 @@ export default function HomePage() {
     mediaQuery.addEventListener('change', handler)
     return () => mediaQuery.removeEventListener('change', handler)
   }, [])
-
-  // Auto-cycle mobile opportunity ticker
-  useEffect(() => {
-    if (isDesktop) return
-    const timer = setInterval(() => {
-      setTickerIndex((prev) => (prev + 1) % OPPORTUNITY_TICKER.length)
-    }, 3200)
-    return () => clearInterval(timer)
-  }, [isDesktop])
 
   const [stats, setStats] = useState({
     candidates: null,
@@ -210,9 +149,6 @@ export default function HomePage() {
       videoRef.current.play().catch(() => {})
     }
   }, [currentVideoIndex, isDesktop])
-
-  const currentTicker = OPPORTUNITY_TICKER[tickerIndex]
-
   return (
     <div>
       {/* Hero Section */}
@@ -310,50 +246,6 @@ export default function HomePage() {
 
         <div className="container" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
           <div style={{ maxWidth: 700 }}>
-            {/* Mobile-only Live Opportunity Ticker */}
-            {!isDesktop && (
-              <div style={{
-                marginBottom: '1rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.625rem',
-                background: 'rgba(255, 255, 255, 0.06)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                padding: '0.4rem 0.85rem',
-                borderRadius: '9999px',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-                maxWidth: '100%'
-              }}>
-                <span className="hero-pulse-dot" style={{ flexShrink: 0 }} />
-                <span style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 900,
-                  color: '#4ade80',
-                  background: 'rgba(34, 197, 94, 0.12)',
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  flexShrink: 0
-                }}>
-                  {isRtl ? currentTicker.badgeAr : currentTicker.badgeEn}
-                </span>
-                <span
-                  key={tickerIndex}
-                  className="hero-ticker-item"
-                  style={{
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    color: '#f4f4f5',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {isRtl ? `${currentTicker.roleAr} — ${currentTicker.cityAr}` : `${currentTicker.roleEn} — ${currentTicker.cityEn}`}
-                </span>
-              </div>
-            )}
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',

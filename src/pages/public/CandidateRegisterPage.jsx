@@ -41,7 +41,9 @@ export default function CandidateRegisterPage() {
 
   useEffect(() => {
     jobsApi.getCategories().then(res => {
-      if (res.data?.success) setCategories(res.data.data)
+      if (res.data?.success) {
+        setCategories((res.data.data || []).filter(c => c.name !== 'Uncategorized' && c.nameAr !== 'غير مصنف'))
+      }
     }).catch(() => {})
     jobsApi.getJobs().then(res => {
       if (res.data?.success) setJobs(res.data.data)

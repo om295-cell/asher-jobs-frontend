@@ -36,7 +36,10 @@ export default function AdminCategories() {
   const loadCategories = () => {
     setLoading(true)
     adminApi.listCategories()
-      .then(res => setCategories(res.data?.data || []))
+      .then(res => {
+        const list = (res.data?.data || []).filter(c => c.name !== 'Uncategorized' && c.nameAr !== 'غير مصنف')
+        setCategories(list)
+      })
       .catch(err => showToast(err.response?.data?.message || 'Failed to load categories', 'error'))
       .finally(() => setLoading(false))
   }

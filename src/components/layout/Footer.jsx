@@ -110,7 +110,9 @@ export default function Footer() {
           }}
         >
           <div>
-            © {new Date().getFullYear()} {t('brandName')} — {isRtl ? 'جميع الحقوق محفوظة' : 'All rights reserved'}.
+            {isRtl
+              ? 'تم تطوير هذا الموقع بواسطة عاشر ميديا للخدمات الإلكترونية سجل تجاري 11615'
+              : 'Developed by Asher Media for Electronic Services — Commercial Register 11615'}
           </div>
           <div>
             {isRtl

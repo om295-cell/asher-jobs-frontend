@@ -122,7 +122,10 @@ export default function HomePage() {
       .then(([catsRes, jobsRes]) => {
         if (!isMounted) return
         if (catsRes?.data?.data) {
-          const sortedCats = [...catsRes.data.data].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          const validCats = catsRes.data.data.filter(
+            (c) => c.name !== 'Uncategorized' && c.nameAr !== 'غير مصنف'
+          )
+          const sortedCats = [...validCats].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
           setCategories(sortedCats)
         }
         if (jobsRes?.data?.data) {

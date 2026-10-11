@@ -10,7 +10,60 @@ import {
 import { statsApi } from '../../api/stats.api'
 import { jobsApi } from '../../api/jobs.api'
 
-const HERO_VIDEOS = Array.from({ length: 17 }, (_, i) => `/hero-videos/${i + 1}.mp4`)
+// 14 existing valid landscape videos for desktop/tablet (excluding missing 4 & 6)
+const HERO_VIDEOS = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => `/hero-videos/${i}.mp4`)
+
+// Live in-demand roles ticker for mobile motion hero
+const OPPORTUNITY_TICKER = [
+  {
+    roleAr: 'فني صيانة ميكانيكية وكهربائية',
+    roleEn: 'Mechanical & Electrical Maintenance Tech',
+    cityAr: 'العاشر من رمضان',
+    cityEn: '10th of Ramadan',
+    badgeAr: 'مطلوب فوراً',
+    badgeEn: 'Urgent'
+  },
+  {
+    roleAr: 'أمين مخزن ومسؤول لوجستيات',
+    roleEn: 'Warehouse & Logistics Supervisor',
+    cityAr: 'الروبيكي',
+    cityEn: 'El Roubiky',
+    badgeAr: 'وظيفة حديثة',
+    badgeEn: 'New Role'
+  },
+  {
+    roleAr: 'مشغل ماكينات إنتاج وCNC',
+    roleEn: 'Production & CNC Machine Operator',
+    cityAr: 'المنطقة الصناعية - بدر',
+    cityEn: 'Badr Industrial',
+    badgeAr: 'تعيين عاجل',
+    badgeEn: 'Hiring Now'
+  },
+  {
+    roleAr: 'مهندس كهرباء وتحكم آلي',
+    roleEn: 'Electrical & Automation Engineer',
+    cityAr: 'العبور',
+    cityEn: 'El Obour',
+    badgeAr: 'رواتب مجزية',
+    badgeEn: 'Competitive'
+  },
+  {
+    roleAr: 'محاسب تكاليف ومخازن',
+    roleEn: 'Cost & Inventory Accountant',
+    cityAr: 'العاشر من رمضان',
+    cityEn: '10th of Ramadan',
+    badgeAr: 'متاح الآن',
+    badgeEn: 'Available'
+  },
+  {
+    roleAr: 'سائق رخصة مهنية أولى وثانية',
+    roleEn: 'Commercial Heavy Driver',
+    cityAr: 'العاشر من رمضان والعبور',
+    cityEn: '10th of Ramadan & Obour',
+    badgeAr: 'تعيين فوري',
+    badgeEn: 'Immediate'
+  }
+]
 
 function getCategoryIcon(catNameAr, catName) {
   const text = `${catNameAr || ''} ${catName || ''}`.toLowerCase()
@@ -35,6 +88,33 @@ export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [showCompanyModal, setShowCompanyModal] = useState(false)
   const videoRef = useRef(null)
+  const [tickerIndex, setTickerIndex] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768
+    }
+    return true
+  })
+
+  // Detect desktop vs mobile viewport dynamically
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia('(min-width: 768px)')
+    const handler = (e) => setIsDesktop(e.matches)
+    setIsDesktop(mediaQuery.matches)
+    mediaQuery.addEventListener('change', handler)
+    return () => mediaQuery.removeEventListener('change', handler)
+  }, [])
+
+  // Auto-cycle mobile opportunity ticker
+  useEffect(() => {
+    if (isDesktop) return
+    const timer = setInterval(() => {
+      setTickerIndex((prev) => (prev + 1) % OPPORTUNITY_TICKER.length)
+    }, 3200)
+    return () => clearInterval(timer)
+  }, [isDesktop])
+
   const [stats, setStats] = useState({
     candidates: null,
     companies: null,
@@ -125,58 +205,155 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    if (videoRef.current) {
+    if (isDesktop && videoRef.current) {
       videoRef.current.load()
       videoRef.current.play().catch(() => {})
     }
-  }, [currentVideoIndex])
+  }, [currentVideoIndex, isDesktop])
+
+  const currentTicker = OPPORTUNITY_TICKER[tickerIndex]
 
   return (
     <div>
       {/* Hero Section */}
       <section style={{
-        backgroundColor: '#000000',
+        backgroundColor: '#050507',
         color: '#ffffff',
         padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(3.5rem, 7vw, 6rem)',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: 'auto',
+        minHeight: isDesktop ? 'auto' : '620px',
         display: 'flex',
         alignItems: 'center'
       }}>
-        {/* Background Video Player */}
-        <video
-          ref={videoRef}
-          key={HERO_VIDEOS[currentVideoIndex]}
-          autoPlay
-          muted
-          playsInline
-          onEnded={handleVideoEnd}
-          onError={handleVideoError}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none'
-          }}
-        >
-          <source src={HERO_VIDEOS[currentVideoIndex]} type="video/mp4" />
-        </video>
-
-        {/* Dark overlay for contrast and legibility */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.65)',
-          zIndex: 1
-        }} />
+        {/* DESKTOP BACKGROUND: High-definition cinematic video player */}
+        {isDesktop ? (
+          <>
+            <video
+              ref={videoRef}
+              key={HERO_VIDEOS[currentVideoIndex]}
+              autoPlay
+              muted
+              playsInline
+              onEnded={handleVideoEnd}
+              onError={handleVideoError}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                zIndex: 0,
+                pointerEvents: 'none'
+              }}
+            >
+              <source src={HERO_VIDEOS[currentVideoIndex]} type="video/mp4" />
+            </video>
+            {/* Dark overlay for contrast and legibility */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.65)',
+              zIndex: 1
+            }} />
+          </>
+        ) : (
+          /* MOBILE BACKGROUND: 60fps High-Performance UI Motion Layer (Zero Video Bandwidth) */
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+            {/* Tech grid mesh overlay */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
+              opacity: 0.7
+            }} />
+            {/* Animated Aurora Orb 1: Emerald Pulse */}
+            <div
+              className="hero-aurora-orb-1"
+              style={{
+                position: 'absolute',
+                top: '-15%',
+                right: isRtl ? 'auto' : '-10%',
+                left: isRtl ? '-10%' : 'auto',
+                width: '340px',
+                height: '340px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.05) 50%, transparent 70%)',
+                filter: 'blur(35px)'
+              }}
+            />
+            {/* Animated Aurora Orb 2: Sapphire / Indigo Drift */}
+            <div
+              className="hero-aurora-orb-2"
+              style={{
+                position: 'absolute',
+                bottom: '-10%',
+                left: isRtl ? 'auto' : '-15%',
+                right: isRtl ? '-15%' : 'auto',
+                width: '320px',
+                height: '320px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(99, 102, 241, 0.04) 55%, transparent 70%)',
+                filter: 'blur(40px)'
+              }}
+            />
+            {/* Subtle dark vignette */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, rgba(5,5,7,0.3) 0%, rgba(5,5,7,0.85) 100%)'
+            }} />
+          </div>
+        )}
 
         <div className="container" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
           <div style={{ maxWidth: 700 }}>
+            {/* Mobile-only Live Opportunity Ticker */}
+            {!isDesktop && (
+              <div style={{
+                marginBottom: '1rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                background: 'rgba(255, 255, 255, 0.06)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                padding: '0.4rem 0.85rem',
+                borderRadius: '9999px',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+                maxWidth: '100%'
+              }}>
+                <span className="hero-pulse-dot" style={{ flexShrink: 0 }} />
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 900,
+                  color: '#4ade80',
+                  background: 'rgba(34, 197, 94, 0.12)',
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  flexShrink: 0
+                }}>
+                  {isRtl ? currentTicker.badgeAr : currentTicker.badgeEn}
+                </span>
+                <span
+                  key={tickerIndex}
+                  className="hero-ticker-item"
+                  style={{
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    color: '#f4f4f5',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {isRtl ? `${currentTicker.roleAr} — ${currentTicker.cityAr}` : `${currentTicker.roleEn} — ${currentTicker.cityEn}`}
+                </span>
+              </div>
+            )}
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)',

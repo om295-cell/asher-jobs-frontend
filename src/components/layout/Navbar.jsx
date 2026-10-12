@@ -19,7 +19,9 @@ import {
   User,
   Users,
   Bell,
-  X
+  X,
+  ShoppingCart,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -504,6 +506,38 @@ export default function Navbar() {
                   <span>{t('navFindCandidates')}</span>
                 </Link>
                 <Link
+                  to="/company/cart"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/company/cart') ? '#000000' : '#52525b',
+                    borderBottom: isActive('/company/cart') ? '2px solid #000000' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                >
+                  <ShoppingCart size={16} />
+                  <span>{isRtl ? 'سلة المرشحين' : 'Cart'}</span>
+                </Link>
+                <Link
+                  to="/company/browse"
+                  style={{
+                    fontSize: '0.9375rem',
+                    fontWeight: 700,
+                    color: isActive('/company/browse') ? '#4338ca' : '#52525b',
+                    borderBottom: isActive('/company/browse') ? '2px solid #4338ca' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                >
+                  <Sparkles size={16} />
+                  <span>{isRtl ? 'تصفح VIP' : 'VIP Browse'}</span>
+                </Link>
+                <Link
                   to="/company/requests"
                   style={{
                     fontSize: '0.9375rem',
@@ -790,6 +824,14 @@ export default function Navbar() {
                         <Link to="/company/search" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <Search size={16} />
                           {t('navFindCandidates')}
+                        </Link>
+                        <Link to="/company/cart" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <ShoppingCart size={16} />
+                          {isRtl ? 'سلة المرشحين' : 'Candidate Cart'}
+                        </Link>
+                        <Link to="/company/browse" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#4338ca', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Sparkles size={16} />
+                          {isRtl ? 'تصفح قاعدة البيانات (VIP)' : 'VIP Browse'}
                         </Link>
                         <Link to="/company/requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
                           {t('navRequests')}

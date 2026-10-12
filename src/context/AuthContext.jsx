@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi } from '../api/auth.api';
 
+import ForcedPasswordChangeModal from '../components/common/ForcedPasswordChangeModal';
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -99,7 +101,12 @@ export function AuthProvider({ children }) {
     refreshProfile
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      {user?.mustChangePassword && <ForcedPasswordChangeModal />}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

@@ -4,7 +4,8 @@ import { useToast } from '../../context/ToastContext'
 import { searchApi } from '../../api/search.api'
 import { jobsApi } from '../../api/jobs.api'
 import { companyApi } from '../../api/company.api'
-import { Search, SlidersHorizontal, Download, Phone, MessageCircle, Star, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Search, SlidersHorizontal, Download, Phone, MessageCircle, Star, X, ShoppingCart, Sparkles, Clock } from 'lucide-react'
 import CandidateCard from '../../components/ui/CandidateCard'
 import CandidateDetailModal from '../../components/modals/CandidateDetailModal'
 import Pagination from '../../components/ui/Pagination'
@@ -30,7 +31,7 @@ export default function CompanySearch() {
   const [loading, setLoading] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [showFilters, setShowFilters] = useState(true)
-
+  const [entitlements, setEntitlements] = useState(null)
   const [filters, setFilters] = useState({
     desiredJobId: '',
     governorate: '',
@@ -38,9 +39,19 @@ export default function CompanySearch() {
     isOpenToWork: true
   })
 
+  const fetchEntitlements = useCallback(async () => {
+    try {
+      const res = await companyApi.getEntitlements()
+      if (res.data?.success) {
+        setEntitlements(res.data.data)
+      }
+    } catch (_) {}
+  }, [])
+
   useEffect(() => {
     jobsApi.getJobs().then(res => setJobs(res.data?.data || [])).catch(() => {})
-  }, [])
+    fetchEntitlements()
+  }, [fetchEntitlements])
 
   const doSearch = useCallback((currentPage = 1) => {
     setLoading(true)
@@ -55,9 +66,10 @@ export default function CompanySearch() {
     searchApi.searchCandidates(params).then(res => {
       setCandidates(res.data?.data || [])
       setTotal(res.data?.total || 0)
+      fetchEntitlements()
     }).catch(() => showToast(isRtl ? 'خطأ في البحث' : 'Search error', 'error'))
       .finally(() => setLoading(false))
-  }, [filters, isRtl, showToast])
+  }, [filters, isRtl, showToast, fetchEntitlements])
 
   useEffect(() => { doSearch(1); setPage(1) }, [])
 
@@ -80,6 +92,7 @@ export default function CompanySearch() {
       if (filters.desiredJobId) params.desiredJobId = filters.desiredJobId
       if (filters.governorate) params.governorate = filters.governorate
       const res = await companyApi.exportCandidates(params)
+      fetchEntitlements()
       const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -135,6 +148,107 @@ export default function CompanySearch() {
             </button>
           </div>
         </div>
+
+        {/* Cairo Daily Quota & Subscription Status Banner */}
+        {entitlements && (
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid var(--border)',
+              borderRadius: '16px',
+              padding: '1.25rem',
+              marginBottom: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '999px',
+                  fontWeight: 800,
+                  fontSize: '0.8125rem',
+                  background: entitlements.plan === 'Platinum' ? '#e0e7ff' : entitlements.plan === 'Gold' ? '#fef3c7' : '#e2e8f0',
+                  color: entitlements.plan === 'Platinum' ? '#3730a3' : entitlements.plan === 'Gold' ? '#92400e' : '#334155',
+                  border: '1px solid currentColor'
+                }}
+              >
+                باقة: {entitlements.plan}
+              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
+                <span>عمليات البحث اليومية المتبقية:</span>
+                <strong style={{ color: 'var(--primary)', fontWeight: 800 }}>
+                  {entitlements.remainingDailySearches} / {entitlements.limits?.dailySearchLimit}
+                </strong>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
+                <span>تاريخ اليوم (القاهرة):</span>
+                <span style={{ fontWeight: 600 }}>{entitlements.cairoDate}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {entitlements.limits?.cartEnabled && (
+                <Link
+                  to="/company/cart"
+                  className="btn"
+                  style={{
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <ShoppingCart size={15} />
+                  <span>سلة المرشحين (تصدير مجمع)</span>
+                </Link>
+              )}
+
+              {entitlements.limits?.platinumBrowseEnabled && (
+                <Link
+                  to="/company/browse"
+                  className="btn"
+                  style={{
+                    background: 'linear-gradient(135deg, #4338ca, #6366f1)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    textDecoration: 'none',
+                    boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)'
+                  }}
+                >
+                  <Sparkles size={15} />
+                  <span>بوابة التصفح الحصرية (VIP)</span>
+                </Link>
+              )}
+
+              <span style={{ fontSize: '0.75rem', color: 'var(--slate-500)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Clock size={12} />
+                <span>تتجدد الحصص 00:00 بتوقيت القاهرة</span>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         {showFilters && (

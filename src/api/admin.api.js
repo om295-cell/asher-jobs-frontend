@@ -70,5 +70,20 @@ export const adminApi = {
 
   // Settings
   getSettings: () => api.get('/admin/settings'),
-  updateSetting: (key, value, description) => api.put('/admin/settings', { key, value, description })
+  updateSetting: (key, value, description) => api.put('/admin/settings', { key, value, description }),
+
+  // Employer Accounts (Verified Companies & Individual HR)
+  listEmployerAccounts: (params) => api.get('/admin/employer-accounts', { params }),
+  createEmployerAccount: (data) => api.post('/admin/employer-accounts', data),
+  getEligibleVerifiers: () => api.get('/admin/employer-accounts/eligible-verifiers'),
+  resetEmployerPassword: (id) => api.post(`/admin/employer-accounts/${id}/reset-password`),
+  updateEmployerStatus: (id, status, reason) => api.patch(`/admin/employer-accounts/${id}/status`, { status, reason }),
+  updateEmployerSubscription: (id, data) => api.patch(`/admin/employer-accounts/${id}/subscription`, data),
+  getEmployerAccountAnalytics: (id) => api.get(`/admin/employer-accounts/${id}/analytics`),
+  getEmployerActivityRankings: (params) => api.get('/admin/employer-accounts/analytics/rankings', { params }),
+  getBulkEmployerAnalytics: () => api.get('/admin/employer-accounts/analytics/bulk'),
+
+  // Subscription Plans Management
+  listSubscriptionPlans: () => api.get('/admin/subscriptions/plans'),
+  updateSubscriptionPlan: (id, data) => api.put(`/admin/subscriptions/plans/${id}`, data)
 };

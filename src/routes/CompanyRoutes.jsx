@@ -11,6 +11,8 @@ import CompanyReports from '../pages/company/CompanyReports'
 import CompanyProfile from '../pages/company/CompanyProfile'
 import CompanySubscription from '../pages/company/CompanySubscription'
 import CompanyPending from '../pages/company/CompanyPending'
+import CompanyCart from '../pages/company/CompanyCart'
+import CompanyBrowse from '../pages/company/CompanyBrowse'
 
 // Shorthand for company-approved guard
 const CG = ({ children }) => <CompanyGuard>{children}</CompanyGuard>
@@ -30,6 +32,8 @@ export default function CompanyRoutes() {
 
       {/* Pages that require Approved status */}
       <Route path="/company/search"        element={<Layout showFooter={false}><CG><CompanySearch /></CG></Layout>} />
+      <Route path="/company/cart"          element={<Layout showFooter={false}><CG><CompanyCart /></CG></Layout>} />
+      <Route path="/company/browse"        element={<Layout showFooter={false}><CG><CompanyBrowse /></CG></Layout>} />
       <Route path="/company/requests"      element={<Layout showFooter={false}><CG><CompanyRequests /></CG></Layout>} />
       <Route path="/company/requests/:id"  element={<Layout showFooter={false}><CG><CompanyRequestDetail /></CG></Layout>} />
       <Route path="/company/reports"       element={<Layout showFooter={false}><CG><CompanyReports /></CG></Layout>} />

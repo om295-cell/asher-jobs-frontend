@@ -16,7 +16,9 @@ import {
   CreditCard,
   Save,
   MessageCircle,
-  Clock
+  Clock,
+  KeyRound,
+  UserCheck
 } from 'lucide-react'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import StatusBadge from '../../components/ui/StatusBadge'
@@ -31,7 +33,7 @@ export default function AdminCompanyDetail() {
   const [company, setCompany] = useState(null)
   const [loading, setLoading] = useState(true)
   const [savingSub, setSavingSub] = useState(false)
-  const [subForm, setSubForm] = useState({ plan: 'Standard', searchLimit: 500, exportLimit: 100, status: 'active' })
+  const [subForm, setSubForm] = useState({ plan: 'Basic', priceEgp: 500, status: 'active' })
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', action: null })
 
   const fetchCompany = () => {
@@ -40,14 +42,11 @@ export default function AdminCompanyDetail() {
       .then(res => {
         const comp = res.data?.data
         setCompany(comp)
-        if (comp?.subscription) {
-          setSubForm({
-            plan: comp.subscription.plan || 'Standard',
-            searchLimit: comp.subscription.searchLimit || 500,
-            exportLimit: comp.subscription.exportLimit || 100,
-            status: comp.subscription.status || 'active'
-          })
-        }
+        setSubForm({
+          plan: comp?.subscriptionPlan || comp?.subscription?.plan || 'Basic',
+          priceEgp: comp?.subscriptionPriceEgp || comp?.monthlyPriceEgp || 500,
+          status: comp?.accountStatus || comp?.subscription?.status || 'active'
+        })
       })
       .catch(err => {
         showToast(err.response?.data?.message || 'Failed to load company', 'error')
@@ -95,14 +94,41 @@ export default function AdminCompanyDetail() {
     e.preventDefault()
     try {
       setSavingSub(true)
-      await adminApi.updateCompanySubscription(company._id, subForm)
-      showToast(isRtl ? 'تم تحديث بيانات باقة الشركة' : 'Subscription updated successfully', 'success')
+      await adminApi.updateEmployerSubscription(company._id, {
+        subscriptionPlan: subForm.plan,
+        subscriptionPriceEgp: Number(subForm.priceEgp)
+      })
+      if (subForm.status && subForm.status !== company.accountStatus) {
+        await adminApi.updateEmployerStatus(company._id, subForm.status, 'Admin updated status in detail view')
+      }
+      showToast(isRtl ? 'تم تحديث بيانات باقة واشتراك الحساب بنجاح' : 'Subscription updated successfully', 'success')
       fetchCompany()
     } catch (err) {
       showToast(err.response?.data?.message || 'Update failed', 'error')
     } finally {
       setSavingSub(false)
     }
+  }
+
+  const handleResetPassword = () => {
+    setConfirmModal({
+      open: true,
+      title: isRtl ? 'إعادة تعيين كلمة المرور' : 'Reset Password',
+      message: isRtl
+        ? `هل أنت متأكد من إعادة تعيين كلمة المرور لحساب "${company.companyName}" إلى (Temp@1234)؟ سيُلزم المستخدم بتغييرها فور تسجيل الدخول.`
+        : `Reset password for "${company.companyName}" to Temp@1234?`,
+      confirmText: isRtl ? 'تأكيد (Temp@1234)' : 'Reset to Temp@1234',
+      danger: true,
+      action: async () => {
+        try {
+          const res = await adminApi.resetEmployerPassword(company._id)
+          showToast(res.data?.message || 'تم إعادة تعيين كلمة المرور بنجاح!', 'success')
+          fetchCompany()
+        } catch (err) {
+          showToast(err.response?.data?.message || 'Reset failed', 'error')
+        }
+      }
+    })
   }
 
   const handleToggleBlock = () => {
@@ -286,52 +312,62 @@ export default function AdminCompanyDetail() {
                 <select
                   className="form-control"
                   value={subForm.plan}
-                  onChange={(e) => setSubForm(prev => ({ ...prev, plan: e.target.value }))}
+                  onChange={(e) => {
+                    const newPlan = e.target.value;
+                    let defaultPrice = 500;
+                    if (newPlan === 'Gold') defaultPrice = 1000;
+                    if (newPlan === 'Platinum') defaultPrice = 2000;
+                    setSubForm(prev => ({ ...prev, plan: newPlan, priceEgp: defaultPrice }));
+                  }}
                 >
-                  <option value="Starter">{isRtl ? 'باقة أساسية (Starter)' : 'Starter'}</option>
-                  <option value="Standard">{isRtl ? 'باقة المصانع (Standard)' : 'Standard'}</option>
-                  <option value="Enterprise">{isRtl ? 'باقة كبرى (Enterprise)' : 'Enterprise'}</option>
+                  <option value="Basic">{isRtl ? 'الباقة الأساسية (Basic - 500 ج.م)' : 'Basic Plan'}</option>
+                  <option value="Gold">{isRtl ? 'الباقة الذهبية (Gold - 1000 ج.م)' : 'Gold Plan'}</option>
+                  <option value="Platinum">{isRtl ? 'الباقة البلاتينية (Platinum - 2000 ج.م)' : 'Platinum Plan'}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">{isRtl ? 'حالة الباقة' : 'Subscription Status'}</label>
+                <label className="form-label">{isRtl ? 'سعر الاشتراك الشهري (EGP)' : 'Monthly Price (EGP)'}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={subForm.priceEgp}
+                  onChange={(e) => setSubForm(prev => ({ ...prev, priceEgp: Number(e.target.value) }))}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">{isRtl ? 'حالة الحساب' : 'Account Status'}</label>
                 <select
                   className="form-control"
                   value={subForm.status}
                   onChange={(e) => setSubForm(prev => ({ ...prev, status: e.target.value }))}
                 >
-                  <option value="active">{isRtl ? 'مفعلة (Active)' : 'Active'}</option>
-                  <option value="expired">{isRtl ? 'منتهية (Expired)' : 'Expired'}</option>
-                  <option value="cancelled">{isRtl ? 'ملغاة (Cancelled)' : 'Cancelled'}</option>
+                  <option value="active">{isRtl ? 'نشط (Active)' : 'Active'}</option>
+                  <option value="on_hold">{isRtl ? 'معلق مؤقتاً (On Hold)' : 'On Hold'}</option>
+                  <option value="suspended">{isRtl ? 'موقوف (Suspended)' : 'Suspended'}</option>
+                  <option value="banned">{isRtl ? 'محظور (Banned)' : 'Banned'}</option>
                 </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">{isRtl ? 'حد عمليات البحث شهرياً' : 'Monthly Search Limit'}</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={subForm.searchLimit}
-                  onChange={(e) => setSubForm(prev => ({ ...prev, searchLimit: parseInt(e.target.value, 10) }))}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label">{isRtl ? 'حد تصدير السير الذاتية (CSV)' : 'Monthly Export Limit'}</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={subForm.exportLimit}
-                  onChange={(e) => setSubForm(prev => ({ ...prev, exportLimit: parseInt(e.target.value, 10) }))}
-                />
-              </div>
-
-              <button type="submit" disabled={savingSub} className="btn btn-primary" style={{ width: '100%', fontWeight: 600 }}>
+              <button type="submit" disabled={savingSub} className="btn btn-primary" style={{ width: '100%', fontWeight: 700 }}>
                 <Save size={16} />
-                {isRtl ? (savingSub ? 'جاري الحفظ...' : 'تحديث الباقة') : (savingSub ? 'Updating...' : 'Update Subscription')}
+                {isRtl ? (savingSub ? 'جاري الحفظ...' : 'حفظ بيانات الاشتراك') : (savingSub ? 'Updating...' : 'Save Subscription')}
               </button>
             </form>
+
+            <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)' }}>
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                className="btn btn-outline-amber"
+                style={{ width: '100%', fontSize: '0.84rem', fontWeight: 700 }}
+              >
+                <KeyRound size={16} />
+                {isRtl ? 'إعادة تعيين كلمة المرور إلى (Temp@1234)' : 'Reset Password to Temp@1234'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

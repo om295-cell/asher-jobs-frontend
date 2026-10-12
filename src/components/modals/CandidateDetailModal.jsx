@@ -1,8 +1,9 @@
 import React from 'react';
-import { X, Phone, MessageSquare, MapPin, Briefcase, Award, CheckCircle, FileText, Download } from 'lucide-react';
+import { X, Phone, MessageSquare, MapPin, Briefcase, Award, CheckCircle, FileText, Download, ShoppingCart } from 'lucide-react';
 import StatusBadge from '../ui/StatusBadge';
 import { useLanguage } from '../../context/LanguageContext';
 import { candidateApi } from '../../api/candidate.api';
+import { companyApi } from '../../api/company.api';
 
 export default function CandidateDetailModal({ candidate, isOpen = true, onClose, onReport }) {
   const { t, isRtl } = useLanguage();
@@ -25,6 +26,27 @@ export default function CandidateDetailModal({ candidate, isOpen = true, onClose
   const handleDownloadCv = () => {
     candidateApi.recordInteraction(candidate.id || candidate._id, { action: 'CV_REQUESTED' }).catch(() => {});
     window.open(`http://localhost:5000/api/candidates/cv/${candidate.id || candidate._id}`, '_blank');
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      const jobId = candidate.desiredJob?._id || candidate.desiredJobId || candidate.desiredJob;
+      if (!jobId) {
+        alert('لا يمكن إضافة المرشح لعدم وجود معرف تخصص محدد');
+        return;
+      }
+      const candidateId = candidate._id || candidate.id;
+      const cartRes = await companyApi.getCart();
+      const existingItem = (cartRes.data?.data || []).find(i => String(i.jobId?._id) === String(jobId));
+      const existingCandidateIds = existingItem ? existingItem.candidates.map(c => c._id || c) : [];
+      if (!existingCandidateIds.includes(candidateId)) {
+        existingCandidateIds.push(candidateId);
+      }
+      await companyApi.addOrUpdateCart(jobId, existingCandidateIds);
+      alert('تمت إضافة المرشح إلى سلة المرشحين المتعددة بنجاح!');
+    } catch (err) {
+      alert(err.response?.data?.message || 'فشلت الإضافة للسلة. تأكد من أن باقة حسابك (ذهبية أو بلاتينية).');
+    }
   };
 
   // Compile up to 3 titles list
@@ -284,9 +306,20 @@ export default function CandidateDetailModal({ candidate, isOpen = true, onClose
               {t('reportCandidate')}
             </button>
           )}
-          <button className="btn btn-primary btn-sm" onClick={onClose}>
-            إغلاق
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              className="btn btn-sm"
+              onClick={handleAddToCart}
+              style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}
+              title="إضافة المرشح لسلة التصدير المجمعة"
+            >
+              <ShoppingCart size={14} />
+              <span>إضافة للسلة</span>
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={onClose}>
+              إغلاق
+            </button>
+          </div>
         </div>
       </div>
     </div>

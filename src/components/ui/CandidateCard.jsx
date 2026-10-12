@@ -35,10 +35,10 @@ export default function CandidateCard({ candidate, onViewDetails, onReport, onRe
                 <span
                   title={
                     candidate.matchPriority === 1
-                      ? 'تم مطابقة المسمى الوظيفي الأول (الأولوية القصوى)'
+                      ? 'تمت مطابقة المسمى الوظيفي الأول'
                       : candidate.matchPriority === 2
-                      ? 'تم مطابقة المسمى الوظيفي الثاني (الأولوية الثانية)'
-                      : 'تم مطابقة المسمى الوظيفي الثالث (الأولوية الثالثة)'
+                      ? 'تمت مطابقة المسمى الوظيفي الثاني'
+                      : 'تمت مطابقة المسمى الوظيفي الثالث'
                   }
                   style={{
                     fontSize: '0.68rem',
@@ -66,10 +66,10 @@ export default function CandidateCard({ candidate, onViewDetails, onReport, onRe
                   }}
                 >
                   {candidate.matchPriority === 1
-                    ? (isRtl ? '⭐ أولوية 1' : '⭐ Priority 1')
+                    ? (isRtl ? 'أولوية 1' : 'Priority 1')
                     : candidate.matchPriority === 2
-                    ? (isRtl ? '🥈 أولوية 2' : '🥈 Priority 2')
-                    : (isRtl ? '🥉 أولوية 3' : '🥉 Priority 3')}
+                    ? (isRtl ? 'أولوية 2' : 'Priority 2')
+                    : (isRtl ? 'أولوية 3' : 'Priority 3')}
                 </span>
               )}
             </div>

@@ -1194,30 +1194,23 @@ export default function RecommendationPage() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              marginBottom: '0.75rem',
+                              marginBottom: '0.85rem',
                               flexWrap: 'wrap',
                               gap: '0.5rem'
                             }}
                           >
-                            <div>
-                              <div
-                                style={{
-                                  fontSize: '0.9rem',
-                                  fontWeight: 800,
-                                  color: '#0f172a',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.4rem'
-                                }}
-                              >
-                                <Briefcase size={16} style={{ color: '#09090b' }} />
-                                <span>{isRtl ? 'المسميات الوظيفية ومستويات الخبرة (حتى 3 تخصصات)' : 'Job Titles & Career Levels (Up to 3)'}</span>
-                              </div>
-                              <div style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>
-                                {isRtl
-                                  ? '⚡ أولوية الظهور في نتائج بحث الشركات: المسمى الأول (أولوية 1) ثم الثاني (أولوية 2) ثم الثالث (أولوية 3).'
-                                  : '⚡ Companies search priority: 1st title (Top #1), then 2nd (#2), then 3rd (#3).'}
-                              </div>
+                            <div
+                              style={{
+                                fontSize: '0.925rem',
+                                fontWeight: 800,
+                                color: '#0f172a',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.45rem'
+                              }}
+                            >
+                              <Briefcase size={17} style={{ color: '#0f172a' }} />
+                              <span>{isRtl ? 'المسميات الوظيفية ومستويات الخبرة (حتى 3 تخصصات)' : 'Job Titles & Career Levels (Up to 3)'}</span>
                             </div>
 
                             {(!person.titles || person.titles.length < 3) && (
@@ -1227,24 +1220,33 @@ export default function RecommendationPage() {
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '0.35rem',
-                                  padding: '0.35rem 0.75rem',
-                                  borderRadius: '7px',
+                                  gap: '0.4rem',
+                                  padding: '0.4rem 0.85rem',
+                                  borderRadius: '8px',
                                   background: '#f8fafc',
-                                  border: '1px dashed #94a3b8',
+                                  border: '1px solid #cbd5e1',
                                   color: '#0f172a',
-                                  fontSize: '0.75rem',
+                                  fontSize: '0.78rem',
                                   fontWeight: 700,
                                   cursor: 'pointer',
-                                  transition: 'all 0.15s'
+                                  transition: 'all 0.15s ease',
+                                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#0f172a';
+                                  e.currentTarget.style.color = '#ffffff';
+                                  e.currentTarget.style.borderColor = '#0f172a';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#f8fafc';
+                                  e.currentTarget.style.color = '#0f172a';
+                                  e.currentTarget.style.borderColor = '#cbd5e1';
+                                }}
                               >
                                 <Plus size={14} />
                                 {isRtl
                                   ? `+ إضافة مسمى وظيفي إضافي (${(person.titles?.length || 1) + 1}/3)`
-                                  : `+ Add title (${(person.titles?.length || 1) + 1}/3)`}
+                                  : `+ Add job title (${(person.titles?.length || 1) + 1}/3)`}
                               </button>
                             )}
                           </div>
@@ -1258,10 +1260,12 @@ export default function RecommendationPage() {
                                   key={titleItem.id || titleIdx}
                                   style={{
                                     background: isPrimaryTitle ? '#f8fafc' : '#ffffff',
-                                    border: isPrimaryTitle ? '1px solid #cbd5e1' : '1px solid #e2e8f0',
+                                    border: '1px solid #e2e8f0',
+                                    borderInlineStart: isPrimaryTitle ? '3.5px solid #0f172a' : '3.5px solid #94a3b8',
                                     borderRadius: '10px',
-                                    padding: '0.85rem',
-                                    position: 'relative'
+                                    padding: '0.9rem 1rem',
+                                    position: 'relative',
+                                    transition: 'all 0.15s ease'
                                   }}
                                 >
                                   {/* Title Badge & Remove Action */}
@@ -1270,24 +1274,25 @@ export default function RecommendationPage() {
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
-                                      marginBottom: '0.65rem'
+                                      marginBottom: '0.75rem'
                                     }}
                                   >
                                     <span
                                       style={{
-                                        fontSize: '0.72rem',
+                                        fontSize: '0.75rem',
                                         fontWeight: 800,
-                                        padding: '0.2rem 0.55rem',
+                                        padding: '0.2rem 0.6rem',
                                         borderRadius: '6px',
-                                        background: isPrimaryTitle ? '#09090b' : titleIdx === 1 ? '#dbeafe' : '#fef3c7',
-                                        color: isPrimaryTitle ? '#ffffff' : titleIdx === 1 ? '#1e40af' : '#92400e'
+                                        background: isPrimaryTitle ? '#0f172a' : titleIdx === 1 ? '#e0f2fe' : '#f1f5f9',
+                                        color: isPrimaryTitle ? '#ffffff' : titleIdx === 1 ? '#0369a1' : '#475569',
+                                        border: isPrimaryTitle ? 'none' : '1px solid #cbd5e1'
                                       }}
                                     >
                                       {titleIdx === 0
-                                        ? (isRtl ? '⭐ المسمى الأول (الأولوية القصوى #1 في بحث الشركات)' : '⭐ 1st Title (Top Priority #1 in Search)')
+                                        ? (isRtl ? 'المسمى الوظيفي الأول (الأساسي)' : 'First Job Title (Primary)')
                                         : titleIdx === 1
-                                        ? (isRtl ? '🥈 المسمى الثاني (الأولوية الثانية #2 في بحث الشركات)' : '🥈 2nd Title (Priority #2 in Search)')
-                                        : (isRtl ? '🥉 المسمى الثالث (الأولوية الثالثة #3 في بحث الشركات)' : '🥉 3rd Title (Priority #3 in Search)')}
+                                        ? (isRtl ? 'المسمى الوظيفي الثاني (إضافي)' : 'Second Job Title (Optional)')
+                                        : (isRtl ? 'المسمى الوظيفي الثالث (إضافي)' : 'Third Job Title (Optional)')}
                                     </span>
 
                                     {!isPrimaryTitle && (
@@ -1295,16 +1300,24 @@ export default function RecommendationPage() {
                                         type="button"
                                         onClick={() => handleRemoveTitle(index, titleIdx)}
                                         style={{
-                                          background: 'none',
-                                          border: 'none',
+                                          background: '#fef2f2',
+                                          border: '1px solid #fee2e2',
+                                          borderRadius: '6px',
                                           color: '#ef4444',
                                           fontSize: '0.75rem',
                                           fontWeight: 700,
                                           cursor: 'pointer',
                                           display: 'inline-flex',
                                           alignItems: 'center',
-                                          gap: '0.25rem',
-                                          padding: '0.2rem 0.4rem'
+                                          gap: '0.3rem',
+                                          padding: '0.25rem 0.55rem',
+                                          transition: 'all 0.15s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = '#fee2e2';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = '#fef2f2';
                                         }}
                                       >
                                         <Trash2 size={13} />
@@ -1316,8 +1329,8 @@ export default function RecommendationPage() {
                                   <div
                                     style={{
                                       display: 'grid',
-                                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-                                      gap: '0.75rem'
+                                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+                                      gap: '0.85rem'
                                     }}
                                   >
                                     {/* Job Title Select */}
@@ -1325,13 +1338,13 @@ export default function RecommendationPage() {
                                       <label
                                         style={{
                                           display: 'block',
-                                          fontSize: '0.78rem',
+                                          fontSize: '0.8rem',
                                           fontWeight: 700,
                                           color: '#334155',
-                                          marginBottom: '0.25rem'
+                                          marginBottom: '0.3rem'
                                         }}
                                       >
-                                        {isRtl ? `التخصص / المسمى الوظيفي #${titleIdx + 1}` : `Job Title #${titleIdx + 1}`} *
+                                        {isRtl ? 'التخصص / المسمى الوظيفي' : 'Job Title'} *
                                       </label>
                                       <SearchableJobSelect
                                         jobs={jobs}
@@ -1355,13 +1368,13 @@ export default function RecommendationPage() {
                                       <label
                                         style={{
                                           display: 'block',
-                                          fontSize: '0.78rem',
+                                          fontSize: '0.8rem',
                                           fontWeight: 700,
                                           color: '#334155',
-                                          marginBottom: '0.25rem'
+                                          marginBottom: '0.3rem'
                                         }}
                                       >
-                                        {isRtl ? `مستوى الخبرة المهنية #${titleIdx + 1}` : `Career Level #${titleIdx + 1}`} *
+                                        {isRtl ? 'مستوى الخبرة المهنية' : 'Career Level'} *
                                       </label>
                                       <select
                                         value={titleItem.careerLevel}

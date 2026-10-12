@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Info,
   XCircle,
+  AlertCircle,
   ExternalLink,
   Plus,
   Trash2
@@ -301,6 +302,14 @@ export default function RecommendationPage() {
         person.phone = digits;
         person.phoneError = '';
         person.phoneExists = false;
+        updated[index] = person;
+
+        if (digits.length === 11 && PHONE_REGEX.test(digits)) {
+          setTimeout(() => {
+            handlePhoneBlur(index, digits);
+          }, 250);
+        }
+        return updated;
       }
       if (field === 'jobId') {
         person.jobError = '';
@@ -420,10 +429,27 @@ export default function RecommendationPage() {
     });
   };
 
+  // Helper to scroll page directly to candidate with an issue and focus their name
+  const scrollToPerson = (index) => {
+    setTimeout(() => {
+      const cardEl = document.getElementById(`person-card-${index}`);
+      const nameInput = document.getElementById(`person-name-input-${index}`);
+      const phoneInput = document.getElementById(`person-phone-input-${index}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (nameInput) {
+        nameInput.focus();
+      } else if (phoneInput) {
+        phoneInput.focus();
+      }
+    }, 120);
+  };
+
   // Validate Phone on Blur & Check Duplicates
-  const handlePhoneBlur = async (index) => {
+  const handlePhoneBlur = async (index, overridePhone = null) => {
     const person = people[index];
-    const phone = (person.phone || '').trim();
+    const phone = (overridePhone !== null ? overridePhone : (person?.phone || '')).trim();
 
     if (!phone) {
       setPeople((prev) => {
@@ -447,6 +473,10 @@ export default function RecommendationPage() {
       return;
     }
 
+    const duplicateMessage = isRtl
+      ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
+      : 'This person is already added, please enter someone else';
+
     // 1. Check intra-form duplicates
     const duplicateInForm = people.some(
       (p, i) => i !== index && p.phone && p.phone.trim() === phone
@@ -457,11 +487,13 @@ export default function RecommendationPage() {
         const u = [...prev];
         u[index] = {
           ...u[index],
-          phoneError: 'رقم الهاتف مكرر داخل نفس النموذج',
+          phoneError: duplicateMessage,
           phoneExists: true
         };
         return u;
       });
+      showToast(duplicateMessage, 'error');
+      scrollToPerson(index);
       return;
     }
 
@@ -473,27 +505,34 @@ export default function RecommendationPage() {
     });
 
     try {
-      const res = await recommendationApi.checkPhone(phone);
+      const res = await recommendationApi.checkPhone(phone, index === 0, person?.fullName || '');
       const data = res.data?.data;
-      setPeople((prev) => {
-        const u = [...prev];
-        if (!data?.isAvailable) {
+      if (!data?.isAvailable) {
+        const errMsg = data?.message || duplicateMessage;
+        setPeople((prev) => {
+          const u = [...prev];
           u[index] = {
             ...u[index],
             phoneChecking: false,
-            phoneError: data?.message || 'رقم الهاتف مسجل بالفعل في قاعدة البيانات',
+            phoneError: errMsg,
             phoneExists: true
           };
-        } else {
+          return u;
+        });
+        showToast(errMsg, 'error');
+        scrollToPerson(index);
+      } else {
+        setPeople((prev) => {
+          const u = [...prev];
           u[index] = {
             ...u[index],
             phoneChecking: false,
             phoneError: '',
             phoneExists: false
           };
-        }
-        return u;
-      });
+          return u;
+        });
+      }
     } catch (err) {
       setPeople((prev) => {
         const u = [...prev];
@@ -532,6 +571,10 @@ export default function RecommendationPage() {
 
     // Comprehensive client-side re-validation
     let hasErrors = false;
+    const duplicateMessage = isRtl
+      ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
+      : 'This person is already added, please enter someone else';
+
     const validatedPeople = people.map((p, index) => {
       const copy = { ...p };
       const nameTrimmed = (copy.fullName || '').trim();
@@ -550,6 +593,9 @@ export default function RecommendationPage() {
         hasErrors = true;
       } else if (!PHONE_REGEX.test(phoneTrimmed)) {
         copy.phoneError = 'رقم الهاتف يجب أن يكون 11 رقماً (010, 011, 012, 015)';
+        hasErrors = true;
+      } else if (copy.phoneExists) {
+        copy.phoneError = copy.phoneError || duplicateMessage;
         hasErrors = true;
       }
 
@@ -577,8 +623,32 @@ export default function RecommendationPage() {
       return copy;
     });
 
+    // Check intra-form duplicates across all 11 persons
+    const seenPhonesInSubmission = new Map();
+    validatedPeople.forEach((p, idx) => {
+      const ph = p.phone?.trim();
+      if (ph && PHONE_REGEX.test(ph)) {
+        if (seenPhonesInSubmission.has(ph)) {
+          const prevIdx = seenPhonesInSubmission.get(ph);
+          p.phoneError = duplicateMessage;
+          p.phoneExists = true;
+          validatedPeople[prevIdx].phoneError = duplicateMessage;
+          validatedPeople[prevIdx].phoneExists = true;
+          hasErrors = true;
+        } else {
+          seenPhonesInSubmission.set(ph, idx);
+        }
+      }
+    });
+
     if (hasErrors) {
       setPeople(validatedPeople);
+      const firstErrIdx = validatedPeople.findIndex(
+        (p) => p.phoneError || p.nameError || p.jobError || p.levelError || p.titles?.some((t) => t.jobError || t.levelError)
+      );
+      if (firstErrIdx !== -1) {
+        scrollToPerson(firstErrIdx);
+      }
       showToast('يرجى تصحيح الأخطاء الموضحة باللون الأحمر في النموذج', 'error');
       return;
     }
@@ -613,19 +683,28 @@ export default function RecommendationPage() {
       const errData = err.response?.data;
       if (errData?.code === 'DUPLICATE_PHONE') {
         const dupIndices = errData.duplicateIndices || [];
+        const dupMessage =
+          errData.message ||
+          (isRtl
+            ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
+            : 'This person is already added, please enter someone else');
+
         setPeople((prev) => {
           return prev.map((p, idx) => {
             if (dupIndices.includes(idx)) {
               return {
                 ...p,
-                phoneError: 'هذا الرقم مسجل بالفعل مسبقاً في قاعدة البيانات',
+                phoneError: dupMessage,
                 phoneExists: true
               };
             }
             return p;
           });
         });
-        showToast(errData.message || 'يوجد أرقام هواتف مسجلة مسبقاً، تم تمييزها باللون الأحمر', 'error');
+        if (dupIndices.length > 0) {
+          scrollToPerson(dupIndices[0]);
+        }
+        showToast(dupMessage, 'error');
       } else {
         showToast(errData?.message || 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.', 'error');
       }
@@ -969,8 +1048,7 @@ export default function RecommendationPage() {
                             cursor: 'pointer'
                           }}
                           onClick={() => {
-                            const el = document.getElementById(`person-card-${idx}`);
-                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            scrollToPerson(idx);
                           }}
                         >
                           {idx === 0 ? '★' : idx}
@@ -984,20 +1062,28 @@ export default function RecommendationPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {people.map((person, index) => {
                     const isPrimary = index === 0;
+                    const isDuplicate = Boolean(person.phoneExists || person.phoneError);
 
                     return (
                       <div
                         id={`person-card-${index}`}
                         key={index}
                         style={{
-                          background: '#ffffff',
-                          border: isPrimary ? '2px solid #09090b' : '1px solid #e2e8f0',
+                          background: isDuplicate ? '#fffbfb' : '#ffffff',
+                          border: isDuplicate
+                            ? '2px solid #ef4444'
+                            : isPrimary
+                            ? '2px solid #09090b'
+                            : '1px solid #e2e8f0',
                           borderRadius: '14px',
                           padding: '1.5rem',
-                          boxShadow: isPrimary
+                          boxShadow: isDuplicate
+                            ? '0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 14px rgba(239, 68, 68, 0.08)'
+                            : isPrimary
                             ? '0 4px 15px rgba(0, 0, 0, 0.05)'
                             : '0 1px 3px rgba(0, 0, 0, 0.02)',
-                          position: 'relative'
+                          position: 'relative',
+                          transition: 'all 0.2s ease'
                         }}
                       >
                         {/* Card Header Badge */}
@@ -1017,19 +1103,20 @@ export default function RecommendationPage() {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '8px',
-                                background: isPrimary ? '#09090b' : '#f1f5f9',
-                                color: isPrimary ? '#ffffff' : '#475569',
+                                background: isDuplicate ? '#ef4444' : isPrimary ? '#09090b' : '#f1f5f9',
+                                color: isDuplicate || isPrimary ? '#ffffff' : '#475569',
                                 fontWeight: 800,
                                 fontSize: '0.9rem',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                transition: 'all 0.2s ease'
                               }}
                             >
                               {isPrimary ? '1' : index + 1}
                             </div>
                             <div>
-                              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#09090b' }}>
+                              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: isDuplicate ? '#b91c1c' : '#09090b' }}>
                                 {isPrimary
                                   ? (isRtl ? 'بيانات مقدم الطلب الأساسي' : 'Primary Submitter Profile')
                                   : (isRtl ? `المرشح رقم ${index} (موصى به)` : `Candidate Recommendation #${index}`)}
@@ -1048,8 +1135,8 @@ export default function RecommendationPage() {
                             style={{
                               padding: '0.25rem 0.65rem',
                               borderRadius: '6px',
-                              background: isPrimary ? '#09090b' : '#f8fafc',
-                              color: isPrimary ? '#ffffff' : '#64748b',
+                              background: isDuplicate ? '#fee2e2' : isPrimary ? '#09090b' : '#f8fafc',
+                              color: isDuplicate ? '#dc2626' : isPrimary ? '#ffffff' : '#64748b',
                               fontSize: '0.75rem',
                               fontWeight: 700
                             }}
@@ -1059,6 +1146,33 @@ export default function RecommendationPage() {
                               : (isRtl ? `ترشيح ${index}/10` : `Nomination ${index}/10`)}
                           </div>
                         </div>
+
+                        {/* Duplicate Alert Banner */}
+                        {isDuplicate && (
+                          <div
+                            style={{
+                              background: '#fef2f2',
+                              border: '1.5px solid #ef4444',
+                              borderRadius: '8px',
+                              padding: '0.65rem 0.85rem',
+                              marginBottom: '1.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              color: '#b91c1c',
+                              fontSize: '0.85rem',
+                              fontWeight: 700
+                            }}
+                          >
+                            <AlertCircle size={18} color="#dc2626" style={{ flexShrink: 0 }} />
+                            <span>
+                              {person.phoneError ||
+                                (isRtl
+                                  ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
+                                  : 'This person is already added, please enter someone else')}
+                            </span>
+                          </div>
+                        )}
 
                         {/* Grid Fields */}
                         <div
@@ -1082,6 +1196,7 @@ export default function RecommendationPage() {
                               {isRtl ? 'الاسم بالكامل' : 'Full Name'} *
                             </label>
                             <input
+                              id={`person-name-input-${index}`}
                               type="text"
                               value={person.fullName}
                               onChange={(e) => handleFieldChange(index, 'fullName', e.target.value)}
@@ -1091,10 +1206,14 @@ export default function RecommendationPage() {
                                 width: '100%',
                                 padding: '0.65rem 0.85rem',
                                 borderRadius: '8px',
-                                border: person.nameError ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
+                                border: person.nameError
+                                  ? '1.5px solid #ef4444'
+                                  : isDuplicate
+                                  ? '1.5px solid #f87171'
+                                  : '1px solid #cbd5e1',
                                 outline: 'none',
                                 fontSize: '0.9rem',
-                                background: '#ffffff',
+                                background: isDuplicate ? '#fff5f5' : '#ffffff',
                                 color: '#09090b'
                               }}
                             />
@@ -1124,6 +1243,7 @@ export default function RecommendationPage() {
                             </label>
                             <div style={{ position: 'relative' }}>
                               <input
+                                id={`person-phone-input-${index}`}
                                 type="tel"
                                 maxLength={11}
                                 value={person.phone}
@@ -1134,10 +1254,10 @@ export default function RecommendationPage() {
                                   width: '100%',
                                   padding: '0.65rem 0.85rem',
                                   borderRadius: '8px',
-                                  border: person.phoneError ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
+                                  border: isDuplicate ? '2px solid #ef4444' : '1px solid #cbd5e1',
                                   outline: 'none',
                                   fontSize: '0.9rem',
-                                  background: '#ffffff',
+                                  background: isDuplicate ? '#fff5f5' : '#ffffff',
                                   color: '#09090b',
                                   direction: 'ltr',
                                   textAlign: isRtl ? 'right' : 'left'

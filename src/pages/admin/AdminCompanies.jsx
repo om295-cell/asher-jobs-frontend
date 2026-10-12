@@ -29,7 +29,10 @@ import {
   ArrowUpDown,
   Download,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X,
+  Save,
+  Check
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Pagination from '../../components/ui/Pagination';
@@ -337,127 +340,136 @@ export default function AdminCompanies() {
   return (
     <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '85vh' }} dir="rtl">
       <div className="container">
-        {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+
+        {/* ══ Page Header ══ */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
-              <Building2 className="w-8 h-8 text-primary-600" />
-              <span>إدارة وتوثيق حسابات الشركات وأصحاب العمل</span>
+            <h1 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 900, color: '#000000', display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
+              <Building2 size={24} strokeWidth={2.5} />
+              إدارة وتوثيق حسابات الشركات وأصحاب العمل
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              التحكم الشامل بحسابات الشركات ومسؤولي الـ HR • التوثيق اليدوي وعبر الشركات • الاشتراكات والحصص اليومية بتوقيت القاهرة
+            <p style={{ color: 'var(--slate-500)', fontSize: '0.8125rem', marginTop: '0.35rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
+              <span>التحكم الشامل بحسابات الشركات ومسؤولي الـ HR</span>
+              <span style={{ color: 'var(--slate-300)' }}>•</span>
+              <span>التوثيق اليدوي وعبر الشركات</span>
+              <span style={{ color: 'var(--slate-300)' }}>•</span>
+              <span>الاشتراكات والحصص اليومية بتوقيت القاهرة</span>
             </p>
           </div>
 
           <button
+            type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            className="btn btn-primary"
+            style={{ fontSize: '0.875rem', padding: '0.6rem 1.1rem', flexShrink: 0 }}
           >
-            <Plus className="w-4 h-4" />
-            <span>إنشاء حساب موثق جديد</span>
+            <Plus size={16} />
+            إنشاء حساب موثق جديد
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-slate-200 mb-6 gap-2 overflow-x-auto pb-1">
-          <button
-            onClick={() => setActiveTab('accounts')}
-            className={`px-5 py-2.5 font-bold text-sm rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === 'accounts'
-                ? 'border-blue-600 text-blue-600 bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>قائمة الحسابات ({total})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('rankings')}
-            className={`px-5 py-2.5 font-bold text-sm rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === 'rankings'
-                ? 'border-blue-600 text-blue-600 bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>ترتيب نشاط الحسابات (Rankings)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('bulk_analytics')}
-            className={`px-5 py-2.5 font-bold text-sm rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === 'bulk_analytics'
-                ? 'border-blue-600 text-blue-600 bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>الإحصائيات الشاملة (Bulk Analytics)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('plans')}
-            className={`px-5 py-2.5 font-bold text-sm rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
-              activeTab === 'plans'
-                ? 'border-blue-600 text-blue-600 bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span>خطط وأسعار الاشتراكات (EGP)</span>
-          </button>
+        {/* ══ Tab Navigation ══ */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: '1.75rem', borderBottom: '2px solid #000000', overflowX: 'auto' }}>
+          {[
+            { key: 'accounts',       icon: <Building2 size={15} />,    label: `قائمة الحسابات (${total})` },
+            { key: 'rankings',       icon: <TrendingUp size={15} />,   label: 'ترتيب النشاط' },
+            { key: 'bulk_analytics', icon: <BarChart3 size={15} />,    label: 'الإحصائيات الشاملة' },
+            { key: 'plans',          icon: <CreditCard size={15} />,   label: 'خطط الاشتراكات' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.55rem 1.1rem',
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === tab.key ? '2.5px solid #000000' : '2.5px solid transparent',
+                marginBottom: '-2px',
+                cursor: 'pointer',
+                color: activeTab === tab.key ? '#000000' : 'var(--slate-500)',
+                whiteSpace: 'nowrap',
+                transition: 'color 0.15s ease, border-color 0.15s ease'
+              }}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* TAB 1: ACCOUNTS LIST */}
+        {/* ══ TAB 1: ACCOUNTS LIST ══ */}
         {activeTab === 'accounts' && (
           <>
             {/* Filter Toolbar */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6 shadow-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">بحث</label>
+            <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
+              {/* Search row */}
+              <div style={{ marginBottom: '0.75rem' }}>
+                <div style={{ position: 'relative' }}>
                   <input
                     type="text"
+                    className="form-control"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="الاسم، الهاتف، البريد..."
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="بحث بالاسم أو الهاتف أو البريد الإلكتروني..."
+                    style={{ paddingInlineStart: '2.5rem', fontSize: '0.9rem' }}
+                  />
+                  <Search
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      right: '0.875rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--slate-400)',
+                      pointerEvents: 'none'
+                    }}
                   />
                 </div>
+              </div>
 
+              {/* Filters row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: '0.65rem' }}>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">نوع الحساب</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '0.25rem' }}>نوع الحساب</label>
                   <select
+                    className="form-control"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8125rem' }}
                     value={accountTypeFilter}
                     onChange={(e) => setAccountTypeFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">جميع الأنواع</option>
-                    <option value="company">منشأة / شركة (Company)</option>
-                    <option value="individual_hr">مسؤول توظيف فردي (Individual HR)</option>
+                    <option value="company">منشأة / شركة</option>
+                    <option value="individual_hr">مسؤول توظيف فردي</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">طريقة التوثيق</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '0.25rem' }}>طريقة التوثيق</label>
                   <select
+                    className="form-control"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8125rem' }}
                     value={verificationMethodFilter}
                     onChange={(e) => setVerificationMethodFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">جميع الطرق</option>
-                    <option value="manual">يدوي من الإدارة (Manual)</option>
-                    <option value="verified_by_company">موثق بواسطة شركة (Verified by Company)</option>
+                    <option value="manual">توثيق يدوي</option>
+                    <option value="verified_by_company">موثق عبر شركة</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">خطة الاشتراك</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '0.25rem' }}>خطة الاشتراك</label>
                   <select
+                    className="form-control"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8125rem' }}
                     value={planFilter}
                     onChange={(e) => setPlanFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">جميع الباقات</option>
                     <option value="Basic">الأساسية (Basic)</option>
@@ -467,224 +479,315 @@ export default function AdminCompanies() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">حالة الحساب</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '0.25rem' }}>حالة الحساب</label>
                   <select
+                    className="form-control"
+                    style={{ padding: '0.45rem 0.75rem', fontSize: '0.8125rem' }}
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">جميع الحالات</option>
-                    <option value="active">نشط (Active)</option>
-                    <option value="on_hold">معلق مؤقتاً (On Hold)</option>
-                    <option value="suspended">موقوف (Suspended)</option>
-                    <option value="banned">محظور (Banned)</option>
+                    <option value="active">نشط</option>
+                    <option value="on_hold">معلق مؤقتاً</option>
+                    <option value="suspended">موقوف</option>
+                    <option value="banned">محظور</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            {/* Accounts Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-              {loading ? (
-                <div className="p-16 flex justify-center">
-                  <LoadingSpinner />
-                </div>
-              ) : accounts.length === 0 ? (
-                <div className="p-12 text-center text-slate-500">
-                  لا توجد حسابات مطابقة لمعايير البحث.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="py-3 px-4">المنشأة / صاحب العمل</th>
-                        <th className="py-3 px-3">التصنيف والتوثيق</th>
-                        <th className="py-3 px-3">الباقة والسعر</th>
-                        <th className="py-3 px-3">الحالة</th>
-                        <th className="py-3 px-3">نشاط الحساب</th>
-                        <th className="py-3 px-4 text-center">الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {accounts.map((comp) => {
-                        const isHr = comp.accountType === 'individual_hr';
-                        const isVerifiedByComp = comp.verificationMethod === 'verified_by_company';
+            {/* Accounts Table or Empty State */}
+            {loading ? (
+              <div style={{ padding: '4rem 0', display: 'flex', justifyContent: 'center' }}>
+                <LoadingSpinner />
+              </div>
+            ) : accounts.length === 0 ? (
+              <EmptyState
+                title={isRtl ? 'لا توجد حسابات مطابقة لمعايير البحث' : 'No Accounts Found'}
+                description={isRtl ? 'يمكنك تعديل خيارات التصفية أو البدء بإنشاء حساب موثق جديد من زر الإضافة أعلاه.' : 'Try adjusting your search filters or create a new account.'}
+              />
+            ) : (
+              <div className="table-responsive" style={{ marginBottom: '1.5rem' }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{isRtl ? 'المنشأة / صاحب العمل' : 'Employer'}</th>
+                      <th>{isRtl ? 'التصنيف والتوثيق' : 'Classification'}</th>
+                      <th>{isRtl ? 'الباقة والسعر' : 'Plan & Price'}</th>
+                      <th>{isRtl ? 'الحالة' : 'Status'}</th>
+                      <th>{isRtl ? 'نشاط الحساب' : 'Activity'}</th>
+                      <th style={{ textAlign: 'center' }}>{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accounts.map((comp) => {
+                      const isHr = comp.accountType === 'individual_hr';
+                      const isVerifiedByComp = comp.verificationMethod === 'verified_by_company';
 
-                        let categoryLabel = 'Type A: شركة موثقة يدوياً';
-                        let categoryBadgeClass = 'bg-blue-100 text-blue-800';
-                        if (isHr && !isVerifiedByComp) {
-                          categoryLabel = 'Type B: مسؤول HR موثق يدوياً';
-                          categoryBadgeClass = 'bg-purple-100 text-purple-800';
-                        } else if (!isHr && isVerifiedByComp) {
-                          categoryLabel = 'Type C1: شركة موثقة عبر شركة';
-                          categoryBadgeClass = 'bg-teal-100 text-teal-800';
-                        } else if (isHr && isVerifiedByComp) {
-                          categoryLabel = 'Type C2: HR موثق عبر شركة';
-                          categoryBadgeClass = 'bg-amber-100 text-amber-800';
-                        }
+                      let categoryLabel = 'Type A: شركة موثقة يدوياً';
+                      let badgeStyle = { background: '#f4f4f5', color: '#000000', border: '1px solid #000000' };
+                      if (isHr && !isVerifiedByComp) {
+                        categoryLabel = 'Type B: مسؤول HR موثق يدوياً';
+                        badgeStyle = { background: '#f4f4f5', color: '#000000', border: '1px solid #52525b' };
+                      } else if (!isHr && isVerifiedByComp) {
+                        categoryLabel = 'Type C1: شركة موثقة عبر شركة';
+                        badgeStyle = { background: '#ffffff', color: '#000000', border: '1.5px solid #000000' };
+                      } else if (isHr && isVerifiedByComp) {
+                        categoryLabel = 'Type C2: HR موثق عبر شركة';
+                        badgeStyle = { background: '#ffffff', color: '#000000', border: '1.5px dashed #000000' };
+                      }
 
-                        let statusBadge = (
-                          <span className="px-2 py-0.5 rounded-full font-bold text-[11px] bg-emerald-100 text-emerald-800">
-                            نشط
-                          </span>
-                        );
-                        if (comp.accountStatus === 'on_hold') {
-                          statusBadge = <span className="px-2 py-0.5 rounded-full font-bold text-[11px] bg-amber-100 text-amber-800">معلق</span>;
-                        } else if (comp.accountStatus === 'suspended') {
-                          statusBadge = <span className="px-2 py-0.5 rounded-full font-bold text-[11px] bg-orange-100 text-orange-800">موقوف</span>;
-                        } else if (comp.accountStatus === 'banned') {
-                          statusBadge = <span className="px-2 py-0.5 rounded-full font-bold text-[11px] bg-red-100 text-red-800">محظور</span>;
-                        }
+                      let statusBadge = (
+                        <span className="badge badge-available">
+                          نشط
+                        </span>
+                      );
+                      if (comp.accountStatus === 'on_hold') {
+                        statusBadge = <span className="badge badge-pending">معلق</span>;
+                      } else if (comp.accountStatus === 'suspended') {
+                        statusBadge = <span className="badge badge-rejected">موقوف</span>;
+                      } else if (comp.accountStatus === 'banned') {
+                        statusBadge = <span className="badge badge-rejected">محظور</span>;
+                      }
 
-                        return (
-                          <tr key={comp._id} className="hover:bg-slate-50/70 transition-colors">
-                            {/* Account Details */}
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-sm">
-                                  {comp.companyName?.charAt(0) || 'ش'}
-                                </div>
-                                <div>
-                                  <div className="font-bold text-slate-900 text-sm">{comp.companyName}</div>
-                                  <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                                    <span>المسؤول: {comp.contactPerson}</span>
-                                    <span>•</span>
-                                    <span dir="ltr">{comp.phone}</span>
-                                  </div>
-                                  {comp.mustChangePassword && (
-                                    <span className="inline-block mt-1 text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">
-                                      ⚠️ ملزم بتغيير كلمة المرور
-                                    </span>
-                                  )}
-                                </div>
+                      return (
+                        <tr key={comp._id}>
+                          {/* Account Details */}
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                              <div
+                                style={{
+                                  width: 38,
+                                  height: 38,
+                                  borderRadius: 'var(--radius-md)',
+                                  background: 'var(--slate-100)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 800,
+                                  fontSize: '0.9rem',
+                                  color: 'var(--slate-800)',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {comp.companyName?.charAt(0) || 'ش'}
                               </div>
-                            </td>
-
-                            {/* Classification */}
-                            <td className="py-3 px-3">
-                              <div className="space-y-1">
-                                <span className={`inline-block px-2 py-0.5 rounded font-bold text-[10px] ${categoryBadgeClass}`}>
-                                  {categoryLabel}
-                                </span>
-                                {isVerifiedByComp && comp.verifiedByCompanyId && (
-                                  <div className="text-[10px] text-slate-500 bg-slate-100 p-1 rounded max-w-[170px] truncate" title={`وثقت بواسطة: ${comp.verifiedByCompanyId.companyName}`}>
-                                    🏢 الموثق: {comp.verifiedByCompanyId.companyName}
-                                  </div>
+                              <div>
+                                <div style={{ fontWeight: 800, color: 'var(--slate-900)', fontSize: '0.9375rem' }}>
+                                  {comp.companyName}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--slate-500)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
+                                  <span>{comp.contactPerson}</span>
+                                  <span>•</span>
+                                  <span dir="ltr">{comp.phone}</span>
+                                </div>
+                                {comp.mustChangePassword && (
+                                  <span
+                                    style={{
+                                      display: 'inline-block',
+                                      marginTop: '0.25rem',
+                                      fontSize: '0.68rem',
+                                      fontWeight: 700,
+                                      padding: '0.1rem 0.45rem',
+                                      borderRadius: '4px',
+                                      background: 'var(--slate-100)',
+                                      color: 'var(--slate-600)',
+                                      border: '1px dashed var(--slate-400)'
+                                    }}
+                                  >
+                                    ! تغيير كلمة المرور مطلوب
+                                  </span>
                                 )}
                               </div>
-                            </td>
+                            </div>
+                          </td>
 
-                            {/* Subscription Plan & Price */}
-                            <td className="py-3 px-3">
-                              <div className="font-bold text-slate-800">
-                                {comp.subscriptionPlan === 'Platinum' ? 'بلاتينية (Platinum)' : comp.subscriptionPlan === 'Gold' ? 'ذهبية (Gold)' : 'أساسية (Basic)'}
+                          {/* Classification */}
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  padding: '0.2rem 0.5rem',
+                                  borderRadius: '4px',
+                                  ...badgeStyle
+                                }}
+                              >
+                                {categoryLabel}
+                              </span>
+                              {isVerifiedByComp && comp.verifiedByCompanyId && (
+                                <span
+                                  style={{
+                                    fontSize: '0.72rem',
+                                    color: 'var(--slate-500)',
+                                    background: 'var(--slate-100)',
+                                    padding: '0.15rem 0.45rem',
+                                    borderRadius: '4px',
+                                    maxWidth: '200px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                  title={`الموثق: ${comp.verifiedByCompanyId.companyName}`}
+                                >
+                                  🏢 الموثق: {comp.verifiedByCompanyId.companyName}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Subscription Plan & Price */}
+                          <td>
+                            <div style={{ fontWeight: 800, color: 'var(--slate-900)' }}>
+                              {comp.subscriptionPlan === 'Platinum'
+                                ? 'بلاتينية (Platinum)'
+                                : comp.subscriptionPlan === 'Gold'
+                                ? 'ذهبية (Gold)'
+                                : 'أساسية (Basic)'}
+                            </div>
+                            <div style={{ fontSize: '0.8125rem', color: '#000000', fontWeight: 700 }}>
+                              {comp.subscriptionPriceEgp || comp.monthlyPriceEgp || 0} ج.م
+                            </div>
+                          </td>
+
+                          {/* Status */}
+                          <td>{statusBadge}</td>
+
+                          {/* Activity Metrics */}
+                          <td>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--slate-600)', lineHeight: 1.6 }}>
+                              <div>بحث: <strong style={{ color: '#000' }}>{comp.metrics?.searches || 0}</strong></div>
+                              <div>تنزيل: <strong style={{ color: '#000' }}>{comp.metrics?.downloads || 0}</strong></div>
+                              <div style={{ marginTop: '0.1rem' }}>
+                                <span
+                                  style={{
+                                    display: 'inline-block',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    background: '#000',
+                                    color: '#fff',
+                                    padding: '0.1rem 0.45rem',
+                                    borderRadius: '4px'
+                                  }}
+                                >
+                                  {comp.metrics?.activityScore || 0} نقطة
+                                </span>
                               </div>
-                              <div className="text-[11px] text-emerald-700 font-semibold">
-                                {comp.subscriptionPriceEgp || comp.monthlyPriceEgp || 0} ج.م
-                              </div>
-                            </td>
+                            </div>
+                          </td>
 
-                            {/* Status */}
-                            <td className="py-3 px-3">
-                              {statusBadge}
-                            </td>
+                          {/* Actions */}
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', gap: '0.35rem', alignItems: 'center' }}>
+                              {/* Reset Password */}
+                              <button
+                                type="button"
+                                onClick={() => handleResetPassword(comp)}
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.35rem', color: '#000000' }}
+                                title="إعادة تعيين كلمة المرور إلى Temp@1234"
+                              >
+                                <KeyRound size={15} />
+                              </button>
 
-                            {/* Activity Metrics */}
-                            <td className="py-3 px-3">
-                              <div className="text-[11px] space-y-0.5 text-slate-600">
-                                <div>بحث: <span className="font-bold text-slate-800">{comp.metrics?.searches || 0}</span></div>
-                                <div>تنزيل: <span className="font-bold text-slate-800">{comp.metrics?.downloads || 0}</span></div>
-                                <div>سكور: <span className="font-bold text-indigo-600">{comp.metrics?.activityScore || 0}</span></div>
-                              </div>
-                            </td>
+                              {/* Change Status */}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setStatusModal({
+                                    open: true,
+                                    companyId: comp._id,
+                                    companyName: comp.companyName,
+                                    status: comp.accountStatus || 'active',
+                                    reason: ''
+                                  })
+                                }
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.35rem' }}
+                                title="تعديل حالة الحساب"
+                              >
+                                <Shield size={15} />
+                              </button>
 
-                            {/* Actions */}
-                            <td className="py-3 px-4">
-                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                                {/* Reset Password */}
-                                <button
-                                  onClick={() => handleResetPassword(comp)}
-                                  className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition-colors"
-                                  title="إعادة تعيين كلمة المرور إلى Temp@1234"
-                                >
-                                  <KeyRound className="w-4 h-4" />
-                                </button>
+                              {/* Edit Plan */}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPlanModal({
+                                    open: true,
+                                    companyId: comp._id,
+                                    companyName: comp.companyName,
+                                    plan: comp.subscriptionPlan || 'Basic',
+                                    priceEgp: comp.subscriptionPriceEgp || 500
+                                  })
+                                }
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.35rem' }}
+                                title="تعديل باقة الاشتراك والسعر"
+                              >
+                                <CreditCard size={15} />
+                              </button>
 
-                                {/* Change Status */}
-                                <button
-                                  onClick={() => setStatusModal({ open: true, companyId: comp._id, companyName: comp.companyName, status: comp.accountStatus || 'active', reason: '' })}
-                                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                                  title="تغيير حالة الحساب (Active / Hold / Suspend)"
-                                >
-                                  <Shield className="w-4 h-4" />
-                                </button>
+                              {/* View Analytics */}
+                              <button
+                                type="button"
+                                onClick={() => handleViewAnalytics(comp)}
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.35rem' }}
+                                title="عرض التحليلات وسجل الاستخدام"
+                              >
+                                <BarChart3 size={15} />
+                              </button>
 
-                                {/* Edit Plan */}
-                                <button
-                                  onClick={() => setPlanModal({ open: true, companyId: comp._id, companyName: comp.companyName, plan: comp.subscriptionPlan || 'Basic', priceEgp: comp.subscriptionPriceEgp || 500 })}
-                                  className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors"
-                                  title="تعديل خطة الاشتراك والسعر"
-                                >
-                                  <CreditCard className="w-4 h-4" />
-                                </button>
+                              {/* View Company Detail Link */}
+                              <Link
+                                to={`/admin/companies/${comp._id}`}
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.35rem' }}
+                                title="تفاصيل المنشأة الكاملة"
+                              >
+                                <Eye size={15} />
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-                                {/* View Analytics */}
-                                <button
-                                  onClick={() => handleViewAnalytics(comp)}
-                                  className="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors"
-                                  title="عرض تحليلات الحساب وسجل الاستخدام"
-                                >
-                                  <BarChart3 className="w-4 h-4" />
-                                </button>
-
-                                {/* View Company Detail */}
-                                <Link
-                                  to={`/admin/companies/${comp._id}`}
-                                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                                  title="الملف الكامل"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Link>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {totalPages > 1 && (
-                <div className="p-4 border-t border-slate-100">
-                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={(p) => fetchAccounts(p)} />
-                </div>
-              )}
-            </div>
+            {totalPages > 1 && (
+              <div style={{ marginTop: '1.25rem' }}>
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={(p) => fetchAccounts(p)} />
+              </div>
+            )}
           </>
         )}
 
         {/* TAB 2: ACTIVITY RANKINGS */}
         {activeTab === 'rankings' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
               <div>
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-indigo-600" />
-                  <span>ترتيب نشاط وتفاعل أصحاب العمل</span>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <TrendingUp size={20} />
+                  <span>ترتيب نشاط وتفاعل أصحاب العمل (Activity Rankings)</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', marginTop: '0.2rem' }}>
                   معادلة التفاعل: (البحث × 1) + (المشاهدات × 2) + (التحميل × 5) + (الاتصالات × 3)
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-600">فرز حسب:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--slate-700)' }}>فرز حسب:</span>
                 <select
+                  className="form-control"
+                  style={{ width: 'auto', minWidth: '220px', padding: '0.4rem 0.75rem', fontSize: '0.8125rem' }}
                   value={rankingsMetric}
                   onChange={(e) => setRankingsMetric(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="activityScore">السكور الكلي للنشاط (Activity Score)</option>
                   <option value="searches">عدد عمليات البحث</option>
@@ -696,56 +799,46 @@ export default function AdminCompanies() {
             </div>
 
             {rankingsLoading ? (
-              <div className="py-16 flex justify-center">
+              <div style={{ padding: '3rem 0', display: 'flex', justifyContent: 'center' }}>
                 <LoadingSpinner />
               </div>
             ) : rankings.length === 0 ? (
-              <div className="py-12 text-center text-slate-500">لا يوجد نشاط مسجل حتى الآن.</div>
+              <EmptyState title="لا يوجد نشاط مسجل حتى الآن" description="ستظهر هنا الحسابات الأكثر تفاعلاً ونشاطاً في قاعدة البيانات." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <th className="py-3 px-3 text-center">الترتيب</th>
-                      <th className="py-3 px-4">الشركة / المسؤول</th>
-                      <th className="py-3 px-3">الباقة</th>
-                      <th className="py-3 px-3">عمليات البحث</th>
-                      <th className="py-3 px-3">المشاهدات</th>
-                      <th className="py-3 px-3">التحميلات</th>
-                      <th className="py-3 px-3">الاتصالات</th>
-                      <th className="py-3 px-4 text-center">السكور الإجمالي</th>
+                      <th style={{ textAlign: 'center', width: 60 }}>الترتيب</th>
+                      <th>الشركة / المسؤول</th>
+                      <th>الباقة</th>
+                      <th>عمليات البحث</th>
+                      <th>المشاهدات</th>
+                      <th>التحميلات</th>
+                      <th>الاتصالات</th>
+                      <th style={{ textAlign: 'center' }}>السكور الإجمالي</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {rankings.map((r, idx) => (
-                      <tr key={r.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-3 text-center">
-                          <span
-                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${
-                              idx === 0
-                                ? 'bg-amber-100 text-amber-800'
-                                : idx === 1
-                                ? 'bg-slate-200 text-slate-800'
-                                : idx === 2
-                                ? 'bg-amber-50 text-amber-700'
-                                : 'text-slate-500'
-                            }`}
-                          >
-                            #{idx + 1}
-                          </span>
+                      <tr key={r.id}>
+                        <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                          #{idx + 1}
                         </td>
-                        <td className="py-3 px-4 font-bold text-slate-900">{r.companyName}</td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-100 text-slate-700">
+                        <td style={{ fontWeight: 800, color: 'var(--slate-900)' }}>
+                          {r.companyName}
+                        </td>
+                        <td>
+                          <span className="badge badge-pending">
                             {r.subscriptionPlan}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-semibold text-slate-700">{r.searches}</td>
-                        <td className="py-3 px-3 font-semibold text-slate-700">{r.views}</td>
-                        <td className="py-3 px-3 font-semibold text-slate-700">{r.downloads}</td>
-                        <td className="py-3 px-3 font-semibold text-slate-700">{r.contacts}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="px-2.5 py-1 rounded-lg font-black text-xs bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <td><strong>{r.searches}</strong></td>
+                        <td><strong>{r.views}</strong></td>
+                        <td><strong>{r.downloads}</strong></td>
+                        <td><strong>{r.contacts}</strong></td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ fontWeight: 900, background: 'var(--slate-100)', padding: '0.25rem 0.65rem', borderRadius: '4px', border: '1px solid #000' }}>
                             {r.activityScore} نقطة
                           </span>
                         </td>
@@ -762,95 +855,105 @@ export default function AdminCompanies() {
         {activeTab === 'bulk_analytics' && (
           <div>
             {bulkLoading ? (
-              <div className="py-16 flex justify-center">
+              <div style={{ padding: '4rem 0', display: 'flex', justifyContent: 'center' }}>
                 <LoadingSpinner />
               </div>
             ) : bulkAnalytics ? (
-              <div className="space-y-6">
+              <div>
                 {/* Metric Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="text-xs text-slate-500 font-semibold mb-1">إجمالي عمليات البحث</div>
-                    <div className="text-2xl font-black text-blue-600">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                      إجمالي عمليات البحث
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)' }}>
                       {bulkAnalytics.totals?.totalSearches || 0}
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="text-xs text-slate-500 font-semibold mb-1">إجمالي ملفات التحميل</div>
-                    <div className="text-2xl font-black text-emerald-600">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                      إجمالي ملفات التحميل
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)' }}>
                       {bulkAnalytics.totals?.totalDownloads || 0}
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="text-xs text-slate-500 font-semibold mb-1">مشاهدات المرشحين</div>
-                    <div className="text-2xl font-black text-indigo-600">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                      مشاهدات المرشحين
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)' }}>
                       {bulkAnalytics.totals?.totalViews || 0}
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="text-xs text-slate-500 font-semibold mb-1">إجمالي الاتصالات</div>
-                    <div className="text-2xl font-black text-amber-600">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                      إجمالي الاتصالات
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)' }}>
                       {bulkAnalytics.totals?.totalContacts || 0}
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <div className="text-xs text-slate-500 font-semibold mb-1">إجمالي الاشتراكات (ج.م)</div>
-                    <div className="text-2xl font-black text-teal-600">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                      إجمالي الاشتراكات (ج.م)
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--slate-900)' }}>
                       {(bulkAnalytics.totals?.totalRevenueEgp || 0).toLocaleString()} ج.م
                     </div>
                   </div>
                 </div>
 
                 {/* Distributions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                   {/* By Plan */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <h4 className="font-bold text-sm text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ fontSize: '0.9375rem', fontWeight: 800, marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       توزيع الحسابات حسب باقة الاشتراك
                     </h4>
-                    <div className="space-y-3 text-xs">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                       {Object.entries(bulkAnalytics.planCounts || {}).map(([plan, count]) => (
-                        <div key={plan} className="flex justify-between items-center">
-                          <span className="font-semibold text-slate-700">{plan}</span>
-                          <span className="px-2.5 py-1 bg-slate-100 rounded-full font-bold">{count} حساب</span>
+                        <div key={plan} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{plan}</span>
+                          <span className="badge badge-available">{count} حساب</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* By Type */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <h4 className="font-bold text-sm text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ fontSize: '0.9375rem', fontWeight: 800, marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       توزيع الحسابات حسب نوع الكيان
                     </h4>
-                    <div className="space-y-3 text-xs">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                       {Object.entries(bulkAnalytics.typeCounts || {}).map(([type, count]) => (
-                        <div key={type} className="flex justify-between items-center">
-                          <span className="font-semibold text-slate-700">
+                        <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>
                             {type === 'individual_hr' ? 'مسؤول توظيف فردي' : 'شركة / مصنع'}
                           </span>
-                          <span className="px-2.5 py-1 bg-slate-100 rounded-full font-bold">{count} حساب</span>
+                          <span className="badge badge-available">{count} حساب</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* By Verification Method */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                    <h4 className="font-bold text-sm text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                  <div className="card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ fontSize: '0.9375rem', fontWeight: 800, marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                       توزيع الحسابات حسب طريقة التوثيق
                     </h4>
-                    <div className="space-y-3 text-xs">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                       {Object.entries(bulkAnalytics.methodCounts || {}).map(([method, count]) => (
-                        <div key={method} className="flex justify-between items-center">
-                          <span className="font-semibold text-slate-700">
+                        <div key={method} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>
                             {method === 'manual' ? 'يدوي من الإدارة' : 'موثق عبر شركة معتمدة'}
                           </span>
-                          <span className="px-2.5 py-1 bg-slate-100 rounded-full font-bold">{count} حساب</span>
+                          <span className="badge badge-available">{count} حساب</span>
                         </div>
                       ))}
                     </div>
@@ -864,73 +967,70 @@ export default function AdminCompanies() {
         {/* TAB 4: SUBSCRIPTION PLANS & PRICING */}
         {activeTab === 'plans' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  إدارة خطط الاشتراكات والحصص اليومية والأسعار (بالجنيه المصري EGP)
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  تحديد الحصص اليومية بتوقيت القاهرة وأسعار الباقات الثلاث (Basic, Gold, Platinum).
-                </p>
-              </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+                إدارة خطط الاشتراكات والحصص اليومية والأسعار (بالجنيه المصري EGP)
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--slate-500)', marginTop: '0.2rem' }}>
+                تحديد الحصص اليومية بتوقيت القاهرة وأسعار الباقات الثلاث (Basic, Gold, Platinum).
+              </p>
             </div>
 
             {plansLoading ? (
-              <div className="py-16 flex justify-center">
+              <div style={{ padding: '3rem 0', display: 'flex', justifyContent: 'center' }}>
                 <LoadingSpinner />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
                 {platformPlans.map((plan) => (
                   <div
                     key={plan._id}
-                    className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between"
+                    className="card"
+                    style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <span className="badge badge-pending" style={{ fontSize: '0.8125rem' }}>
                           {plan.planName}
                         </span>
-                        <div className="text-xl font-black text-emerald-700">
+                        <div style={{ fontSize: '1.375rem', fontWeight: 900 }}>
                           {plan.priceEgp || plan.priceMonthlyEgp} ج.م
                         </div>
                       </div>
 
-                      <h4 className="text-base font-bold text-slate-900 mb-4">
+                      <h4 style={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
                         {plan.displayNameAr || plan.displayName}
                       </h4>
 
-                      <div className="space-y-2.5 text-xs text-slate-600 mb-6">
-                        <div className="flex justify-between pb-1.5 border-b border-slate-100">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--slate-700)', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
                           <span>عمليات البحث اليومية:</span>
-                          <span className="font-bold text-slate-900">{plan.dailySearchLimit} بحث/يوم</span>
+                          <strong>{plan.dailySearchLimit} بحث/يوم</strong>
                         </div>
-                        <div className="flex justify-between pb-1.5 border-b border-slate-100">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
                           <span>تنزيل لكل مسمى وظيفي:</span>
-                          <span className="font-bold text-slate-900">{plan.dailyDownloadLimitPerTitle} مرات/يوم</span>
+                          <strong>{plan.dailyDownloadLimitPerTitle} مرات/يوم</strong>
                         </div>
-                        <div className="flex justify-between pb-1.5 border-b border-slate-100">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
                           <span>المرشحين لكل مسمى:</span>
-                          <span className="font-bold text-slate-900">بحد أقصى {plan.maxCandidatesPerTitle}</span>
+                          <strong>بحد أقصى {plan.maxCandidatesPerTitle}</strong>
                         </div>
-                        <div className="flex justify-between pb-1.5 border-b border-slate-100">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
                           <span>سلة المرشحين (Cart):</span>
-                          <span className={`font-bold ${plan.cartEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>
-                            {plan.cartEnabled ? '✓ مفعلة' : '✕ غير مفعلة'}
-                          </span>
+                          <strong>{plan.cartEnabled ? '✓ مفعلة' : '✕ غير مفعلة'}</strong>
                         </div>
-                        <div className="flex justify-between pb-1.5 border-b border-slate-100">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
                           <span>تصفح قاعدة البيانات (VIP):</span>
-                          <span className={`font-bold ${plan.platinumBrowseEnabled ? 'text-indigo-600' : 'text-slate-400'}`}>
-                            {plan.platinumBrowseEnabled ? '✓ مفعلة (Platinum)' : '✕ غير مفعلة'}
-                          </span>
+                          <strong>{plan.platinumBrowseEnabled ? '✓ مفعلة (Platinum)' : '✕ غير مفعلة'}</strong>
                         </div>
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => setEditingPlan({ ...plan })}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+                      className="btn btn-outline"
+                      style={{ width: '100%', fontSize: '0.875rem' }}
                     >
                       تعديل السعر والحصص
                     </button>
@@ -943,26 +1043,28 @@ export default function AdminCompanies() {
 
         {/* MODAL 1: CREATE EMPLOYER ACCOUNT */}
         {createModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 md:p-8 overflow-y-auto max-h-[90vh]">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-blue-600" />
+          <div className="modal-overlay" onClick={() => setCreateModalOpen(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 580, padding: '1.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <UserCheck size={20} />
                   <span>إنشاء حساب موثق جديد (Super Admin Only)</span>
                 </h3>
-                <button onClick={() => setCreateModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button type="button" onClick={() => setCreateModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}>
+                  <X size={20} />
+                </button>
               </div>
 
-              <form onSubmit={handleCreateAccount} className="space-y-4">
+              <form onSubmit={handleCreateAccount}>
                 {/* Category Selection */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                <div className="form-group">
+                  <label className="form-label">
                     تصنيف الحساب وطريقة التوثيق *
                   </label>
                   <select
+                    className="form-control"
                     value={createFormData.category}
                     onChange={(e) => setCreateFormData({ ...createFormData, category: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="A">Type A: شركة موثقة يدوياً من الإدارة</option>
                     <option value="B">Type B: مسؤول توظيف فردي موثق يدوياً (Individual HR)</option>
@@ -973,17 +1075,17 @@ export default function AdminCompanies() {
 
                 {/* If C1 or C2, show verifier company dropdown */}
                 {(createFormData.category === 'C1' || createFormData.category === 'C2') && (
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <label className="block text-xs font-bold text-amber-900 mb-1">
+                  <div className="card" style={{ padding: '1rem', marginBottom: '1.25rem', background: 'var(--slate-50)' }}>
+                    <label className="form-label">
                       الشركة المعتمدة الموثقة للطلب (Eligible Verifiers Only) *
                     </label>
-                    <p className="text-[11px] text-amber-700 mb-2">
+                    <p style={{ fontSize: '0.75rem', color: 'var(--slate-600)', marginBottom: '0.5rem' }}>
                       ملاحظة: تظهر فقط الشركات الموثقة يدوياً من الإدارة وتظل علاقة التوثيق ظاهرة حصرياً للإدارة.
                     </p>
                     <select
+                      className="form-control"
                       value={createFormData.verifiedByCompanyId}
                       onChange={(e) => setCreateFormData({ ...createFormData, verifiedByCompanyId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-amber-300 text-xs bg-white focus:ring-2 focus:ring-amber-500"
                       required
                     >
                       <option value="">-- اختر الشركة الموثقة --</option>
@@ -997,73 +1099,65 @@ export default function AdminCompanies() {
                 )}
 
                 {/* Account Details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      اسم المنشأة / الاسم التجاري *
-                    </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">اسم المنشأة / الاسم التجاري *</label>
                     <input
                       type="text"
                       required
+                      className="form-control"
                       value={createFormData.companyName}
                       onChange={(e) => setCreateFormData({ ...createFormData, companyName: e.target.value })}
                       placeholder="مثال: مصنع النور للصناعات"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      اسم المسؤول / ممثل التوظيف *
-                    </label>
+                  <div className="form-group">
+                    <label className="form-label">اسم المسؤول / ممثل التوظيف *</label>
                     <input
                       type="text"
                       required
+                      className="form-control"
                       value={createFormData.contactPerson}
                       onChange={(e) => setCreateFormData({ ...createFormData, contactPerson: e.target.value })}
                       placeholder="مثال: أ. أحمد علي"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      البريد الإلكتروني للولوج *
-                    </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">البريد الإلكتروني للولوج *</label>
                     <input
                       type="email"
                       required
+                      className="form-control"
                       value={createFormData.email}
                       onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
                       placeholder="hr@example.com"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      رقم الهاتف / الواتساب *
-                    </label>
+                  <div className="form-group">
+                    <label className="form-label">رقم الهاتف / الواتساب *</label>
                     <input
                       type="text"
                       required
+                      className="form-control"
                       value={createFormData.phone}
                       onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })}
                       placeholder="010XXXXXXXX"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">المحافظة</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">المحافظة</label>
                     <select
+                      className="form-control"
                       value={createFormData.governorate}
                       onChange={(e) => setCreateFormData({ ...createFormData, governorate: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     >
                       {GOVERNORATES.filter(Boolean).map((g) => (
                         <option key={g} value={g}>{g}</option>
@@ -1071,26 +1165,26 @@ export default function AdminCompanies() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">المنطقة / المدينة</label>
+                  <div className="form-group">
+                    <label className="form-label">المنطقة / المدينة</label>
                     <input
                       type="text"
+                      className="form-control"
                       value={createFormData.area}
                       onChange={(e) => setCreateFormData({ ...createFormData, area: e.target.value })}
                       placeholder="العاشر من رمضان..."
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
                 </div>
 
                 {/* Subscription Plan & Price */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">خطة الاشتراك *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">خطة الاشتراك *</label>
                     <select
+                      className="form-control"
                       value={createFormData.subscriptionPlan}
                       onChange={(e) => setCreateFormData({ ...createFormData, subscriptionPlan: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-bold"
                     >
                       <option value="Basic">الأساسية (Basic - 500 ج.م)</option>
                       <option value="Gold">الذهبية (Gold - 1000 ج.م)</option>
@@ -1098,42 +1192,40 @@ export default function AdminCompanies() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      سعر مخصص (EGP) (اختياري)
-                    </label>
+                  <div className="form-group">
+                    <label className="form-label">سعر مخصص (EGP) (اختياري)</label>
                     <input
                       type="number"
+                      className="form-control"
                       value={createFormData.customPriceEgp}
                       onChange={(e) => setCreateFormData({ ...createFormData, customPriceEgp: e.target.value })}
                       placeholder="السعر الافتراضي للخطة..."
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 bg-blue-50 text-blue-800 rounded-xl text-xs space-y-1">
-                  <div className="font-bold">🔒 الأمان وكلمات المرور:</div>
+                <div className="card" style={{ padding: '0.875rem', marginBottom: '1.25rem', fontSize: '0.8125rem', lineHeight: 1.5, background: 'var(--slate-50)' }}>
+                  <div style={{ fontWeight: 800, marginBottom: '0.2rem' }}>🔒 الأمان وكلمات المرور:</div>
                   <div>
-                    سيتم إنشاء الحساب بكلمة مرور مؤقتة موحدة: <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded">Temp@1234</code>.
+                    سيتم إنشاء الحساب بكلمة مرور مؤقتة موحدة: <code style={{ fontWeight: 800, background: '#fff', border: '1px solid #000', padding: '0.1rem 0.35rem', borderRadius: 4 }}>Temp@1234</code>.
                   </div>
                   <div>
                     سيُلزم صاحب الحساب بتعيين كلمة مرور شخصية جديدة فور تسجيل الدخول الأول قبل التمكن من استخدام أي خاصية.
                   </div>
                 </div>
 
-                <div className="pt-2 flex justify-end gap-3">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                   <button
                     type="button"
                     onClick={() => setCreateModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200"
+                    className="btn btn-outline"
                   >
                     إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={createSubmitting}
-                    className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm disabled:opacity-50"
+                    className="btn btn-primary"
                   >
                     {createSubmitting ? 'جاري الإنشاء...' : 'إنشاء الحساب وتفعيله'}
                   </button>
@@ -1145,18 +1237,18 @@ export default function AdminCompanies() {
 
         {/* MODAL 2: STATUS CHANGE */}
         {statusModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-2">
+          <div className="modal-overlay" onClick={() => setStatusModal({ open: false, companyId: null, companyName: '', status: 'active', reason: '' })}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, padding: '1.75rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
                 تعديل حالة حساب "{statusModal.companyName}"
               </h3>
-              <form onSubmit={handleStatusSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">الحالة الجديدة</label>
+              <form onSubmit={handleStatusSubmit}>
+                <div className="form-group">
+                  <label className="form-label">الحالة الجديدة</label>
                   <select
+                    className="form-control"
                     value={statusModal.status}
                     onChange={(e) => setStatusModal({ ...statusModal, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold"
                   >
                     <option value="active">نشط (Active)</option>
                     <option value="on_hold">معلق مؤقتاً (On Hold)</option>
@@ -1166,26 +1258,26 @@ export default function AdminCompanies() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">السبب / الملاحظات</label>
+                <div className="form-group">
+                  <label className="form-label">السبب / الملاحظات</label>
                   <textarea
                     rows={3}
+                    className="form-control"
                     value={statusModal.reason}
                     onChange={(e) => setStatusModal({ ...statusModal, reason: e.target.value })}
                     placeholder="اكتب سبب تغيير الحالة..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                   <button
                     type="button"
                     onClick={() => setStatusModal({ open: false, companyId: null, companyName: '', status: 'active', reason: '' })}
-                    className="px-4 py-2 rounded-lg text-xs bg-slate-100 text-slate-700"
+                    className="btn btn-outline"
                   >
                     إلغاء
                   </button>
-                  <button type="submit" className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700">
+                  <button type="submit" className="btn btn-primary">
                     حفظ التغييرات
                   </button>
                 </div>
@@ -1196,45 +1288,51 @@ export default function AdminCompanies() {
 
         {/* MODAL 3: PLAN EDIT */}
         {planModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-2">
+          <div className="modal-overlay" onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 })}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, padding: '1.75rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
                 تعديل خطة اشتراك "{planModal.companyName}"
               </h3>
-              <form onSubmit={handlePlanSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">الخطة</label>
+              <form onSubmit={handlePlanSubmit}>
+                <div className="form-group">
+                  <label className="form-label">الخطة</label>
                   <select
+                    className="form-control"
                     value={planModal.plan}
-                    onChange={(e) => setPlanModal({ ...planModal, plan: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold"
+                    onChange={(e) => {
+                      const p = e.target.value;
+                      let price = 500;
+                      if (p === 'Gold') price = 1000;
+                      if (p === 'Platinum') price = 2000;
+                      setPlanModal({ ...planModal, plan: p, priceEgp: price });
+                    }}
                   >
-                    <option value="Basic">الأساسية (Basic)</option>
-                    <option value="Gold">الذهبية (Gold)</option>
-                    <option value="Platinum">البلاتينية (Platinum)</option>
+                    <option value="Basic">الأساسية (Basic - 500 ج.م)</option>
+                    <option value="Gold">الذهبية (Gold - 1000 ج.م)</option>
+                    <option value="Platinum">البلاتينية (Platinum - 2000 ج.م)</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">السعر الشهري (EGP)</label>
+                <div className="form-group">
+                  <label className="form-label">السعر الشهري (EGP)</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={planModal.priceEgp}
-                    onChange={(e) => setPlanModal({ ...planModal, priceEgp: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
+                    onChange={(e) => setPlanModal({ ...planModal, priceEgp: Number(e.target.value) })}
                     required
                   />
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                   <button
                     type="button"
                     onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 })}
-                    className="px-4 py-2 rounded-lg text-xs bg-slate-100 text-slate-700"
+                    className="btn btn-outline"
                   >
                     إلغاء
                   </button>
-                  <button type="submit" className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700">
+                  <button type="submit" className="btn btn-primary">
                     حفظ الاشتراك
                   </button>
                 </div>
@@ -1245,73 +1343,72 @@ export default function AdminCompanies() {
 
         {/* MODAL 4: INDIVIDUAL ANALYTICS */}
         {analyticsModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 max-h-[85vh] overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-                <h3 className="text-base font-bold text-slate-900">
+          <div className="modal-overlay" onClick={() => setAnalyticsModal({ open: false, data: null, loading: false })}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640, padding: '1.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)' }}>
                   تحليلات واستخدام الحساب: {analyticsModal.data?.account?.companyName}
                 </h3>
                 <button
+                  type="button"
                   onClick={() => setAnalyticsModal({ open: false, data: null, loading: false })}
-                  className="text-slate-400 hover:text-slate-600"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}
                 >
-                  ✕
+                  <X size={20} />
                 </button>
               </div>
 
               {analyticsModal.loading ? (
-                <div className="py-12 flex justify-center">
+                <div style={{ padding: '3rem 0', display: 'flex', justifyContent: 'center' }}>
                   <LoadingSpinner />
                 </div>
               ) : analyticsModal.data ? (
-                <div className="space-y-6">
+                <div>
                   {/* Metrics Summary */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                    <div className="p-3 bg-blue-50 rounded-xl">
-                      <div className="text-[11px] text-blue-700">عمليات البحث</div>
-                      <div className="text-xl font-bold text-blue-900">{analyticsModal.data.metrics?.searches || 0}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <div className="card" style={{ padding: '0.75rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 700 }}>عمليات البحث</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{analyticsModal.data.metrics?.searches || 0}</div>
                     </div>
-                    <div className="p-3 bg-indigo-50 rounded-xl">
-                      <div className="text-[11px] text-indigo-700">المشاهدات</div>
-                      <div className="text-xl font-bold text-indigo-900">{analyticsModal.data.metrics?.views || 0}</div>
+                    <div className="card" style={{ padding: '0.75rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 700 }}>المشاهدات</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{analyticsModal.data.metrics?.views || 0}</div>
                     </div>
-                    <div className="p-3 bg-emerald-50 rounded-xl">
-                      <div className="text-[11px] text-emerald-700">التنزيل والتحميل</div>
-                      <div className="text-xl font-bold text-emerald-900">{analyticsModal.data.metrics?.downloads || 0}</div>
+                    <div className="card" style={{ padding: '0.75rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 700 }}>التنزيل والتحميل</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{analyticsModal.data.metrics?.downloads || 0}</div>
                     </div>
-                    <div className="p-3 bg-amber-50 rounded-xl">
-                      <div className="text-[11px] text-amber-700">الاتصالات</div>
-                      <div className="text-xl font-bold text-amber-900">{analyticsModal.data.metrics?.contacts || 0}</div>
+                    <div className="card" style={{ padding: '0.75rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 700 }}>الاتصالات</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>{analyticsModal.data.metrics?.contacts || 0}</div>
                     </div>
                   </div>
 
                   {/* 30-Day Cairo Daily Usage Table */}
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-700 mb-2">سجل الاستخدام اليومي (توقيت القاهرة)</h4>
-                    <div className="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                      <table className="w-full text-right text-xs">
-                        <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                          <tr>
-                            <th className="p-2">التاريخ (Cairo)</th>
-                            <th className="p-2">البحث</th>
-                            <th className="p-2">التحميل بالوظائف</th>
-                            <th className="p-2">تصفح VIP</th>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                    سجل الاستخدام اليومي (توقيت القاهرة)
+                  </h4>
+                  <div className="table-responsive" style={{ maxHeight: 220, overflowY: 'auto' }}>
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>التاريخ (Cairo)</th>
+                          <th>البحث</th>
+                          <th>التحميل بالوظائف</th>
+                          <th>تصفح VIP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(analyticsModal.data.dailyHistory || []).map((dh) => (
+                          <tr key={dh._id}>
+                            <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{dh.cairoDate}</td>
+                            <td>{dh.searchesCount}</td>
+                            <td>{Object.keys(dh.downloadsByJobTitle || {}).length} مسمى</td>
+                            <td>{dh.platinumSingleViewsCount || 0} مشاهدة / {dh.platinumSingleDownloadsCount || 0} تنزيل</td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {(analyticsModal.data.dailyHistory || []).map((dh) => (
-                            <tr key={dh._id}>
-                              <td className="p-2 font-mono">{dh.cairoDate}</td>
-                              <td className="p-2">{dh.searchesCount}</td>
-                              <td className="p-2">
-                                {Object.keys(dh.downloadsByJobTitle || {}).length} مسمى
-                              </td>
-                              <td className="p-2">{dh.platinumSingleViewsCount || 0} مشاهدة / {dh.platinumSingleDownloadsCount || 0} تنزيل</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               ) : null}
@@ -1321,91 +1418,91 @@ export default function AdminCompanies() {
 
         {/* MODAL 5: EDIT PLATFORM PLAN */}
         {editingPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-3">
+          <div className="modal-overlay" onClick={() => setEditingPlan(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, padding: '1.75rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
                 تعديل خطة: {editingPlan.displayNameAr || editingPlan.planName}
               </h3>
-              <form onSubmit={handleSavePlatformPlan} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">السعر الشهري (EGP)</label>
+              <form onSubmit={handleSavePlatformPlan}>
+                <div className="form-group">
+                  <label className="form-label">السعر الشهري (EGP)</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={editingPlan.priceEgp}
                     onChange={(e) => setEditingPlan({ ...editingPlan, priceEgp: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">الحد اليومي لعمليات البحث</label>
+                <div className="form-group">
+                  <label className="form-label">الحد اليومي لعمليات البحث</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={editingPlan.dailySearchLimit}
                     onChange={(e) => setEditingPlan({ ...editingPlan, dailySearchLimit: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">الحد اليومي لتنزيل الملفات لكل مسمى</label>
+                <div className="form-group">
+                  <label className="form-label">الحد اليومي لتنزيل الملفات لكل مسمى</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={editingPlan.dailyDownloadLimitPerTitle}
                     onChange={(e) => setEditingPlan({ ...editingPlan, dailyDownloadLimitPerTitle: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">الحد الأقصى للمرشحين لكل مسمى</label>
+                <div className="form-group">
+                  <label className="form-label">الحد الأقصى للمرشحين لكل مسمى</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={editingPlan.maxCandidatesPerTitle}
                     onChange={(e) => setEditingPlan({ ...editingPlan, maxCandidatesPerTitle: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300"
                     required
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   <input
                     type="checkbox"
                     id="cartEnabled"
                     checked={editingPlan.cartEnabled}
                     onChange={(e) => setEditingPlan({ ...editingPlan, cartEnabled: e.target.checked })}
-                    className="rounded"
+                    style={{ width: 16, height: 16 }}
                   />
-                  <label htmlFor="cartEnabled" className="font-bold text-slate-800">
+                  <label htmlFor="cartEnabled" style={{ fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer' }}>
                     تفعيل سلة المرشحين المتعددة (Candidate Cart)
                   </label>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                   <input
                     type="checkbox"
                     id="platinumBrowseEnabled"
                     checked={editingPlan.platinumBrowseEnabled}
                     onChange={(e) => setEditingPlan({ ...editingPlan, platinumBrowseEnabled: e.target.checked })}
-                    className="rounded"
+                    style={{ width: 16, height: 16 }}
                   />
-                  <label htmlFor="platinumBrowseEnabled" className="font-bold text-slate-800">
+                  <label htmlFor="platinumBrowseEnabled" style={{ fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer' }}>
                     تفعيل بوابة التصفح المباشر (VIP Platinum Browse)
                   </label>
                 </div>
 
-                <div className="pt-3 flex justify-end gap-2">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                   <button
                     type="button"
                     onClick={() => setEditingPlan(null)}
-                    className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold"
+                    className="btn btn-outline"
                   >
                     إلغاء
                   </button>
-                  <button type="submit" className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                  <button type="submit" className="btn btn-primary">
                     حفظ التغييرات
                   </button>
                 </div>

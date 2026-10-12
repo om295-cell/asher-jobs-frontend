@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { authApi } from '../../api/auth.api';
-import { Lock, KeyRound, ShieldAlert, Check, Eye, EyeOff, LogOut } from 'lucide-react';
+import { KeyRound, ShieldAlert, Check, Eye, EyeOff, LogOut } from 'lucide-react';
 
 export default function ForcedPasswordChangeModal() {
   const { user, refreshProfile, logout } = useAuth();
@@ -57,84 +57,123 @@ export default function ForcedPasswordChangeModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 animate-fadeIn" dir="rtl">
-        <div className="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-          <KeyRound className="w-7 h-7" />
+    <div className="modal-overlay" style={{ zIndex: 9999 }}>
+      <div className="modal-content" style={{ maxWidth: 440, padding: '2rem' }} dir="rtl">
+        <div
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            background: 'var(--slate-100)',
+            color: '#000000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem auto'
+          }}
+        >
+          <KeyRound size={26} />
         </div>
 
-        <h2 className="text-xl font-bold text-center text-slate-800 dark:text-slate-100 mb-2">
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, textAlign: 'center', color: 'var(--slate-900)', marginBottom: '0.35rem' }}>
           تغيير كلمة المرور المؤقتة
         </h2>
-        
-        <p className="text-sm text-center text-slate-600 dark:text-slate-400 mb-6">
+
+        <p style={{ fontSize: '0.84rem', textAlign: 'center', color: 'var(--slate-500)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
           لأسباب أمنية وحماية لحسابك، يجب تعيين كلمة مرور شخصية جديدة قبل التمكن من الوصول إلى النظام وقاعدة البيانات.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 flex items-start gap-2 text-sm text-red-700 dark:text-red-300">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div
+            style={{
+              padding: '0.75rem',
+              borderRadius: 'var(--radius-md)',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#991b1b',
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '1rem'
+            }}
+          >
+            <ShieldAlert size={18} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              كلمة المرور الحالية (المؤقتة)
-            </label>
-            <div className="relative">
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">كلمة المرور الحالية (المؤقتة)</label>
+            <div style={{ position: 'relative' }}>
               <input
                 type={showCurrent ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="أدخل كلمة المرور الحالية أو Temp@1234"
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="form-control"
+                style={{ paddingInlineEnd: '2.5rem' }}
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute left-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--slate-400)',
+                  cursor: 'pointer'
+                }}
               >
-                {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              كلمة المرور الجديدة (6 أحرف على الأقل)
-            </label>
-            <div className="relative">
+          <div className="form-group">
+            <label className="form-label">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+            <div style={{ position: 'relative' }}>
               <input
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="أدخل كلمة المرور الجديدة"
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="form-control"
+                style={{ paddingInlineEnd: '2.5rem' }}
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowNew(!showNew)}
-                className="absolute left-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--slate-400)',
+                  cursor: 'pointer'
+                }}
               >
-                {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              تأكيد كلمة المرور الجديدة
-            </label>
+          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label className="form-label">تأكيد كلمة المرور الجديدة</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="أعد إدخال كلمة المرور الجديدة"
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="form-control"
               required
             />
           </div>
@@ -142,26 +181,36 @@ export default function ForcedPasswordChangeModal() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 px-4 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '0.75rem', fontSize: '0.9375rem' }}
           >
             {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              'جاري الحفظ...'
             ) : (
               <>
-                <Check className="w-4 h-4" />
+                <Check size={18} />
                 <span>حفظ كلمة المرور وتفعيل الحساب</span>
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-center">
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--slate-500)',
+              fontSize: '0.8125rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut size={14} />
             <span>تسجيل الخروج الآن</span>
           </button>
         </div>

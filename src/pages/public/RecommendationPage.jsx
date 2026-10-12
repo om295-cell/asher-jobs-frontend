@@ -17,7 +17,9 @@ import {
   ChevronDown,
   Info,
   XCircle,
-  ExternalLink
+  ExternalLink,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
@@ -47,6 +49,17 @@ function createInitialPeople() {
     jobId: '',
     jobTitle: '',
     careerLevel: '',
+    // Up to 3 titles per person, each with their own career level and priority
+    titles: [
+      {
+        id: '1',
+        jobId: '',
+        jobTitle: '',
+        careerLevel: '',
+        jobError: '',
+        levelError: ''
+      }
+    ],
     // Validation state
     nameError: '',
     phoneError: '',
@@ -301,6 +314,94 @@ export default function RecommendationPage() {
     });
   };
 
+  // Add an extra title (up to 3 titles per candidate)
+  const handleAddTitle = (personIndex) => {
+    setPeople((prev) => {
+      const updated = [...prev];
+      const person = { ...updated[personIndex] };
+      const currentTitles = Array.isArray(person.titles) ? [...person.titles] : [];
+
+      if (currentTitles.length < 3) {
+        currentTitles.push({
+          id: String(Date.now() + Math.random()),
+          jobId: '',
+          jobTitle: '',
+          careerLevel: '',
+          jobError: '',
+          levelError: ''
+        });
+      }
+
+      person.titles = currentTitles;
+      updated[personIndex] = person;
+      return updated;
+    });
+  };
+
+  // Remove extra title (cannot remove title at index 0)
+  const handleRemoveTitle = (personIndex, titleIndex) => {
+    setPeople((prev) => {
+      const updated = [...prev];
+      const person = { ...updated[personIndex] };
+      if (Array.isArray(person.titles) && person.titles.length > 1 && titleIndex > 0) {
+        person.titles = person.titles.filter((_, idx) => idx !== titleIndex);
+        // Resync root fields to 1st title
+        person.jobId = person.titles[0]?.jobId || '';
+        person.jobTitle = person.titles[0]?.jobTitle || '';
+        person.careerLevel = person.titles[0]?.careerLevel || '';
+        person.jobError = person.titles[0]?.jobError || '';
+        person.levelError = person.titles[0]?.levelError || '';
+      }
+      updated[personIndex] = person;
+      return updated;
+    });
+  };
+
+  // Update specific title field (jobId, jobTitle, careerLevel)
+  const handleTitleChange = (personIndex, titleIndex, field, value) => {
+    setPeople((prev) => {
+      const updated = [...prev];
+      const person = { ...updated[personIndex] };
+      const currentTitles = Array.isArray(person.titles) ? [...person.titles] : [];
+      const titleItem = { ...(currentTitles[titleIndex] || {}), [field]: value };
+
+      if (field === 'jobId') {
+        titleItem.jobError = '';
+        // Check if this job was already picked in another title for this same person
+        const isDuplicate = currentTitles.some(
+          (t, idx) => idx !== titleIndex && t.jobId && String(t.jobId) === String(value)
+        );
+        if (isDuplicate) {
+          titleItem.jobError = 'تم اختيار هذا المسمى الوظيفي مسبقاً لهذا الشخص';
+        }
+      }
+      if (field === 'careerLevel') {
+        titleItem.levelError = '';
+      }
+
+      currentTitles[titleIndex] = titleItem;
+      person.titles = currentTitles;
+
+      // Keep root person fields in sync with primary title (index 0)
+      if (titleIndex === 0) {
+        if (field === 'jobId') {
+          person.jobId = value;
+          person.jobError = titleItem.jobError;
+        }
+        if (field === 'jobTitle') {
+          person.jobTitle = value;
+        }
+        if (field === 'careerLevel') {
+          person.careerLevel = value;
+          person.levelError = titleItem.levelError;
+        }
+      }
+
+      updated[personIndex] = person;
+      return updated;
+    });
+  };
+
   // Validate Name on Blur
   const handleNameBlur = (index) => {
     setPeople((prev) => {
@@ -405,9 +506,13 @@ export default function RecommendationPage() {
   // Progress metrics: count completed persons
   const completedCount = useMemo(() => {
     return people.filter((p) => {
-      const nameValid = p.fullName.trim() && NAME_REGEX.test(p.fullName.trim());
+      const nameValid = p.fullName.trim() && NAME_REGEX.test(p.fullName.trim()) && !p.nameError;
       const phoneValid = p.phone.trim() && PHONE_REGEX.test(p.phone.trim()) && !p.phoneError;
-      return nameValid && phoneValid && p.jobId && p.careerLevel;
+      const titles = p.titles && p.titles.length > 0 ? p.titles : [];
+      const titlesValid =
+        titles.length > 0 &&
+        titles.every((t) => t.jobId && t.careerLevel && !t.jobError && !t.levelError);
+      return nameValid && phoneValid && titlesValid;
     }).length;
   }, [people]);
 
@@ -448,15 +553,26 @@ export default function RecommendationPage() {
         hasErrors = true;
       }
 
-      if (!copy.jobId) {
-        copy.jobError = 'يرجى اختيار المسمى الوظيفي';
-        hasErrors = true;
-      }
+      // Validate all titles
+      const currentTitles = copy.titles && copy.titles.length > 0 ? copy.titles : [{ jobId: copy.jobId, careerLevel: copy.careerLevel }];
+      const validatedTitles = currentTitles.map((t, tIdx) => {
+        const tCopy = { ...t };
+        if (!tCopy.jobId) {
+          tCopy.jobError = 'يرجى اختيار المسمى الوظيفي';
+          hasErrors = true;
+        }
+        if (!tCopy.careerLevel) {
+          tCopy.levelError = 'يرجى اختيار مستوى الخبرة';
+          hasErrors = true;
+        }
+        return tCopy;
+      });
 
-      if (!copy.careerLevel) {
-        copy.levelError = 'يرجى اختيار مستوى الخبرة';
-        hasErrors = true;
-      }
+      copy.titles = validatedTitles;
+      copy.jobId = validatedTitles[0]?.jobId || '';
+      copy.jobError = validatedTitles[0]?.jobError || '';
+      copy.careerLevel = validatedTitles[0]?.careerLevel || '';
+      copy.levelError = validatedTitles[0]?.levelError || '';
 
       return copy;
     });
@@ -472,12 +588,17 @@ export default function RecommendationPage() {
     try {
       const payload = {
         legalAccepted: true,
-        people: people.map((p, i) => ({
+        people: validatedPeople.map((p, i) => ({
           isPrimary: i === 0,
           fullName: p.fullName.trim(),
           phone: p.phone.trim(),
-          jobId: p.jobId,
-          careerLevel: p.careerLevel
+          jobId: p.titles[0]?.jobId,
+          careerLevel: p.titles[0]?.careerLevel,
+          titles: p.titles.map((t, tIdx) => ({
+            jobId: t.jobId,
+            careerLevel: t.careerLevel,
+            priority: tIdx + 1
+          }))
         }))
       };
 
@@ -1058,76 +1179,221 @@ export default function RecommendationPage() {
                               </div>
                             )}
                           </div>
+                        </div>
 
-                          {/* 3. Job Title (Searchable) */}
-                          <div>
-                            <label
-                              style={{
-                                display: 'block',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                color: '#1e293b',
-                                marginBottom: '0.35rem'
-                              }}
-                            >
-                              {isRtl ? 'المسمى الوظيفي / التخصص' : 'Job Title'} *
-                            </label>
-                            <SearchableJobSelect
-                              jobs={jobs}
-                              selectedJobId={person.jobId}
-                              onSelect={(job) => {
-                                handleFieldChange(index, 'jobId', job._id);
-                                handleFieldChange(index, 'jobTitle', job.nameAr || job.name);
-                              }}
-                              error={person.jobError}
-                              isRtl={isRtl}
-                            />
-                            {person.jobError && (
-                              <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
-                                {person.jobError}
+                        {/* 3. Titles & Career Levels (Up to 3 per person) */}
+                        <div
+                          style={{
+                            marginTop: '1.25rem',
+                            paddingTop: '1.25rem',
+                            borderTop: '1px solid #f1f5f9'
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '0.75rem',
+                              flexWrap: 'wrap',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: '0.9rem',
+                                  fontWeight: 800,
+                                  color: '#0f172a',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.4rem'
+                                }}
+                              >
+                                <Briefcase size={16} style={{ color: '#09090b' }} />
+                                <span>{isRtl ? 'المسميات الوظيفية ومستويات الخبرة (حتى 3 تخصصات)' : 'Job Titles & Career Levels (Up to 3)'}</span>
                               </div>
+                              <div style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                                {isRtl
+                                  ? '⚡ أولوية الظهور في نتائج بحث الشركات: المسمى الأول (أولوية 1) ثم الثاني (أولوية 2) ثم الثالث (أولوية 3).'
+                                  : '⚡ Companies search priority: 1st title (Top #1), then 2nd (#2), then 3rd (#3).'}
+                              </div>
+                            </div>
+
+                            {(!person.titles || person.titles.length < 3) && (
+                              <button
+                                type="button"
+                                onClick={() => handleAddTitle(index)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
+                                  padding: '0.35rem 0.75rem',
+                                  borderRadius: '7px',
+                                  background: '#f8fafc',
+                                  border: '1px dashed #94a3b8',
+                                  color: '#0f172a',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                              >
+                                <Plus size={14} />
+                                {isRtl
+                                  ? `+ إضافة مسمى وظيفي إضافي (${(person.titles?.length || 1) + 1}/3)`
+                                  : `+ Add title (${(person.titles?.length || 1) + 1}/3)`}
+                              </button>
                             )}
                           </div>
 
-                          {/* 4. Career Level */}
-                          <div>
-                            <label
-                              style={{
-                                display: 'block',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                color: '#1e293b',
-                                marginBottom: '0.35rem'
-                              }}
-                            >
-                              {isRtl ? 'مستوى الخبرة المهنية' : 'Career Level'} *
-                            </label>
-                            <select
-                              value={person.careerLevel}
-                              onChange={(e) => handleFieldChange(index, 'careerLevel', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '0.65rem 0.85rem',
-                                borderRadius: '8px',
-                                border: person.levelError ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                                outline: 'none',
-                                fontSize: '0.9rem',
-                                background: '#ffffff',
-                                color: person.careerLevel ? '#09090b' : '#a1a1aa'
-                              }}
-                            >
-                              <option value="">{isRtl ? 'اختر مستوى الخبرة...' : 'Select career level...'}</option>
-                              {CAREER_LEVELS.map((lvl) => (
-                                <option key={lvl} value={lvl}>
-                                  {lvl}
-                                </option>
-                              ))}
-                            </select>
-                            {person.levelError && (
-                              <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
-                                {person.levelError}
-                              </div>
-                            )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {(person.titles && person.titles.length > 0 ? person.titles : [{ id: '1', jobId: person.jobId, careerLevel: person.careerLevel }]).map((titleItem, titleIdx) => {
+                              const isPrimaryTitle = titleIdx === 0;
+
+                              return (
+                                <div
+                                  key={titleItem.id || titleIdx}
+                                  style={{
+                                    background: isPrimaryTitle ? '#f8fafc' : '#ffffff',
+                                    border: isPrimaryTitle ? '1px solid #cbd5e1' : '1px solid #e2e8f0',
+                                    borderRadius: '10px',
+                                    padding: '0.85rem',
+                                    position: 'relative'
+                                  }}
+                                >
+                                  {/* Title Badge & Remove Action */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      marginBottom: '0.65rem'
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: '0.72rem',
+                                        fontWeight: 800,
+                                        padding: '0.2rem 0.55rem',
+                                        borderRadius: '6px',
+                                        background: isPrimaryTitle ? '#09090b' : titleIdx === 1 ? '#dbeafe' : '#fef3c7',
+                                        color: isPrimaryTitle ? '#ffffff' : titleIdx === 1 ? '#1e40af' : '#92400e'
+                                      }}
+                                    >
+                                      {titleIdx === 0
+                                        ? (isRtl ? '⭐ المسمى الأول (الأولوية القصوى #1 في بحث الشركات)' : '⭐ 1st Title (Top Priority #1 in Search)')
+                                        : titleIdx === 1
+                                        ? (isRtl ? '🥈 المسمى الثاني (الأولوية الثانية #2 في بحث الشركات)' : '🥈 2nd Title (Priority #2 in Search)')
+                                        : (isRtl ? '🥉 المسمى الثالث (الأولوية الثالثة #3 في بحث الشركات)' : '🥉 3rd Title (Priority #3 in Search)')}
+                                    </span>
+
+                                    {!isPrimaryTitle && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveTitle(index, titleIdx)}
+                                        style={{
+                                          background: 'none',
+                                          border: 'none',
+                                          color: '#ef4444',
+                                          fontSize: '0.75rem',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '0.25rem',
+                                          padding: '0.2rem 0.4rem'
+                                        }}
+                                      >
+                                        <Trash2 size={13} />
+                                        {isRtl ? 'حذف هذا المسمى' : 'Remove'}
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+                                      gap: '0.75rem'
+                                    }}
+                                  >
+                                    {/* Job Title Select */}
+                                    <div>
+                                      <label
+                                        style={{
+                                          display: 'block',
+                                          fontSize: '0.78rem',
+                                          fontWeight: 700,
+                                          color: '#334155',
+                                          marginBottom: '0.25rem'
+                                        }}
+                                      >
+                                        {isRtl ? `التخصص / المسمى الوظيفي #${titleIdx + 1}` : `Job Title #${titleIdx + 1}`} *
+                                      </label>
+                                      <SearchableJobSelect
+                                        jobs={jobs}
+                                        selectedJobId={titleItem.jobId}
+                                        onSelect={(job) => {
+                                          handleTitleChange(index, titleIdx, 'jobId', job._id);
+                                          handleTitleChange(index, titleIdx, 'jobTitle', job.nameAr || job.name);
+                                        }}
+                                        error={titleItem.jobError}
+                                        isRtl={isRtl}
+                                      />
+                                      {titleItem.jobError && (
+                                        <div style={{ color: '#ef4444', fontSize: '0.72rem', marginTop: '0.25rem', fontWeight: 600 }}>
+                                          {titleItem.jobError}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Career Level Select */}
+                                    <div>
+                                      <label
+                                        style={{
+                                          display: 'block',
+                                          fontSize: '0.78rem',
+                                          fontWeight: 700,
+                                          color: '#334155',
+                                          marginBottom: '0.25rem'
+                                        }}
+                                      >
+                                        {isRtl ? `مستوى الخبرة المهنية #${titleIdx + 1}` : `Career Level #${titleIdx + 1}`} *
+                                      </label>
+                                      <select
+                                        value={titleItem.careerLevel}
+                                        onChange={(e) => handleTitleChange(index, titleIdx, 'careerLevel', e.target.value)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '0.65rem 0.85rem',
+                                          borderRadius: '8px',
+                                          border: titleItem.levelError ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
+                                          outline: 'none',
+                                          fontSize: '0.85rem',
+                                          background: '#ffffff',
+                                          color: titleItem.careerLevel ? '#09090b' : '#a1a1aa'
+                                        }}
+                                      >
+                                        <option value="">{isRtl ? 'اختر مستوى الخبرة...' : 'Select career level...'}</option>
+                                        {CAREER_LEVELS.map((lvl) => (
+                                          <option key={lvl} value={lvl}>
+                                            {lvl}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      {titleItem.levelError && (
+                                        <div style={{ color: '#ef4444', fontSize: '0.72rem', marginTop: '0.25rem', fontWeight: 600 }}>
+                                          {titleItem.levelError}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>

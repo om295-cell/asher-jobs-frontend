@@ -590,11 +590,43 @@ export default function AdminRecommendations() {
                           {p.phone}
                         </a>
                       </td>
-                      <td style={{ padding: '0.65rem 0.85rem', color: '#1e293b', fontWeight: 600, fontSize: '0.85rem' }}>
-                        {p.jobTitleAr || p.jobTitle || '-'}
+                      <td style={{ padding: '0.65rem 0.85rem', color: '#1e293b', fontSize: '0.85rem' }}>
+                        {p.titles && p.titles.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            {p.titles.map((t, tIdx) => (
+                              <div key={tIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <span
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    fontWeight: 800,
+                                    padding: '0.1rem 0.4rem',
+                                    borderRadius: '4px',
+                                    background: tIdx === 0 ? '#09090b' : tIdx === 1 ? '#dbeafe' : '#fef3c7',
+                                    color: tIdx === 0 ? '#ffffff' : tIdx === 1 ? '#1e40af' : '#92400e'
+                                  }}
+                                >
+                                  #{tIdx + 1}
+                                </span>
+                                <span style={{ fontWeight: 600 }}>{t.jobTitleAr || t.jobTitle || '-'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ fontWeight: 600 }}>{p.jobTitleAr || p.jobTitle || '-'}</span>
+                        )}
                       </td>
                       <td style={{ padding: '0.65rem 0.85rem', fontSize: '0.8rem', color: '#475569' }}>
-                        {p.careerLevel}
+                        {p.titles && p.titles.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            {p.titles.map((t, tIdx) => (
+                              <div key={tIdx} style={{ minHeight: '20px', display: 'flex', alignItems: 'center' }}>
+                                <span>{t.careerLevel || '-'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          p.careerLevel || '-'
+                        )}
                       </td>
                     </tr>
                   ))}

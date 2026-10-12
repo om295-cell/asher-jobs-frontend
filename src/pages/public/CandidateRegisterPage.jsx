@@ -8,6 +8,12 @@ import { jobsApi } from '../../api/jobs.api'
 
 const GOVERNORATES = ['الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط', 'سوهاج', 'المنيا', 'بني سويف', 'الفيوم', 'قنا', 'الأقصر', 'أسوان', 'دمياط', 'بور سعيد', 'الإسماعيلية', 'السويس']
 const QUALIFICATIONS = ['دبلوم فني صناعي (وسط صناعي)', 'معهد تقني متوسط', 'مؤهل عالي (بكالوريوس)', 'دراسات عليا (ماجستير/دكتوراه)', 'ثانوية عامة', 'دون ثانوية']
+const CAREER_LEVELS = [
+  'مبتدئ (1-3 سنوات)',
+  'متوسط (3-5 سنوات)',
+  'متقدم (5-7 سنوات)',
+  'صاحب خبره كبيره (أكثر من 7 سنوات)'
+]
 
 export default function CandidateRegisterPage() {
   const { registerCandidate } = useAuth()
@@ -28,6 +34,11 @@ export default function CandidateRegisterPage() {
     phone: '',
     email: '',
     desiredJobId: '',
+    careerLevel: '',
+    secondJobId: '',
+    secondCareerLevel: '',
+    thirdJobId: '',
+    thirdCareerLevel: '',
     governorate: 'الشرقية',
     area: 'العاشر من رمضان',
     yearsOfExperience: '0',
@@ -145,17 +156,97 @@ export default function CandidateRegisterPage() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">{t('desiredJob')} *</label>
-              <select name="desiredJobId" className="form-control" value={form.desiredJobId} onChange={handleChange} required>
-                <option value="">{t('selectJobPlaceholder')}</option>
-                {filteredJobs.map(job => (
-                  <option key={job._id} value={job._id}>{isRtl ? job.nameAr : job.name}</option>
-                ))}
-              </select>
-              <p style={{ fontSize: '0.75rem', color: 'var(--slate-500)', marginTop: '0.375rem' }}>
-                {isRtl ? '⚠ اختر من القائمة فقط — لا تكتب اسماً بحرية لضمان دقة نتائج البحث' : '⚠ Select from list only — free-text titles break search accuracy'}
+            {/* Job Titles & Career Levels */}
+            <div style={{ background: 'var(--slate-50)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--slate-800)', marginBottom: '0.25rem' }}>
+                {isRtl ? 'المسميات الوظيفية ومستويات الخبرة (حتى 3 تخصصات)' : 'Job Titles & Career Levels (Up to 3)'}
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--slate-500)', margin: '0 0 0.85rem' }}>
+                {isRtl
+                  ? '⚡ أولوية الظهور في نتائج بحث الشركات: المسمى الأول (أولوية 1) ثم الثاني (أولوية 2) ثم الثالث (أولوية 3).'
+                  : '⚡ Search priority: 1st title (Priority 1), then 2nd, then 3rd.'}
               </p>
+
+              {/* Title 1 */}
+              <div style={{ marginBottom: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#09090b', color: '#fff', display: 'inline-block', marginBottom: '0.5rem' }}>
+                  {isRtl ? '⭐ المسمى الأول (الأولوية القصوى #1 في بحث الشركات)' : '⭐ 1st Title (Top Priority #1)'}
+                </span>
+                <div className="grid-2">
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{t('desiredJob')} *</label>
+                    <select name="desiredJobId" className="form-control" value={form.desiredJobId} onChange={handleChange} required>
+                      <option value="">{t('selectJobPlaceholder')}</option>
+                      {filteredJobs.map(job => (
+                        <option key={job._id} value={job._id}>{isRtl ? job.nameAr : job.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{isRtl ? 'مستوى الخبرة للمسمى الأول' : 'Career Level #1'}</label>
+                    <select name="careerLevel" className="form-control" value={form.careerLevel} onChange={handleChange}>
+                      <option value="">{isRtl ? '-- اختر مستوى الخبرة --' : '-- Select Career Level --'}</option>
+                      {CAREER_LEVELS.map(lvl => (
+                        <option key={lvl} value={lvl}>{lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title 2 */}
+              <div style={{ marginBottom: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#dbeafe', color: '#1e40af', display: 'inline-block', marginBottom: '0.5rem' }}>
+                  {isRtl ? '🥈 المسمى الثاني (الأولوية الثانية #2 في بحث الشركات - اختياري)' : '🥈 2nd Title (Priority #2 - Optional)'}
+                </span>
+                <div className="grid-2">
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{isRtl ? 'المسمى الوظيفي الثاني' : 'Secondary Job Title'}</label>
+                    <select name="secondJobId" className="form-control" value={form.secondJobId} onChange={handleChange}>
+                      <option value="">{isRtl ? '-- بدون مسمى ثانٍ --' : '-- None --'}</option>
+                      {jobs.map(job => (
+                        <option key={job._id} value={job._id}>{isRtl ? job.nameAr : job.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{isRtl ? 'مستوى الخبرة للمسمى الثاني' : 'Career Level #2'}</label>
+                    <select name="secondCareerLevel" className="form-control" value={form.secondCareerLevel} onChange={handleChange}>
+                      <option value="">{isRtl ? '-- اختر مستوى الخبرة --' : '-- Select Career Level --'}</option>
+                      {CAREER_LEVELS.map(lvl => (
+                        <option key={lvl} value={lvl}>{lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title 3 */}
+              <div style={{ background: '#fff', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#fef3c7', color: '#92400e', display: 'inline-block', marginBottom: '0.5rem' }}>
+                  {isRtl ? '🥉 المسمى الثالث (الأولوية الثالثة #3 في بحث الشركات - اختياري)' : '🥉 3rd Title (Priority #3 - Optional)'}
+                </span>
+                <div className="grid-2">
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{isRtl ? 'المسمى الوظيفي الثالث' : 'Tertiary Job Title'}</label>
+                    <select name="thirdJobId" className="form-control" value={form.thirdJobId} onChange={handleChange}>
+                      <option value="">{isRtl ? '-- بدون مسمى ثالث --' : '-- None --'}</option>
+                      {jobs.map(job => (
+                        <option key={job._id} value={job._id}>{isRtl ? job.nameAr : job.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>{isRtl ? 'مستوى الخبرة للمسمى الثالث' : 'Career Level #3'}</label>
+                    <select name="thirdCareerLevel" className="form-control" value={form.thirdCareerLevel} onChange={handleChange}>
+                      <option value="">{isRtl ? '-- اختر مستوى الخبرة --' : '-- Select Career Level --'}</option>
+                      {CAREER_LEVELS.map(lvl => (
+                        <option key={lvl} value={lvl}>{lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid-2">

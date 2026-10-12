@@ -188,8 +188,9 @@ export default function CompanySearch() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
               {candidates.map(candidate => (
                 <CandidateCard
-                  key={candidate._id}
+                  key={candidate._id || candidate.id}
                   candidate={candidate}
+                  onViewDetails={() => setSelectedCandidate(candidate)}
                   onClick={() => setSelectedCandidate(candidate)}
                   onContact={handleContact}
                 />
@@ -207,6 +208,7 @@ export default function CompanySearch() {
       {selectedCandidate && (
         <CandidateDetailModal
           candidate={selectedCandidate}
+          isOpen={Boolean(selectedCandidate)}
           onClose={() => setSelectedCandidate(null)}
           onContact={handleContact}
         />

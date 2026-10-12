@@ -26,14 +26,93 @@ export default function CandidateCard({ candidate, onViewDetails, onReport, onRe
       <div>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <div>
-            <h4 style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--slate-900)' }}>
-              {candidate.fullName}
-            </h4>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#000000', fontWeight: 600, fontSize: '0.9375rem' }}>
-              <Briefcase size={16} />
-              <span>{isRtl && candidate.desiredJob?.nameAr ? candidate.desiredJob.nameAr : candidate.desiredJob?.name || candidate.desiredJob}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+              <h4 style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>
+                {candidate.fullName}
+              </h4>
+              {candidate.matchPriority && (
+                <span
+                  title={
+                    candidate.matchPriority === 1
+                      ? 'تم مطابقة المسمى الوظيفي الأول (الأولوية القصوى)'
+                      : candidate.matchPriority === 2
+                      ? 'تم مطابقة المسمى الوظيفي الثاني (الأولوية الثانية)'
+                      : 'تم مطابقة المسمى الوظيفي الثالث (الأولوية الثالثة)'
+                  }
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 800,
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '4px',
+                    background:
+                      candidate.matchPriority === 1
+                        ? '#ecfdf5'
+                        : candidate.matchPriority === 2
+                        ? '#eff6ff'
+                        : '#fffbeb',
+                    color:
+                      candidate.matchPriority === 1
+                        ? '#059669'
+                        : candidate.matchPriority === 2
+                        ? '#2563eb'
+                        : '#d97706',
+                    border:
+                      candidate.matchPriority === 1
+                        ? '1px solid #a7f3d0'
+                        : candidate.matchPriority === 2
+                        ? '1px solid #bfdbfe'
+                        : '1px solid #fde68a'
+                  }}
+                >
+                  {candidate.matchPriority === 1
+                    ? (isRtl ? '⭐ أولوية 1' : '⭐ Priority 1')
+                    : candidate.matchPriority === 2
+                    ? (isRtl ? '🥈 أولوية 2' : '🥈 Priority 2')
+                    : (isRtl ? '🥉 أولوية 3' : '🥉 Priority 3')}
+                </span>
+              )}
             </div>
+
+            {/* Primary Job */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#000000', fontWeight: 600, fontSize: '0.925rem' }}>
+              <Briefcase size={16} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {isRtl && candidate.desiredJob?.nameAr ? candidate.desiredJob.nameAr : candidate.desiredJob?.name || candidate.desiredJob}
+              </span>
+            </div>
+
+            {/* Secondary / Tertiary Job tags */}
+            {(candidate.secondJob || candidate.thirdJob) && (
+              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.35rem' }}>
+                {candidate.secondJob && (
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '0.1rem 0.35rem',
+                      background: '#f1f5f9',
+                      borderRadius: '4px',
+                      color: '#475569'
+                    }}
+                  >
+                    + {isRtl && candidate.secondJob.nameAr ? candidate.secondJob.nameAr : candidate.secondJob.name || candidate.secondJob}
+                  </span>
+                )}
+                {candidate.thirdJob && (
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '0.1rem 0.35rem',
+                      background: '#f1f5f9',
+                      borderRadius: '4px',
+                      color: '#475569'
+                    }}
+                  >
+                    + {isRtl && candidate.thirdJob.nameAr ? candidate.thirdJob.nameAr : candidate.thirdJob.name || candidate.thirdJob}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <StatusBadge status={candidate.availabilityStatus} />
         </div>

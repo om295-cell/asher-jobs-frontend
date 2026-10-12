@@ -4,7 +4,7 @@ import StatusBadge from '../ui/StatusBadge';
 import { useLanguage } from '../../context/LanguageContext';
 import { candidateApi } from '../../api/candidate.api';
 
-export default function CandidateDetailModal({ candidate, isOpen, onClose, onReport }) {
+export default function CandidateDetailModal({ candidate, isOpen = true, onClose, onReport }) {
   const { t, isRtl } = useLanguage();
 
   if (!isOpen || !candidate) return null;
@@ -26,6 +26,30 @@ export default function CandidateDetailModal({ candidate, isOpen, onClose, onRep
     candidateApi.recordInteraction(candidate.id || candidate._id, { action: 'CV_REQUESTED' }).catch(() => {});
     window.open(`http://localhost:5000/api/candidates/cv/${candidate.id || candidate._id}`, '_blank');
   };
+
+  // Compile up to 3 titles list
+  const jobList = [];
+  if (candidate.desiredJob) {
+    jobList.push({
+      priority: 1,
+      name: isRtl && candidate.desiredJob?.nameAr ? candidate.desiredJob.nameAr : candidate.desiredJob?.name || candidate.desiredJob,
+      level: candidate.careerLevel || ''
+    });
+  }
+  if (candidate.secondJob) {
+    jobList.push({
+      priority: 2,
+      name: isRtl && candidate.secondJob?.nameAr ? candidate.secondJob.nameAr : candidate.secondJob?.name || candidate.secondJob,
+      level: candidate.secondCareerLevel || ''
+    });
+  }
+  if (candidate.thirdJob) {
+    jobList.push({
+      priority: 3,
+      name: isRtl && candidate.thirdJob?.nameAr ? candidate.thirdJob.nameAr : candidate.thirdJob?.name || candidate.thirdJob,
+      level: candidate.thirdCareerLevel || ''
+    });
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -50,6 +74,66 @@ export default function CandidateDetailModal({ candidate, isOpen, onClose, onRep
             <X size={22} />
           </button>
         </div>
+
+        {/* Job Preferences & Career Levels (Up to 3) */}
+        {jobList.length > 0 && (
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '0.85rem 1rem',
+              marginBottom: '1.25rem'
+            }}
+          >
+            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Briefcase size={15} />
+              <span>{isRtl ? 'المسميات الوظيفية ومستويات الخبرة (أولويات البحث):' : 'Desired Job Titles & Career Levels:'}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {jobList.map((jobItem) => (
+                <div
+                  key={jobItem.priority}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '7px',
+                    padding: '0.4rem 0.65rem',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        background: jobItem.priority === 1 ? '#09090b' : jobItem.priority === 2 ? '#dbeafe' : '#fef3c7',
+                        color: jobItem.priority === 1 ? '#ffffff' : jobItem.priority === 2 ? '#1e40af' : '#92400e'
+                      }}
+                    >
+                      {jobItem.priority === 1
+                        ? (isRtl ? 'أولوية #1 (الرغبة الأولى)' : 'Priority #1')
+                        : jobItem.priority === 2
+                        ? (isRtl ? 'أولوية #2 (الرغبة الثانية)' : 'Priority #2')
+                        : (isRtl ? 'أولوية #3 (الرغبة الثالثة)' : 'Priority #3')}
+                    </span>
+                    <strong style={{ color: '#0f172a' }}>{jobItem.name}</strong>
+                  </div>
+                  {jobItem.level && (
+                    <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                      {jobItem.level}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Contact Strip */}
         <div

@@ -1,295 +1,475 @@
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { useLanguage } from '../../context/LanguageContext'
-import { companyApi } from '../../api/company.api'
-import { Check, ShieldCheck, Zap, Sparkles, Building, ArrowRight, MessageCircle } from 'lucide-react'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import StatusBadge from '../../components/ui/StatusBadge'
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { companyApi } from '../../api/company.api';
+import {
+  Search, Download, ShoppingCart, Eye, CheckCircle,
+  CreditCard, Clock, AlertCircle, ChevronDown, ChevronUp,
+  RefreshCw, Shield, Zap, Star
+} from 'lucide-react';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
-export default function CompanySubscription() {
-  const { profile } = useAuth()
-  const { isRtl } = useLanguage()
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+// ── Billing cycle options with discounts ─────────────────────
+const BILLING_CYCLES = [
+  { months: 1,  label: 'شهر واحد',          discount: 0  },
+  { months: 3,  label: '3 أشهر',            discount: 5  },
+  { months: 6,  label: '6 أشهر',            discount: 10 },
+  { months: 9,  label: '9 أشهر',            discount: 15 },
+  { months: 12, label: 'سنة كاملة (12 شهر)', discount: 20 },
+];
 
-  useEffect(() => {
-    companyApi.getStats()
-      .then(res => setStats(res.data?.data))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+// ── Plan icon and feature helpers ────────────────────────────
+const PLAN_META = {
+  Basic:    { icon: <Shield size={22} strokeWidth={2} />,  rank: 1 },
+  Gold:     { icon: <Star size={22} strokeWidth={2} />,    rank: 2 },
+  Platinum: { icon: <Zap size={22} strokeWidth={2} />,     rank: 3 },
+};
 
-  if (loading) return <LoadingSpinner />
-
-  const subscription = profile?.subscription || {
-    plan: 'Standard',
-    status: 'Active',
-    expiresAt: null,
-    searchLimit: 500,
-    exportLimit: 100
-  }
-
-  const plans = [
+function PlanFeatures({ plan }) {
+  const features = [
     {
-      id: 'starter',
-      nameAr: 'الباقة الأساسية (تجريبية)',
-      nameEn: 'Starter Trial',
-      priceAr: 'مجاناً للشركات المعتمدة',
-      priceEn: 'Free for Approved Companies',
-      featuresAr: [
-        'بحث في قاعدة بيانات العاشر من رمضان',
-        'عرض حتى 50 مرشح شهرياً',
-        'تصدير 10 سير ذاتية بتنسيق CSV',
-        'طلب توظيف واحد للمفاضلة',
-        'دعم عبر البريد الإلكتروني'
-      ],
-      featuresEn: [
-        'Search candidate database in 10th of Ramadan',
-        'View up to 50 candidate profiles/month',
-        'Export 10 CVs as CSV',
-        '1 Custom recruitment request',
-        'Standard email support'
-      ],
-      current: subscription.plan === 'Starter'
+      icon: <Search size={15} />,
+      text: `بحث بالمسميات الوظيفية — ${plan.dailySearchLimit} مسمى / يوم`
     },
     {
-      id: 'standard',
-      nameAr: 'باقة المصانع والشركات',
-      nameEn: 'Standard Industrial',
-      priceAr: '50 ج.م / شهرياً (بدلاً من 1100 ج.م)',
-      priceEn: '50 EGP / month (instead of 1100 EGP)',
-      popular: true,
-      featuresAr: [
-        'بحث غير محدود بجميع الفلاتر المتقدمة',
-        'عرض حتى 500 مرشح شهرياً',
-        'تصدير حتى 100 مرشح بتنسيق CSV / Excel',
-        'طلبات توظيف مخصصة غير محدودة',
-        'وصول مباشر لأرقام الهواتف والواتساب',
-        'دعم فني وأولوية للمرشحين الجدد'
-      ],
-      featuresEn: [
-        'Unlimited candidate advanced search',
-        'View up to 500 candidate profiles/month',
-        'Export up to 100 CVs as CSV / Excel',
-        'Unlimited custom recruitment requests',
-        'Direct phone & WhatsApp one-click contact',
-        'Dedicated priority support'
-      ],
-      current: subscription.plan === 'Standard' || !subscription.plan
+      icon: <Download size={15} />,
+      text: `تحميل بيانات المرشحين — حتى ${plan.dailyDownloadLimitPerTitle} مرات لكل مسمى / يوم`
     },
     {
-      id: 'enterprise',
-      nameAr: 'باقة المؤسسات الكبرى',
-      nameEn: 'Enterprise & Group',
-      priceAr: 'عقود سنوية وتوظيف جماعي',
-      priceEn: 'Annual High-Volume Hiring',
-      featuresAr: [
-        'وصول كامل وتصدير غير محدود للبيانات',
-        'فريق توظيف مخصص لتصفية وإجراء المقابلات الأولية',
-        'توفير عمالة ومهندسين للمشروعات وخطوط الإنتاج',
-        'حملات توظيف مخصصة بالمدينة',
-        'مدير حساب خاص ودعم مباشر 24/7'
-      ],
-      featuresEn: [
-        'Full unlimited search and data export',
-        'Dedicated Asher recruitment team for initial screening',
-        'Fast-track mass technician & operator staffing',
-        'Custom local hiring campaigns in 10th of Ramadan',
-        'Dedicated account manager 24/7'
-      ],
-      current: subscription.plan === 'Enterprise'
-    }
-  ]
+      icon: <Eye size={15} />,
+      text: `عرض حتى ${plan.maxCandidatesPerTitle} مرشح لكل مسمى وظيفي`
+    },
+    ...(plan.cartEnabled ? [{
+      icon: <ShoppingCart size={15} />,
+      text: 'سلة المرشحين — جمع عدة مسميات وتحميلها في ملف واحد'
+    }] : []),
+    ...(plan.platinumBrowseEnabled ? [{
+      icon: <Eye size={15} />,
+      text: 'تصفح قاعدة البيانات بحرية — مشاهدة وتحميل مرشح واحد في كل مرة'
+    }] : []),
+  ];
 
   return (
-    <div style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '80vh' }}>
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+      {features.map((f, i) => (
+        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--slate-700)' }}>
+          <span style={{ flexShrink: 0, marginTop: '0.1rem', color: '#000' }}>{f.icon}</span>
+          <span>{f.text}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function calcPrice(basePricePerMonth, months) {
+  const cycle = BILLING_CYCLES.find(c => c.months === months) || BILLING_CYCLES[0];
+  const total = basePricePerMonth * months;
+  const discount = Math.round(total * cycle.discount / 100);
+  return { total: total - discount, discount, discountPct: cycle.discount, monthly: basePricePerMonth };
+}
+
+// ── Status banner after Paymob redirect ─────────────────────
+function PaymentResultBanner({ result, onDismiss }) {
+  if (!result) return null;
+  const isSuccess = result === 'success';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: '1rem', flexWrap: 'wrap',
+      padding: '0.875rem 1.25rem',
+      borderRadius: 'var(--radius-md)',
+      marginBottom: '1.5rem',
+      border: isSuccess ? '1.5px solid #000' : '1.5px dashed #71717a',
+      background: isSuccess ? '#000' : 'var(--slate-100)',
+      color: isSuccess ? '#fff' : '#000'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontWeight: 700 }}>
+        {isSuccess
+          ? <><CheckCircle size={18} /> تم الدفع بنجاح! تم تفعيل باقتك.</>
+          : <><AlertCircle size={18} /> فشلت عملية الدفع. يرجى المحاولة مرة أخرى.</>
+        }
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: '1.1rem', lineHeight: 1 }}
+      >×</button>
+    </div>
+  );
+}
+
+export default function CompanySubscription() {
+  const { profile, refreshProfile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [plans, setPlans] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMonths, setSelectedMonths] = useState(1);
+  const [initiating, setInitiating] = useState(''); // plan name being initiated
+  const [showHistory, setShowHistory] = useState(false);
+  const [paymentResult, setPaymentResult] = useState(searchParams.get('payment') || null);
+
+  const currentPlan = profile?.subscriptionPlan || null;
+  const subscriptionStatus = profile?.subscriptionStatus || 'inactive';
+  const subscriptionEndDate = profile?.subscriptionEndDate;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [plansRes, ordersRes] = await Promise.allSettled([
+        companyApi.getPlans(),
+        companyApi.getPaymentHistory()
+      ]);
+      if (plansRes.status === 'fulfilled') setPlans(plansRes.value.data?.data || []);
+      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data?.data || []);
+    } catch (e) {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+    if (paymentResult === 'success') {
+      // Refresh auth profile to get updated plan
+      if (refreshProfile) refreshProfile();
+    }
+  }, []);
+
+  // Clear payment result from URL
+  const dismissResult = () => {
+    setPaymentResult(null);
+    setSearchParams({});
+  };
+
+  const handleSubscribe = async (planName) => {
+    setInitiating(planName);
+    try {
+      const res = await companyApi.initiatePayment(planName, selectedMonths);
+      const { iframeUrl } = res.data?.data || {};
+      if (iframeUrl) {
+        window.location.href = iframeUrl; // redirect to Paymob iframe
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'فشل بدء عملية الدفع. حاول مرة أخرى.');
+    }
+    setInitiating('');
+  };
+
+  const isExpired = subscriptionEndDate && new Date(subscriptionEndDate) < new Date();
+  const hasActiveSub = subscriptionStatus === 'active' && !isExpired && currentPlan;
+
+  // ── Render ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div style={{ padding: '4rem 0', display: 'flex', justifyContent: 'center' }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  return (
+    <div dir="rtl" style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 0 3rem', background: 'var(--bg-page)', minHeight: '80vh' }}>
       <div className="container">
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.625rem)', fontWeight: 800, color: 'var(--slate-900)' }}>
-            {isRtl ? 'إدارة الاشتراك والباقات' : 'Subscription & Plans'}
+
+        {/* ── Page Header ── */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 900, color: '#000', display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
+            <CreditCard size={22} strokeWidth={2.5} />
+            الاشتراك والباقات
           </h1>
-          <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
-            {isRtl ? 'تفاصيل باقتك الحالية وحدود البحث والتصدير للمرشحين' : 'Manage your plan, candidate search limits, and exports'}
+          <p style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', marginTop: '0.35rem' }}>
+            اختر الباقة المناسبة — يتم الدفع عبر بوابة Paymob الآمنة
           </p>
         </div>
 
-        {/* Current Plan Overview Card */}
-        <div
-          className="card card-responsive"
-          style={{
-            marginBottom: '2.5rem',
-            background: '#000000',
-            color: '#fff',
-            borderRadius: 'var(--radius-lg)'
-          }}
-        >
+        {/* ── Payment Result Banner ── */}
+        <PaymentResultBanner result={paymentResult} onDismiss={dismissResult} />
+
+        {/* ── Current Subscription Status ── */}
+        <div className="card" style={{ marginBottom: '1.75rem', padding: '1.25rem 1.5rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <div>
-              <span
-                style={{
-                  display: 'inline-block',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem'
-                }}
-              >
-                {isRtl ? 'الباقة المفعلة الحالية' : 'Current Active Plan'}
-              </span>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.5rem 0' }}>
-                {subscription.plan === 'Enterprise'
-                  ? (isRtl ? 'باقة المؤسسات الكبرى' : 'Enterprise Plan')
-                  : subscription.plan === 'Starter'
-                  ? (isRtl ? 'الباقة الأساسية' : 'Starter Plan')
-                  : (isRtl ? 'باقة المصانع القياسية' : 'Standard Industrial Plan')}
-              </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.9, fontSize: '0.875rem' }}>
-                <span>{isRtl ? 'حالة الحساب:' : 'Account Status:'}</span>
-                <span style={{ color: '#ffffff', fontWeight: 700 }}>
-                  {profile?.verificationStatus === 'Approved' ? (isRtl ? 'معتمد ومفعّل' : 'Approved & Active') : profile?.verificationStatus}
-                </span>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate-500)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                الباقة الحالية
               </div>
-            </div>
-
-            <a
-              href="https://wa.me/201012345678?text=استفسار%20عن%20ترقية%20باقة%20عاشر%20جوبز"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn"
-              style={{ padding: '0.75rem 1.5rem', fontWeight: 700, background: '#ffffff', color: '#000000', border: '1px solid #ffffff' }}
-            >
-              <MessageCircle size={18} />
-              {isRtl ? 'تحدث مع الإدارة لترقية الباقة' : 'Upgrade via WhatsApp'}
-            </a>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))',
-              gap: '1rem',
-              marginTop: '1.5rem',
-              paddingTop: '1.5rem',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '0.8125rem', opacity: 0.8 }}>{isRtl ? 'عمليات البحث المستهلكة' : 'Searches Used'}</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '0.25rem' }}>{stats?.totalSearches ?? 0}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8125rem', opacity: 0.8 }}>{isRtl ? 'التواصل المباشر مع المرشحين' : 'Candidate Contacts'}</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '0.25rem' }}>{stats?.totalInteractions ?? 0}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8125rem', opacity: 0.8 }}>{isRtl ? 'طلبات التوظيف النشطة' : 'Active Recruitment Requests'}</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '0.25rem' }}>{stats?.activeRequests ?? 0}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing Tiers Grid */}
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1.25rem' }}>
-          {isRtl ? 'مقارنة الباقات المتاحة للمصانع والشركات' : 'Available Employer Plans'}
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
-          {plans.map((p) => {
-            const features = isRtl ? p.featuresAr : p.featuresEn
-            return (
-              <div
-                key={p.id}
-                className="card card-responsive"
-                style={{
-                  padding: 'clamp(1.25rem, 4vw, 2rem)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative',
-                  border: p.popular ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  boxShadow: p.popular ? 'var(--shadow-lg)' : 'var(--shadow-sm)'
-                }}
-              >
-                {p.popular && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-12px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: 'var(--accent)',
-                      color: '#fff',
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      padding: '0.25rem 0.875rem',
-                      borderRadius: 'var(--radius-full)'
-                    }}
-                  >
-                    {isRtl ? 'الأكثر اختياراً بالمصانع' : 'Recommended'}
-                  </div>
-                )}
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.5rem' }}>
-                    {isRtl ? p.nameAr : p.nameEn}
-                  </h3>
-                  <div style={{ fontSize: '0.9375rem', color: 'var(--accent)', fontWeight: 700 }}>
-                    {isRtl ? p.priceAr : p.priceEn}
-                  </div>
-                </div>
-
-                <div style={{ flex: 1, marginBottom: '2rem' }}>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {features.map((feat, idx) => (
-                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
-                        <Check size={16} color="#000000" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
+              {hasActiveSub ? (
                 <div>
-                  {p.current ? (
-                    <div
-                      style={{
-                        padding: '0.625rem',
-                        textAlign: 'center',
-                        background: 'var(--slate-100)',
-                        color: 'var(--slate-600)',
-                        borderRadius: 'var(--radius-md)',
-                        fontWeight: 700,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      {isRtl ? '✓ باقتك الحالية' : '✓ Current Plan'}
+                  <span style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000' }}>
+                    {currentPlan === 'Platinum' ? 'البلاتينية' : currentPlan === 'Gold' ? 'الذهبية' : 'الأساسية'} ({currentPlan})
+                  </span>
+                  {subscriptionEndDate && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--slate-500)', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Clock size={13} />
+                      تنتهي في {new Date(subscriptionEndDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
-                  ) : (
-                    <a
-                      href="https://wa.me/201012345678?text=طلب%20اشتراك%20في%20عاشر%20جوبز"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`btn ${p.popular ? 'btn-accent' : ''}`}
-                      style={{
-                        width: '100%',
-                        fontWeight: 700,
-                        padding: '0.625rem',
-                        border: p.popular ? 'none' : '1px solid var(--border)',
-                        background: p.popular ? undefined : '#fff'
-                      }}
-                    >
-                      {isRtl ? 'طلب تفعيل الباقة' : 'Select Plan'}
-                    </a>
                   )}
                 </div>
-              </div>
-            )
-          })}
+              ) : (
+                <div>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--slate-500)' }}>
+                    {isExpired ? '⚠ انتهت صلاحية اشتراكك' : 'لا يوجد اشتراك نشط'}
+                  </span>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--slate-400)', marginTop: '0.2rem' }}>
+                    اختر باقة أدناه لتفعيل وصولك لقاعدة البيانات
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {hasActiveSub && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                padding: '0.3rem 0.75rem', borderRadius: 'var(--radius-full)',
+                fontSize: '0.75rem', fontWeight: 800,
+                background: '#000', color: '#fff'
+              }}>
+                <CheckCircle size={13} /> نشط
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* ── Billing Cycle Selector ── */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#000', marginBottom: '0.65rem' }}>
+            مدة الاشتراك — اختر للحصول على خصم أكبر:
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {BILLING_CYCLES.map(cycle => (
+              <button
+                key={cycle.months}
+                type="button"
+                onClick={() => setSelectedMonths(cycle.months)}
+                style={{
+                  padding: '0.45rem 0.9rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: selectedMonths === cycle.months ? '2px solid #000' : '1.5px solid var(--border)',
+                  background: selectedMonths === cycle.months ? '#000' : '#fff',
+                  color: selectedMonths === cycle.months ? '#fff' : 'var(--slate-700)',
+                  transition: 'all 0.15s ease',
+                  position: 'relative'
+                }}
+              >
+                {cycle.label}
+                {cycle.discount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-8px', right: '-6px',
+                    background: selectedMonths === cycle.months ? '#fff' : '#000',
+                    color: selectedMonths === cycle.months ? '#000' : '#fff',
+                    fontSize: '0.6rem', fontWeight: 900, padding: '0.1rem 0.3rem',
+                    borderRadius: '4px'
+                  }}>
+                    -{cycle.discount}%
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Plans Grid ── */}
+        {plans.length === 0 ? (
+          <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--slate-500)' }}>
+            لا توجد باقات متاحة حالياً. تواصل مع الإدارة.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+            {plans.map((plan) => {
+              const meta = PLAN_META[plan.planName] || {};
+              const pricing = calcPrice(plan.priceEgp || plan.priceMonthlyEgp, selectedMonths);
+              const isCurrent = currentPlan === plan.planName && hasActiveSub;
+              const isGold = plan.planName === 'Gold';
+              const isInitiating = initiating === plan.planName;
+
+              return (
+                <div
+                  key={plan._id}
+                  className="card"
+                  style={{
+                    padding: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    border: isGold ? '2px solid #000' : '1px solid #000',
+                    position: 'relative',
+                    transition: 'box-shadow 0.2s ease'
+                  }}
+                >
+                  {/* Popular badge */}
+                  {isGold && (
+                    <div style={{
+                      position: 'absolute', top: '-12px', right: '1.5rem',
+                      background: '#000', color: '#fff',
+                      fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.65rem',
+                      borderRadius: 'var(--radius-full)', letterSpacing: '0.03em'
+                    }}>
+                      الأكثر اختياراً
+                    </div>
+                  )}
+
+                  {/* Plan header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 'var(--radius-md)',
+                      background: '#000', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      {meta.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 900, fontSize: '1rem', color: '#000' }}>
+                        {plan.displayNameAr || plan.displayName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>
+                        {plan.planName}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pricing */}
+                  <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#000' }}>
+                        {pricing.total.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--slate-500)' }}>
+                        ج.م
+                      </span>
+                      {selectedMonths > 1 && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginRight: 'auto' }}>
+                          / {selectedMonths} أشهر
+                        </span>
+                      )}
+                    </div>
+                    {pricing.discountPct > 0 && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', marginTop: '0.2rem' }}>
+                        <s style={{ color: 'var(--slate-400)' }}>{(pricing.monthly * selectedMonths).toLocaleString()} ج.م</s>
+                        {' '}وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)
+                      </div>
+                    )}
+                    {selectedMonths > 1 && (
+                      <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', marginTop: '0.1rem' }}>
+                        يعادل {Math.round(pricing.total / selectedMonths).toLocaleString()} ج.م / شهر
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <div style={{ flex: 1 }}>
+                    <PlanFeatures plan={plan} />
+                  </div>
+
+                  {/* CTA */}
+                  <div>
+                    {isCurrent ? (
+                      <div style={{
+                        padding: '0.65rem', textAlign: 'center',
+                        background: 'var(--slate-100)', color: 'var(--slate-600)',
+                        borderRadius: 'var(--radius-md)', fontWeight: 700, fontSize: '0.875rem',
+                        border: '1px dashed var(--slate-400)'
+                      }}>
+                        ✓ باقتك الحالية النشطة
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={!!initiating}
+                        onClick={() => handleSubscribe(plan.planName)}
+                        className="btn btn-primary"
+                        style={{ width: '100%', fontWeight: 700, fontSize: '0.9rem', gap: '0.5rem' }}
+                      >
+                        {isInitiating ? (
+                          <><RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> جاري التوجيه للدفع...</>
+                        ) : (
+                          <><CreditCard size={15} /> اشترك الآن — ادفع بأمان عبر Paymob</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Payment History ── */}
+        {orders.length > 0 && (
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setShowHistory(h => !h)}
+              style={{
+                width: '100%', padding: '1rem 1.25rem',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: '0.9rem', fontWeight: 700, color: '#000'
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={16} /> سجل المدفوعات ({orders.length})
+              </span>
+              {showHistory ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showHistory && (
+              <div className="table-responsive" style={{ borderTop: '1px solid #000' }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>الباقة</th>
+                      <th>المدة</th>
+                      <th>المبلغ</th>
+                      <th>الحالة</th>
+                      <th>التاريخ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(order => (
+                      <tr key={order._id}>
+                        <td style={{ fontWeight: 700 }}>{order.planName}</td>
+                        <td>{order.billingMonths} {order.billingMonths === 1 ? 'شهر' : 'أشهر'}</td>
+                        <td style={{ fontWeight: 700 }}>{order.amountEgp?.toLocaleString()} ج.م</td>
+                        <td>
+                          {order.status === 'paid' && <span className="badge badge-available">مدفوع</span>}
+                          {order.status === 'pending' && <span className="badge badge-pending">قيد الانتظار</span>}
+                          {order.status === 'failed' && <span className="badge badge-rejected">فشل</span>}
+                          {order.status === 'expired' && <span className="badge badge-rejected">منتهي</span>}
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>
+                          {new Date(order.createdAt).toLocaleDateString('ar-EG')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Info note ── */}
+        <div style={{
+          marginTop: '1.5rem', padding: '0.875rem 1.1rem',
+          background: 'var(--slate-100)', borderRadius: 'var(--radius-md)',
+          fontSize: '0.8rem', color: 'var(--slate-600)',
+          display: 'flex', alignItems: 'flex-start', gap: '0.5rem'
+        }}>
+          <Shield size={14} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+          <span>
+            جميع المدفوعات تتم عبر بوابة <strong>Paymob</strong> المعتمدة. بطاقات Visa وMastercard مقبولة.
+            تبدأ الباقة فور تأكيد الدفع. لا يوجد تجديد تلقائي — ستتلقى تذكيراً قبل انتهاء الاشتراك.
+          </span>
+        </div>
+
       </div>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
-  )
+  );
 }

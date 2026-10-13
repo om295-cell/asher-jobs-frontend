@@ -54,6 +54,38 @@ export default function CompanyDashboard() {
           </div>
         )}
 
+        {/* Subscription prompt for verified-but-unsubscribed companies */}
+        {!isPending && profile?.subscriptionStatus !== 'active' && (
+          <div style={{
+            background: '#000', color: '#fff',
+            borderRadius: 'var(--radius-md)', padding: '1rem 1.25rem',
+            marginBottom: '2rem', display: 'flex', flexWrap: 'wrap',
+            alignItems: 'center', justifyContent: 'space-between', gap: '1rem'
+          }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '0.2rem' }}>
+                {isRtl ? '🔒 اشترك لتفعيل الوصول الكامل' : '🔒 Subscribe to unlock full access'}
+              </div>
+              <div style={{ fontSize: '0.8125rem', opacity: 0.8 }}>
+                {isRtl
+                  ? 'حسابك موثق. اختر باقة (Basic / Gold / Platinum) للبدء في البحث عن المرشحين.'
+                  : 'Your account is verified. Pick a plan to start searching candidates.'}
+              </div>
+            </div>
+            <a
+              href="/company/subscription"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)',
+                background: '#fff', color: '#000', fontWeight: 800, fontSize: '0.875rem',
+                textDecoration: 'none', flexShrink: 0
+              }}
+            >
+              اختر باقتك الآن ←
+            </a>
+          </div>
+        )}
+
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[

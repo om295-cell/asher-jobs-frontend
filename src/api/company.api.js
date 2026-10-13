@@ -37,5 +37,11 @@ export const companyApi = {
   browsePlatinumCandidates: (params) => api.get('/candidates/platinum/browse', { params }),
   getPlatinumCandidate: (id) => api.get(`/candidates/platinum/candidate/${id}`),
   downloadPlatinumCandidate: (id) =>
-    api.get(`/candidates/platinum/candidate/${id}/download`, { responseType: 'blob' })
+    api.get(`/candidates/platinum/candidate/${id}/download`, { responseType: 'blob' }),
+
+  // ── Subscription & Payment (Paymob) ──────────────────────────
+  getPlans: () => api.get('/payments/plans'),
+  initiatePayment: (planName, billingMonths) =>
+    api.post('/payments/initiate', { planName, billingMonths }),
+  getPaymentHistory: () => api.get('/payments/my-orders'),
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -109,20 +109,6 @@ export default function LoginPage() {
               {loading ? (isRtl ? 'جاري تسجيل الدخول...' : 'Logging in...') : (isRtl ? 'تسجيل الدخول' : 'Login')}
             </button>
           </form>
-
-          <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9375rem' }}>
-            <p style={{ color: 'var(--slate-600)', marginBottom: '0.5rem' }}>
-              {isRtl ? 'ليس لديك حساب؟' : "Don't have an account?"}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
-              <Link to="/register/candidate" style={{ color: 'var(--accent)', fontWeight: 700 }}>
-                {isRtl ? 'تسجيل كباحث عن عمل' : 'Job Seeker'}
-              </Link>
-              <Link to="/register/company" style={{ color: 'var(--emerald)', fontWeight: 700 }}>
-                {isRtl ? 'تسجيل شركة' : 'Employer'}
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

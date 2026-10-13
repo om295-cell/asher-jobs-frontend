@@ -643,11 +643,8 @@ export default function Navbar() {
           {/* Desktop Auth State */}
           {!isAuthenticated ? (
             <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link to="/login" className="btn btn-outline btn-sm">
+              <Link to="/login" className="btn btn-primary btn-sm">
                 {t('navLogin')}
-              </Link>
-              <Link to="/register/candidate" className="btn btn-primary btn-sm">
-                {t('btnLookingForJob')}
               </Link>
             </div>
           ) : isAdmin ? (
@@ -859,14 +856,8 @@ export default function Navbar() {
             {/* Auth Actions in Drawer */}
             {!isAuthenticated ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>
                   {t('navLogin')}
-                </Link>
-                <Link to="/register/candidate" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>
-                  {t('navRegisterCandidate')}
-                </Link>
-                <Link to="/register/company" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline" style={{ width: '100%' }}>
-                  {t('navRegisterCompany')}
                 </Link>
               </div>
             ) : isAdmin ? (

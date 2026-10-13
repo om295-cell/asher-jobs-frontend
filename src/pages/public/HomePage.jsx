@@ -286,28 +286,22 @@ export default function HomePage() {
                 }}
               >
                 <Users size={20} style={{ flexShrink: 0 }} />
-                <span>{isRtl ? 'أنا أبحث عن عمل — سجّل مجاناً' : "I'm Job Seeking — Register Free"}</span>
+                <span>{isRtl ? 'رشّح شخصاً يبحث عن عمل' : 'Recommend a Job Seeker'}</span>
               </Link>
-              <button
-                onClick={() => setShowCompanyModal(true)}
+              <Link
+                to="/login"
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
                   padding: '0.75rem 1.25rem', borderRadius: '10px',
                   minHeight: '64px', flex: '1 1 270px', maxWidth: '340px', boxSizing: 'border-box',
-                  background: '#ffffff', border: '2px solid #ffffff',
-                  color: '#000000', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-                  lineHeight: 1.2, transition: 'all 0.15s'
+                  background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)',
+                  color: '#ffffff', fontWeight: 700, fontSize: '0.95rem',
+                  lineHeight: 1.2, transition: 'all 0.15s', textDecoration: 'none'
                 }}
               >
                 <Building2 size={20} style={{ flexShrink: 0 }} />
-                <span style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: '0.15rem' }}>
-                  <span>{isRtl ? 'تسجيل شركة أو مصنع' : 'Register as Employer'}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#16a34a' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#71717a', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
-                  </span>
-                </span>
-              </button>
+                <span>{isRtl ? 'تسجيل دخول شركة أو مصنع' : 'Employer Login'}</span>
+              </Link>
             </div>
           </div>
 
@@ -528,28 +522,20 @@ export default function HomePage() {
               : 'One unified, verified database connecting all factories and job seekers in the 10th of Ramadan industrial zone.'}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <a
-              href="https://wa.me/201556454666?text=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D9%83%D8%A8%D8%A7%D8%AD%D8%AB%20%D8%B9%D9%86%20%D8%B9%D9%85%D9%84"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/recommend"
               style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem 1.75rem', background: '#ffffff', color: '#000000', borderRadius: '10px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', border: '2px solid #ffffff' }}
             >
               <Users size={20} />
-              {isRtl ? 'تسجيل كباحث عن عمل' : 'Register as Job Seeker'}
-            </a>
-            <button
-              onClick={() => setShowCompanyModal(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '0.75rem 1.5rem', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: '10px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', lineHeight: 1 }}
+              {isRtl ? 'رشّح شخصاً يبحث عن عمل' : 'Recommend a Job Seeker'}
+            </Link>
+            <Link
+              to="/login"
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '0.75rem 1.5rem', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: '10px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', lineHeight: 1 }}
             >
               <Building2 size={20} style={{ flexShrink: 0 }} />
-              <span style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: '0.15rem' }}>
-                <span>{isRtl ? 'تسجيل شركة أو مصنع' : 'Register as Employer'}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: '#4ade80' }}>{isRtl ? '50 ج.م/شهر' : '50 EGP/mo'}</span>
-                  <span style={{ fontSize: '0.72rem', color: '#a1a1aa', textDecoration: 'line-through', fontWeight: 500 }}>{isRtl ? '1,100 ج.م' : '1,100 EGP'}</span>
-                </span>
-              </span>
-            </button>
+              <span>{isRtl ? 'تسجيل دخول شركة أو مصنع' : 'Employer Login'}</span>
+            </Link>
           </div>
         </div>
       </section>

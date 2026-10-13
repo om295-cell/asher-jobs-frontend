@@ -65,13 +65,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/register/candidate" style={{ color: 'var(--slate-400)' }}>
-                  {t('navRegisterCandidate')}
-                </Link>
-              </li>
-              <li>
-                <Link to="/register/company" style={{ color: 'var(--slate-400)' }}>
-                  {t('navRegisterCompany')}
+                <Link to="/login" style={{ color: 'var(--slate-400)' }}>
+                  {t('navLogin')}
                 </Link>
               </li>
             </ul>

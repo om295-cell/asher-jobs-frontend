@@ -41,6 +41,41 @@ import EmptyState from '../../components/ui/EmptyState';
 
 const GOVERNORATES = ['', 'الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط'];
 
+function toDatetimeLocal(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const Y = d.getFullYear();
+  const M = pad(d.getMonth() + 1);
+  const D = pad(d.getDate());
+  const h = pad(d.getHours());
+  const m = pad(d.getMinutes());
+  return `${Y}-${M}-${D}T${h}:${m}`;
+}
+
+function formatRemainingTime(endsAt, startsAt = null) {
+  if (!endsAt && !startsAt) return null;
+  const now = new Date();
+  if (startsAt && new Date(startsAt) > now) {
+    const startDiff = new Date(startsAt) - now;
+    const days = Math.floor(startDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((startDiff / (1000 * 60 * 60)) % 24);
+    return `يبدأ بعد ${days > 0 ? `${days} يوم و ` : ''}${hours} س`;
+  }
+  if (endsAt) {
+    const diff = new Date(endsAt) - now;
+    if (diff <= 0) return 'منتهي الصلاحية';
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diff / (1000 * 60)) % 60);
+    if (days > 0) return `${days} يوم و ${hours} س`;
+    if (hours > 0) return `${hours} س و ${mins} د`;
+    return `${mins} دقيقة`;
+  }
+  return null;
+}
+
 export default function AdminCompanies() {
   const { isRtl } = useLanguage();
   const { showToast } = useToast();
@@ -107,6 +142,7 @@ export default function AdminCompanies() {
   const [platformPlans, setPlatformPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
+  const [discountModal, setDiscountModal] = useState({ open: false, plan: null, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' });
 
   // Fetch Eligible Verifiers on Mount
   useEffect(() => {
@@ -327,13 +363,40 @@ export default function AdminCompanies() {
         maxCandidatesPerTitle: editingPlan.maxCandidatesPerTitle,
         cartEnabled: editingPlan.cartEnabled,
         platinumBrowseEnabled: editingPlan.platinumBrowseEnabled,
-        displayNameAr: editingPlan.displayNameAr
+        discountPct: editingPlan.discountPct || 0,
+        discountLabel: editingPlan.discountLabel || '',
+        discountStartsAt: editingPlan.discountStartsAt ? new Date(editingPlan.discountStartsAt).toISOString() : null,
+        discountEndsAt: editingPlan.discountEndsAt ? new Date(editingPlan.discountEndsAt).toISOString() : null
       });
       showToast('تم تحديث بيانات خطة الاشتراك في المنصة بنجاح!', 'success');
       setEditingPlan(null);
       fetchPlatformPlans();
     } catch (err) {
       showToast(err.response?.data?.message || 'فشل حفظ الخطة', 'error');
+    }
+  };
+
+  // Quick Update Package Discount
+  const handleSaveDiscount = async (e) => {
+    e.preventDefault();
+    if (!discountModal.plan) return;
+    try {
+      await adminApi.updateSubscriptionPlan(discountModal.plan._id, {
+        discountPct: Number(discountModal.discountPct) || 0,
+        discountLabel: discountModal.discountLabel || '',
+        discountStartsAt: discountModal.discountStartsAt ? new Date(discountModal.discountStartsAt).toISOString() : null,
+        discountEndsAt: discountModal.discountEndsAt ? new Date(discountModal.discountEndsAt).toISOString() : null
+      });
+      showToast(
+        discountModal.discountPct > 0
+          ? `تم تفعيل خصم ${discountModal.discountPct}% على باقة ${discountModal.plan.displayNameAr || discountModal.plan.planName} بنجاح!`
+          : `تم إلغاء الخصم على باقة ${discountModal.plan.displayNameAr || discountModal.plan.planName}`,
+        'success'
+      );
+      setDiscountModal({ open: false, plan: null, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' });
+      fetchPlatformPlans();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'فشل تحديث الخصم', 'error');
     }
   };
 
@@ -981,61 +1044,202 @@ export default function AdminCompanies() {
                 <LoadingSpinner />
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                {platformPlans.map((plan) => (
-                  <div
-                    key={plan._id}
-                    className="card"
-                    style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <span className="badge badge-pending" style={{ fontSize: '0.8125rem' }}>
-                          {plan.planName}
-                        </span>
-                        <div style={{ fontSize: '1.375rem', fontWeight: 900 }}>
-                          {plan.priceEgp || plan.priceMonthlyEgp} ج.م
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1.5rem' }}>
+                {platformPlans.map((plan) => {
+                  const basePrice = Number(plan.priceEgp || plan.priceMonthlyEgp || 0);
+                  const now = new Date();
+                  const hasDiscountConfig = (plan.discountPct || 0) > 0;
+                  const isExpired = hasDiscountConfig && plan.discountEndsAt && new Date(plan.discountEndsAt) < now;
+                  const isUpcoming = hasDiscountConfig && plan.discountStartsAt && new Date(plan.discountStartsAt) > now;
+                  const isDiscountActive = hasDiscountConfig && !isExpired && !isUpcoming;
+                  const discountedPrice = Math.round(basePrice * (1 - (isDiscountActive ? plan.discountPct : 0) / 100));
+                  const savings = basePrice - discountedPrice;
+                  const timeBadge = hasDiscountConfig ? formatRemainingTime(plan.discountEndsAt, plan.discountStartsAt) : null;
+
+                  return (
+                    <div
+                      key={plan._id}
+                      className="card"
+                      style={{
+                        padding: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        border: isDiscountActive ? '2px solid #86efac' : isExpired ? '1.5px dashed #fca5a5' : '1px solid var(--border)',
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Discount Badges */}
+                      {isDiscountActive && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-12px',
+                          left: '1.25rem',
+                          background: '#16a34a',
+                          color: '#fff',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '9999px',
+                          boxShadow: '0 2px 4px rgba(22, 163, 74, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem'
+                        }}>
+                          <span>🏷️ خصم {plan.discountPct}% مفعّل</span>
+                          {timeBadge && (
+                            <span style={{ background: '#14532d', padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem' }}>
+                              ⏳ باقي {timeBadge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {isExpired && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-12px',
+                          left: '1.25rem',
+                          background: '#dc2626',
+                          color: '#fff',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '9999px',
+                          boxShadow: '0 2px 4px rgba(220, 38, 38, 0.25)'
+                        }}>
+                          ⚠️ خصم منتهي الصلاحية ({plan.discountPct}%)
+                        </div>
+                      )}
+
+                      {isUpcoming && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-12px',
+                          left: '1.25rem',
+                          background: '#4f46e5',
+                          color: '#fff',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.2rem 0.65rem',
+                          borderRadius: '9999px',
+                          boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)'
+                        }}>
+                          🕒 خصم مجدول ({timeBadge})
+                        </div>
+                      )}
+
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '0.5rem' }}>
+                          <span className="badge badge-pending" style={{ fontSize: '0.8125rem' }}>
+                            {plan.planName}
+                          </span>
+                          <div style={{ textAlign: 'left' }}>
+                            {isDiscountActive ? (
+                              <div>
+                                <div style={{ fontSize: '0.85rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                  {basePrice.toLocaleString()} ج.م
+                                </div>
+                                <div style={{ fontSize: '1.375rem', fontWeight: 900, color: '#16a34a' }}>
+                                  {discountedPrice.toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>ج.م/شهر</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '1.375rem', fontWeight: 900 }}>
+                                {basePrice.toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>ج.م/شهر</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <h4 style={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.35rem' }}>
+                          {plan.displayNameAr || plan.displayName}
+                        </h4>
+
+                        {hasDiscountConfig && (
+                          <div style={{ marginBottom: '0.65rem', display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+                            {plan.discountLabel && (
+                              <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700, background: '#f0fdf4', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                                🎉 {plan.discountLabel}
+                              </span>
+                            )}
+                            {plan.discountEndsAt && (
+                              <span style={{ fontSize: '0.72rem', color: isExpired ? '#dc2626' : 'var(--slate-500)', background: isExpired ? '#fef2f2' : 'var(--slate-100)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                                {isExpired ? 'انتهى في: ' : 'ينتهي: '}
+                                {new Date(plan.discountEndsAt).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                            {!plan.discountEndsAt && isDiscountActive && (
+                              <span style={{ fontSize: '0.72rem', color: 'var(--slate-500)', background: 'var(--slate-100)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                                ♾️ خصم دائم ومستمر
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--slate-700)', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
+                            <span>عمليات البحث اليومية:</span>
+                            <strong>{plan.dailySearchLimit} بحث/يوم</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
+                            <span>تنزيل لكل مسمى وظيفي:</span>
+                            <strong>{plan.dailyDownloadLimitPerTitle} مرات/يوم</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
+                            <span>المرشحين لكل مسمى:</span>
+                            <strong>بحد أقصى {plan.maxCandidatesPerTitle}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
+                            <span>سلة المرشحين (Cart):</span>
+                            <strong>{plan.cartEnabled ? '✓ مفعلة' : '✕ غير مفعلة'}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
+                            <span>تصفح قاعدة البيانات (VIP):</span>
+                            <strong>{plan.platinumBrowseEnabled ? '✓ مفعلة (Platinum)' : '✕ غير مفعلة'}</strong>
+                          </div>
                         </div>
                       </div>
 
-                      <h4 style={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
-                        {plan.displayNameAr || plan.displayName}
-                      </h4>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--slate-700)', marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-                          <span>عمليات البحث اليومية:</span>
-                          <strong>{plan.dailySearchLimit} بحث/يوم</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-                          <span>تنزيل لكل مسمى وظيفي:</span>
-                          <strong>{plan.dailyDownloadLimitPerTitle} مرات/يوم</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-                          <span>المرشحين لكل مسمى:</span>
-                          <strong>بحد أقصى {plan.maxCandidatesPerTitle}</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-                          <span>سلة المرشحين (Cart):</span>
-                          <strong>{plan.cartEnabled ? '✓ مفعلة' : '✕ غير مفعلة'}</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.35rem' }}>
-                          <span>تصفح قاعدة البيانات (VIP):</span>
-                          <strong>{plan.platinumBrowseEnabled ? '✓ مفعلة (Platinum)' : '✕ غير مفعلة'}</strong>
-                        </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setDiscountModal({
+                            open: true,
+                            plan,
+                            discountPct: plan.discountPct || 0,
+                            discountLabel: plan.discountLabel || '',
+                            discountStartsAt: toDatetimeLocal(plan.discountStartsAt),
+                            discountEndsAt: toDatetimeLocal(plan.discountEndsAt)
+                          })}
+                          className="btn btn-outline"
+                          style={{
+                            fontSize: '0.8125rem',
+                            fontWeight: 700,
+                            borderColor: isDiscountActive ? '#16a34a' : 'var(--border)',
+                            color: isDiscountActive ? '#15803d' : 'inherit',
+                            background: isDiscountActive ? '#f0fdf4' : 'transparent',
+                            gap: '0.3rem'
+                          }}
+                        >
+                          🏷️ {hasDiscountConfig ? 'التحكم بالخصم والمدة' : 'تطبيق خصم'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingPlan({
+                            ...plan,
+                            discountStartsAt: toDatetimeLocal(plan.discountStartsAt),
+                            discountEndsAt: toDatetimeLocal(plan.discountEndsAt)
+                          })}
+                          className="btn btn-outline"
+                          style={{ fontSize: '0.8125rem', fontWeight: 700 }}
+                        >
+                          ⚙️ السعر والحصص
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditingPlan({ ...plan })}
-                      className="btn btn-outline"
-                      style={{ width: '100%', fontSize: '0.875rem' }}
-                    >
-                      تعديل السعر والحصص
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1314,7 +1518,34 @@ export default function AdminCompanies() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">السعر الشهري (EGP)</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <label className="form-label" style={{ margin: 0 }}>السعر الشهري (EGP)</label>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
+                      خصم سريع:
+                      {[10, 20, 30, 50].map(pct => {
+                        const baseForPlan = planModal.plan === 'Platinum' ? 2000 : planModal.plan === 'Gold' ? 1000 : 500;
+                        const discPrice = Math.round(baseForPlan * (1 - pct / 100));
+                        return (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => setPlanModal(prev => ({ ...prev, priceEgp: discPrice }))}
+                            style={{
+                              marginLeft: '0.3rem',
+                              padding: '0.1rem 0.35rem',
+                              fontSize: '0.7rem',
+                              border: '1px solid var(--border)',
+                              borderRadius: '4px',
+                              background: 'var(--slate-100)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            -{pct}%
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <input
                     type="number"
                     className="form-control"
@@ -1494,6 +1725,132 @@ export default function AdminCompanies() {
                   </label>
                 </div>
 
+                {/* Discount Section */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--slate-800)', marginBottom: '0.5rem' }}>
+                    🏷 خصم ترويجي على الباقة
+                  </div>
+
+                  {/* Preset discount buttons */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
+                    {[0, 5, 10, 15, 20, 25, 30, 50].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => setEditingPlan({ ...editingPlan, discountPct: pct })}
+                        style={{
+                          padding: '0.25rem 0.6rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          borderRadius: '6px',
+                          border: (editingPlan.discountPct || 0) === pct ? '1.5px solid #16a34a' : '1px solid var(--border)',
+                          background: (editingPlan.discountPct || 0) === pct ? '#dcfce7' : 'var(--slate-50)',
+                          color: (editingPlan.discountPct || 0) === pct ? '#15803d' : 'inherit',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {pct === 0 ? 'بدون خصم (0%)' : `${pct}%`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label">نسبة الخصم (%)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        min="0" max="100"
+                        value={editingPlan.discountPct || 0}
+                        onChange={(e) => setEditingPlan({ ...editingPlan, discountPct: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label">وصف الخصم</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editingPlan.discountLabel || ''}
+                        onChange={(e) => setEditingPlan({ ...editingPlan, discountLabel: e.target.value })}
+                        placeholder="مثال: عرض رمضان، خصم الصيف"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time bounds in edit plan modal */}
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <label className="form-label" style={{ fontSize: '0.8125rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                      مدة سريان الخصم (اختر المدة بنقرة واحدة):
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.5rem' }}>
+                      {[
+                        { label: 'دائم', days: 0 },
+                        { label: '24 ساعة', days: 1 },
+                        { label: '3 أيام', days: 3 },
+                        { label: 'أسبوع', days: 7 },
+                        { label: 'شهر', days: 30 }
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            if (item.days === 0) {
+                              setEditingPlan(prev => ({ ...prev, discountEndsAt: '', discountStartsAt: '' }));
+                            } else {
+                              const d = new Date();
+                              d.setTime(d.getTime() + item.days * 24 * 60 * 60 * 1000);
+                              setEditingPlan(prev => ({ ...prev, discountEndsAt: toDatetimeLocal(d) }));
+                            }
+                          }}
+                          style={{
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.7rem',
+                            borderRadius: '4px',
+                            border: '1px solid var(--border)',
+                            background: (!editingPlan.discountEndsAt && item.days === 0) ? '#dcfce7' : 'var(--slate-50)',
+                            color: (!editingPlan.discountEndsAt && item.days === 0) ? '#15803d' : 'inherit',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>تاريخ ووقت انتهاء الخصم</label>
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        value={editingPlan.discountEndsAt || ''}
+                        onChange={(e) => setEditingPlan({ ...editingPlan, discountEndsAt: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {(editingPlan.discountPct > 0) && (
+                    <div style={{ marginTop: '0.6rem', padding: '0.5rem 0.75rem', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', fontSize: '0.8125rem', color: '#15803d', fontWeight: 700 }}>
+                      السعر بعد الخصم: <s style={{ color: '#94a3b8', fontWeight: 500 }}>{Number(editingPlan.priceEgp).toLocaleString()} ج.م</s>{' '}
+                      ← {Math.round(editingPlan.priceEgp * (1 - editingPlan.discountPct / 100)).toLocaleString()} ج.م / شهر
+                      {' '}(توفير: {Math.round(editingPlan.priceEgp * (editingPlan.discountPct / 100)).toLocaleString()} ج.م)
+                      {editingPlan.discountEndsAt && (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--slate-600)', marginTop: '0.2rem' }}>
+                          ⏳ العرض ساري حتى: {new Date(editingPlan.discountEndsAt).toLocaleString('ar-EG')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {editingPlan.discountPct > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingPlan({ ...editingPlan, discountPct: 0, discountLabel: '', discountEndsAt: '', discountStartsAt: '' })}
+                      style={{ marginTop: '0.5rem', background: 'none', border: 'none', color: '#dc2626', fontSize: '0.8rem', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                    >
+                      ✕ إلغاء الخصم تماماً
+                    </button>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                   <button
                     type="button"
@@ -1510,6 +1867,251 @@ export default function AdminCompanies() {
             </div>
           </div>
         )}
+
+        {/* MODAL 5: DEDICATED PACKAGE DISCOUNT & DURATION MODAL */}
+        {discountModal.open && discountModal.plan && (() => {
+          const basePrice = Number(discountModal.plan.priceEgp || discountModal.plan.priceMonthlyEgp || 0);
+          const currentPct = Number(discountModal.discountPct) || 0;
+          const finalPrice = Math.round(basePrice * (1 - currentPct / 100));
+          const savings = basePrice - finalPrice;
+          const timeRemaining = formatRemainingTime(discountModal.discountEndsAt, discountModal.discountStartsAt);
+
+          return (
+            <div className="modal-overlay" onClick={() => setDiscountModal({ open: false, plan: null, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' })}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540, padding: '1.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--slate-900)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                    🏷️ التحكم في نسبة ومدة خصم باقة {discountModal.plan.displayNameAr || discountModal.plan.planName}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setDiscountModal({ open: false, plan: null, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' })}
+                    style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--slate-400)' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveDiscount}>
+                  {/* Base plan summary card */}
+                  <div style={{ background: 'var(--slate-50)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>السعر الأساسي الحالي للباقة</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--slate-900)' }}>
+                        {basePrice.toLocaleString()} ج.م <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--slate-500)' }}>/ شهر</span>
+                      </div>
+                    </div>
+                    <span className="badge badge-pending">{discountModal.plan.planName}</span>
+                  </div>
+
+                  {/* SECTION 1: DISCOUNT PERCENTAGE */}
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label className="form-label" style={{ fontWeight: 800, margin: 0 }}>
+                        1. نسبة الخصم (%):
+                      </label>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: currentPct > 0 ? '#15803d' : 'var(--slate-500)' }}>
+                        {currentPct}% خصم
+                      </span>
+                    </div>
+
+                    {/* Presets */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
+                      {[0, 5, 10, 15, 20, 25, 30, 40, 50, 70].map((pct) => (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => setDiscountModal(prev => ({ ...prev, discountPct: pct }))}
+                          style={{
+                            padding: '0.35rem 0.65rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            borderRadius: '6px',
+                            border: currentPct === pct ? '1.5px solid #16a34a' : '1px solid var(--border)',
+                            background: currentPct === pct ? '#dcfce7' : '#fff',
+                            color: currentPct === pct ? '#15803d' : 'var(--slate-700)',
+                            cursor: 'pointer',
+                            boxShadow: currentPct === pct ? '0 1px 3px rgba(22, 163, 74, 0.2)' : 'none',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {pct === 0 ? 'بدون (0%)' : `${pct}%`}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '0.75rem' }}>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.78rem' }}>إدخال نسبة مخصصة (%)</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          min="0"
+                          max="100"
+                          value={discountModal.discountPct}
+                          onChange={(e) => setDiscountModal(prev => ({ ...prev, discountPct: Math.min(100, Math.max(0, Number(e.target.value))) }))}
+                          placeholder="0"
+                          required
+                        />
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.78rem' }}>مسمى / سبب الخصم</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={discountModal.discountLabel}
+                          onChange={(e) => setDiscountModal(prev => ({ ...prev, discountLabel: e.target.value }))}
+                          placeholder="مثال: عرض رمضان، خصم خاص"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: DISCOUNT TIME & DURATION */}
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label className="form-label" style={{ fontWeight: 800, margin: 0 }}>
+                        2. مدة وسريان الخصم (لأي وقت يكون الخصم متاحاً؟):
+                      </label>
+                      {discountModal.discountEndsAt && (
+                        <span style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 700, background: '#f0fdf4', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                          ⏳ {timeRemaining}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Quick duration presets */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                      {[
+                        { label: 'دائم (بدون انتهاء)', days: 0 },
+                        { label: '24 ساعة (يوم)', days: 1 },
+                        { label: '3 أيام', days: 3 },
+                        { label: 'أسبوع (7 أيام)', days: 7 },
+                        { label: 'أسبوعين (14 يوم)', days: 14 },
+                        { label: 'شهر (30 يوم)', days: 30 }
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            if (item.days === 0) {
+                              setDiscountModal(prev => ({ ...prev, discountEndsAt: '', discountStartsAt: '' }));
+                            } else {
+                              const d = new Date();
+                              d.setTime(d.getTime() + item.days * 24 * 60 * 60 * 1000);
+                              setDiscountModal(prev => ({ ...prev, discountEndsAt: toDatetimeLocal(d) }));
+                            }
+                          }}
+                          style={{
+                            padding: '0.3rem 0.6rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: '1px solid var(--border)',
+                            background: (!discountModal.discountEndsAt && item.days === 0) ? '#dcfce7' : 'var(--slate-50)',
+                            color: (!discountModal.discountEndsAt && item.days === 0) ? '#15803d' : 'var(--slate-700)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                          تاريخ ووقت انتهاء الخصم
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          value={discountModal.discountEndsAt || ''}
+                          onChange={(e) => setDiscountModal(prev => ({ ...prev, discountEndsAt: e.target.value }))}
+                        />
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.78rem' }}>
+                          تاريخ ووقت بدء الخصم (اختياري)
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          value={discountModal.discountStartsAt || ''}
+                          onChange={(e) => setDiscountModal(prev => ({ ...prev, discountStartsAt: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live calculation card */}
+                  <div style={{
+                    padding: '0.875rem 1rem',
+                    background: currentPct > 0 ? '#f0fdf4' : 'var(--slate-50)',
+                    border: currentPct > 0 ? '1.5px solid #86efac' : '1px solid var(--border)',
+                    borderRadius: '8px',
+                    marginBottom: '1.25rem'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--slate-600)' }}>السعر بعد الخصم للمشتركين:</span>
+                      <strong style={{ fontSize: '1.25rem', color: currentPct > 0 ? '#15803d' : 'var(--slate-900)' }}>
+                        {finalPrice.toLocaleString()} ج.م / شهر
+                      </strong>
+                    </div>
+                    {currentPct > 0 ? (
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700, display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #bbf7d0', paddingTop: '0.35rem', marginTop: '0.35rem' }}>
+                          <span>توفير المشترك:</span>
+                          <span>{savings.toLocaleString()} ج.م ({currentPct}% خصم)</span>
+                        </div>
+                        {discountModal.discountEndsAt && (
+                          <div style={{ fontSize: '0.72rem', color: '#15803d', marginTop: '0.25rem' }}>
+                            ⏳ ساري حتى: {new Date(discountModal.discountEndsAt).toLocaleString('ar-EG')} ({timeRemaining})
+                          </div>
+                        )}
+                        {!discountModal.discountEndsAt && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--slate-500)', marginTop: '0.25rem' }}>
+                            ♾️ هذا الخصم دائم ومستمر حتى تقوم بإلغائه يدوياً.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
+                        لا يوجد خصم مفعّل. سيتم احتساب السعر الأصلي بالكامل ({basePrice.toLocaleString()} ج.م).
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {currentPct > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setDiscountModal(prev => ({ ...prev, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' }))}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.8125rem', cursor: 'pointer', fontWeight: 700, padding: 0 }}
+                      >
+                        ✕ مسح الخصم وإلغاء المدة
+                      </button>
+                    ) : <span />}
+
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountModal({ open: false, plan: null, discountPct: 0, discountLabel: '', discountStartsAt: '', discountEndsAt: '' })}
+                        className="btn btn-outline"
+                      >
+                        إلغاء
+                      </button>
+                      <button type="submit" className="btn btn-primary" style={{ fontWeight: 800 }}>
+                        {currentPct > 0 ? `حفظ وتفعيل خصم ${currentPct}%` : 'حفظ التعديلات'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          );
+        })()}
 
         <ConfirmModal
           isOpen={confirmModal.open}

@@ -61,11 +61,43 @@ function PlanFeatures({ plan }) {
   );
 }
 
-function calcPrice(basePricePerMonth, months) {
+function formatRemainingTime(endsAt) {
+  if (!endsAt) return null;
+  const diffMs = new Date(endsAt) - new Date();
+  if (diffMs <= 0) return null;
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
+  const remHours = diffHours % 24;
+  if (diffDays > 0) {
+    return `${diffDays} يوم ${remHours > 0 ? `و ${remHours} س` : ''}`;
+  }
+  const diffMins = Math.floor((diffMs / (1000 * 60)) % 60);
+  return `${diffHours} س و ${diffMins} د`;
+}
+
+// planDiscountPct = admin-set promo discount on the plan itself
+// cycleDiscountPct = loyalty discount based on billing duration
+function calcPrice(basePricePerMonth, months, planDiscountPct = 0) {
   const cycle = BILLING_CYCLES.find(c => c.months === months) || BILLING_CYCLES[0];
-  const total = basePricePerMonth * months;
-  const discount = Math.round(total * cycle.discount / 100);
-  return { total: total - discount, discount, discountPct: cycle.discount, monthly: basePricePerMonth };
+  // Apply plan-level discount first
+  const afterPlanDiscount = basePricePerMonth * (1 - planDiscountPct / 100);
+  const total = afterPlanDiscount * months;
+  // Then apply billing cycle discount
+  const cycleDiscount = Math.round(total * cycle.discount / 100);
+  const finalTotal = Math.max(0, Math.round(total - cycleDiscount));
+  const originalTotal = basePricePerMonth * months; // fully undiscounted
+  const totalDiscountAmount = Math.max(0, originalTotal - finalTotal);
+  const effectiveDiscountPct = originalTotal > 0 ? Math.round((totalDiscountAmount / originalTotal) * 100) : 0;
+  return {
+    total: finalTotal,
+    originalTotal,
+    discount: totalDiscountAmount,
+    discountPct: effectiveDiscountPct,
+    planDiscountPct,
+    cycleDiscountPct: cycle.discount,
+    monthly: basePricePerMonth,
+    effectiveMonthly: Math.round(afterPlanDiscount)
+  };
 }
 
 // ── Status banner after Paymob redirect ─────────────────────
@@ -279,7 +311,15 @@ export default function CompanySubscription() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
             {plans.map((plan) => {
               const meta = PLAN_META[plan.planName] || {};
-              const pricing = calcPrice(plan.priceEgp || plan.priceMonthlyEgp, selectedMonths);
+              const now = new Date();
+              const hasConfig = (plan.discountPct || 0) > 0;
+              const isExpired = hasConfig && plan.discountEndsAt && new Date(plan.discountEndsAt) < now;
+              const isUpcoming = hasConfig && plan.discountStartsAt && new Date(plan.discountStartsAt) > now;
+              const isDiscountActive = hasConfig && !isExpired && !isUpcoming;
+              const effectivePlanDiscountPct = isDiscountActive ? Number(plan.discountPct) : 0;
+              const remainingTime = isDiscountActive && plan.discountEndsAt ? formatRemainingTime(plan.discountEndsAt) : null;
+
+              const pricing = calcPrice(plan.priceEgp || plan.priceMonthlyEgp, selectedMonths, effectivePlanDiscountPct);
               const isCurrent = currentPlan === plan.planName && hasActiveSub;
               const isGold = plan.planName === 'Gold';
               const isInitiating = initiating === plan.planName;
@@ -298,6 +338,25 @@ export default function CompanySubscription() {
                     transition: 'box-shadow 0.2s ease'
                   }}
                 >
+                  {/* Plan Discount Badge */}
+                  {isDiscountActive && (
+                    <div style={{
+                      position: 'absolute', top: '-12px', left: isGold ? '1rem' : '1.5rem',
+                      background: '#16a34a', color: '#fff',
+                      fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.65rem',
+                      borderRadius: 'var(--radius-full)', letterSpacing: '0.02em',
+                      boxShadow: '0 2px 4px rgba(22, 163, 74, 0.25)',
+                      zIndex: 1, display: 'flex', alignItems: 'center', gap: '0.35rem'
+                    }}>
+                      <span>🏷️ خصم {plan.discountPct}% {plan.discountLabel ? `• ${plan.discountLabel}` : ''}</span>
+                      {remainingTime && (
+                        <span style={{ background: '#14532d', padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem' }}>
+                          ⏳ باقي {remainingTime}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   {/* Popular badge */}
                   {isGold && (
                     <div style={{
@@ -346,9 +405,19 @@ export default function CompanySubscription() {
                       )}
                     </div>
                     {pricing.discountPct > 0 && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', marginTop: '0.2rem' }}>
-                        <s style={{ color: 'var(--slate-400)' }}>{(pricing.monthly * selectedMonths).toLocaleString()} ج.م</s>
+                      <div style={{ fontSize: '0.78rem', color: '#16a34a', marginTop: '0.25rem', fontWeight: 700 }}>
+                        <s style={{ color: 'var(--slate-400)', fontWeight: 500 }}>{pricing.originalTotal.toLocaleString()} ج.م</s>
                         {' '}وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)
+                        {plan.discountLabel && (
+                          <div style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 600, marginTop: '0.1rem' }}>
+                            🎉 {plan.discountLabel}
+                          </div>
+                        )}
+                        {isDiscountActive && plan.discountEndsAt && (
+                          <div style={{ fontSize: '0.7rem', color: 'var(--slate-500)', fontWeight: 500, marginTop: '0.2rem' }}>
+                            ⏳ ينتهي العرض في: {new Date(plan.discountEndsAt).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        )}
                       </div>
                     )}
                     {selectedMonths > 1 && (

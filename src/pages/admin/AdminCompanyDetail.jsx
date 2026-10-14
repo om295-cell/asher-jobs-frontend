@@ -327,7 +327,34 @@ export default function AdminCompanyDetail() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">{isRtl ? 'سعر الاشتراك الشهري (EGP)' : 'Monthly Price (EGP)'}</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                  <label className="form-label" style={{ margin: 0 }}>{isRtl ? 'سعر الاشتراك الشهري (EGP)' : 'Monthly Price (EGP)'}</label>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
+                    {isRtl ? 'خصم سريع:' : 'Quick Discount:'}
+                    {[10, 20, 30, 50].map(pct => {
+                      const base = subForm.plan === 'Platinum' ? 2000 : subForm.plan === 'Gold' ? 1000 : 500;
+                      const discPrice = Math.round(base * (1 - pct / 100));
+                      return (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => setSubForm(prev => ({ ...prev, priceEgp: discPrice }))}
+                          style={{
+                            marginLeft: '0.3rem',
+                            padding: '0.1rem 0.35rem',
+                            fontSize: '0.7rem',
+                            border: '1px solid var(--border)',
+                            borderRadius: '4px',
+                            background: 'var(--slate-100)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          -{pct}%
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <input
                   type="number"
                   className="form-control"

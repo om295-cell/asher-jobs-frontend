@@ -49,7 +49,7 @@ api.interceptors.response.use(
       error.code === 'ECONNABORTED' ||
       (error.response.status >= 500 && error.response.status <= 504);
 
-    if (currentBaseUrl) {
+    if (currentBaseUrl && isNetworkOrServerError) {
       markBackendFailure(currentBaseUrl);
     }
 

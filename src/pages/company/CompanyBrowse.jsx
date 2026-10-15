@@ -161,32 +161,231 @@ export default function CompanyBrowse() {
 
   if (!isPlatinum && !loading) {
     return (
-      <div className="py-12 bg-slate-50 min-h-[80vh]" dir={isRtl ? 'rtl' : 'ltr'}>
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="bg-white rounded-3xl border border-indigo-200 p-8 md:p-12 shadow-sm text-center">
-            <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-md shadow-indigo-100">
-              <Sparkles className="w-10 h-10" />
+      <div
+        style={{
+          padding: '3.5rem 1rem',
+          background: 'linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%)',
+          minHeight: '80vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        <div style={{ maxWidth: 680, width: '100%', margin: '0 auto' }}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              border: '1px solid #e4e4e7',
+              boxShadow: '0 20px 40px -15px rgba(0,0,0,0.07)',
+              padding: 'clamp(2rem, 5vw, 3rem)',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Top Purple/Indigo Accent Bar */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: 'linear-gradient(90deg, #4f46e5, #7c3aed, #9333ea)'
+              }}
+            />
+
+            {/* Glowing Icon Container */}
+            <div
+              style={{
+                width: 84,
+                height: 84,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
+                color: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.5rem',
+                border: '2px solid #c7d2fe',
+                boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.25)'
+              }}
+            >
+              <Sparkles size={40} />
             </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-3">
-              بوابة تصفح قاعدة البيانات المباشرة (Platinum Portal)
-            </h2>
-            <p className="text-slate-600 mb-8 max-w-lg mx-auto text-base leading-relaxed">
-              هذه البوابة تقدم تجربة تصفح غير محدودة لقاعدة بيانات المرشحين بالكامل، مع إمكانية استعراض وتحميل المرشحين فرادى بضغطة زر واحدة. الميزة متاحة حصرياً لمشتركي
-              <span className="font-bold text-indigo-600"> الباقة البلاتينية (Platinum)</span>.
+
+            {/* VIP Tier Badge */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: '9999px',
+                  background: '#eef2ff',
+                  color: '#4338ca',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  border: '1px solid #c7d2fe'
+                }}
+              >
+                <Award size={14} />
+                <span>{isRtl ? 'بوابة VIP الحصرية لمشتركي البلاتينيوم' : 'Exclusive Platinum VIP Portal'}</span>
+              </span>
+            </div>
+
+            {/* Title */}
+            <h1
+              style={{
+                fontSize: 'clamp(1.35rem, 3vw, 1.85rem)',
+                fontWeight: 800,
+                color: '#18181b',
+                marginBottom: '0.85rem',
+                lineHeight: 1.3
+              }}
+            >
+              {isRtl ? 'بوابة تصفح قاعدة البيانات المباشرة (Platinum Portal)' : 'Direct Database Browse Portal (Platinum Portal)'}
+            </h1>
+
+            {/* Description */}
+            <p
+              style={{
+                color: '#52525b',
+                fontSize: '0.975rem',
+                lineHeight: 1.7,
+                marginBottom: '1.75rem',
+                maxWidth: 560,
+                marginLeft: 'auto',
+                marginRight: 'auto'
+              }}
+            >
+              {isRtl ? (
+                <>
+                  هذه البوابة تقدم تجربة تصفح غير محدودة لقاعدة بيانات المرشحين بالكامل، مع إمكانية استعراض وتحميل المرشحين فرادى بضغطة زر واحدة. الميزة متاحة حصرياً لمشتركي{' '}
+                  <strong style={{ color: '#4338ca' }}>الباقة البلاتينية (Platinum)</strong>.
+                </>
+              ) : (
+                <>
+                  This portal provides an unlimited direct browsing experience across the candidate database with 1-click single profile downloads. Available exclusively to{' '}
+                  <strong style={{ color: '#4338ca' }}>Platinum</strong> subscribers.
+                </>
+              )}
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+
+            {/* VIP Highlights Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.75rem',
+                marginBottom: '2rem',
+                textAlign: isRtl ? 'right' : 'left'
+              }}
+            >
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <Eye size={16} color="#4f46e5" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'تصفح حي مباشر' : 'Live Direct Browsing'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'استعراض المرشحين وتفاصيل الخبرات والأرقام فوراً' : 'Full access to verified candidate pool in 10th of Ramadan'}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <Download size={16} color="#059669" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'تحميل فوري بضغطة زر' : '1-Click Profile Download'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'تنزيل السير الذاتية الفردية بسرعة وكفاءة' : 'Download candidate contacts and CVs instantly'}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <ShieldCheck size={16} color="#7c3aed" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'أولوية ودعم VIP' : 'VIP Priority & Limits'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'أعلى سعة تحميل يومية واستجابة استثنائية' : 'Maximum daily quotas and specialized employer support'}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
               <Link
                 to="/company/subscription"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
+                className="btn btn-primary"
+                style={{
+                  padding: '0.75rem 1.75rem',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textDecoration: 'none'
+                }}
               >
-                <span>الترقية إلى الباقة البلاتينية</span>
-                <ArrowRight className="w-4 h-4" />
+                <Sparkles size={18} />
+                <span>{isRtl ? 'الترقية إلى الباقة البلاتينية' : 'Upgrade to Platinum'}</span>
               </Link>
+
               <Link
                 to="/company/search"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
+                className="btn btn-outline"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textDecoration: 'none'
+                }}
               >
-                <span>العودة إلى البحث العادي</span>
+                <span>{isRtl ? 'العودة إلى البحث العادي' : 'Back to Standard Search'}</span>
               </Link>
             </div>
           </div>

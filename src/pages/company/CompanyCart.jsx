@@ -16,7 +16,8 @@ import {
   MapPin,
   Briefcase,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Crown
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
@@ -127,28 +128,235 @@ export default function CompanyCart() {
 
   if (!isCartEligible) {
     return (
-      <div className="py-12 bg-slate-50 min-h-[80vh]" dir={isRtl ? 'rtl' : 'ltr'}>
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="bg-white rounded-2xl border border-amber-200 p-8 shadow-sm text-center">
-            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
-              سلة المرشحين متعددة المسميات الوظيفية
-            </h2>
-            <p className="text-slate-600 mb-6 max-w-lg mx-auto">
-              خاصية سلة المرشحين وتصدير ملفات الإكسيل المتعددة متاحة حصرياً لمشتركي
-              <span className="font-bold text-amber-600"> الباقة الذهبية (Gold) </span>
-              و
-              <span className="font-bold text-indigo-600"> الباقة البلاتينية (Platinum)</span>.
-            </p>
-            <Link
-              to="/company/subscription"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:shadow-lg transition-all"
+      <div
+        style={{
+          padding: '3.5rem 1rem',
+          background: 'linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%)',
+          minHeight: '80vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        <div style={{ maxWidth: 640, width: '100%', margin: '0 auto' }}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              border: '1px solid #e4e4e7',
+              boxShadow: '0 20px 40px -15px rgba(0,0,0,0.07)',
+              padding: 'clamp(2rem, 5vw, 2.75rem)',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Top Gold Accent Bar */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: 'linear-gradient(90deg, #f59e0b, #d97706, #b45309)'
+              }}
+            />
+
+            {/* Glowing Icon Container */}
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                color: '#b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.5rem',
+                border: '2px solid #fcd34d',
+                boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.25)'
+              }}
             >
-              <span>ترقية الباقة الآن</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+              <ShoppingCart size={36} />
+            </div>
+
+            {/* Plan Badge */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: '9999px',
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  border: '1px solid #fde68a'
+                }}
+              >
+                <Crown size={14} />
+                <span>{isRtl ? 'خاصية حصرية للباقة الذهبية والبلاتينية' : 'Gold & Platinum Exclusive'}</span>
+              </span>
+            </div>
+
+            {/* Title */}
+            <h1
+              style={{
+                fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
+                fontWeight: 800,
+                color: '#18181b',
+                marginBottom: '0.85rem',
+                lineHeight: 1.3
+              }}
+            >
+              {isRtl ? 'سلة المرشحين متعددة المسميات الوظيفية' : 'Multi-Title Candidate Cart'}
+            </h1>
+
+            {/* Description */}
+            <p
+              style={{
+                color: '#52525b',
+                fontSize: '0.975rem',
+                lineHeight: 1.7,
+                marginBottom: '1.75rem',
+                maxWidth: 520,
+                marginLeft: 'auto',
+                marginRight: 'auto'
+              }}
+            >
+              {isRtl ? (
+                <>
+                  خاصية سلة المرشحين وتصدير ملفات الإكسيل المتعددة متاحة حصرياً لمشتركي{' '}
+                  <strong style={{ color: '#b45309' }}>الباقة الذهبية (Gold)</strong> و{' '}
+                  <strong style={{ color: '#4338ca' }}>الباقة البلاتينية (Platinum)</strong>.
+                </>
+              ) : (
+                <>
+                  The Multi-Title Candidate Cart and bulk Excel export features are available exclusively to{' '}
+                  <strong style={{ color: '#b45309' }}>Gold</strong> and{' '}
+                  <strong style={{ color: '#4338ca' }}>Platinum</strong> subscribers.
+                </>
+              )}
+            </p>
+
+            {/* Highlights Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                gap: '0.75rem',
+                marginBottom: '2rem',
+                textAlign: isRtl ? 'right' : 'left'
+              }}
+            >
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <FileSpreadsheet size={16} color="#059669" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'تصدير إكسيل متعدد' : 'Multi-Sheet Excel'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'تصدير عدة تخصصات في ملف موحد أو صفحات منفصلة' : 'Export multiple job titles in one combined sheet'}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <Briefcase size={16} color="#d97706" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'حتى 10 لكل مسمى' : 'Up to 10 per Title'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'تجميع احتياجات المصنع بالكامل قبل التصدير' : 'Collect candidates across all factory departments'}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#fcfcfc',
+                  border: '1px solid #e4e4e7',
+                  borderRadius: '12px',
+                  padding: '0.875rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <Sparkles size={16} color="#7c3aed" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                    {isRtl ? 'توفير الوقت والميزانية' : 'Save Time & Effort'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                  {isRtl ? 'إدارة التوظيف السريع بضغطة زر واحدة' : 'Instant bulk hiring and full pipeline control'}
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Link
+                to="/company/subscription"
+                className="btn btn-primary"
+                style={{
+                  padding: '0.75rem 1.75rem',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <Crown size={18} />
+                <span>{isRtl ? 'ترقية الباقة الآن' : 'Upgrade Plan Now'}</span>
+              </Link>
+
+              <Link
+                to="/company/search"
+                className="btn btn-outline"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <span>{isRtl ? 'العودة إلى البحث عن المرشحين' : 'Back to Search'}</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

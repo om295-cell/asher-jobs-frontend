@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useLanguage } from '../../context/LanguageContext'
 import { useToast } from '../../context/ToastContext'
 import { searchApi } from '../../api/search.api'
 import { jobsApi } from '../../api/jobs.api'
 import { companyApi } from '../../api/company.api'
 import { Link } from 'react-router-dom'
-import { Search, SlidersHorizontal, Download, Phone, MessageCircle, Star, X, ShoppingCart, Sparkles, Clock } from 'lucide-react'
+import { Search, SlidersHorizontal, Download, Phone, MessageCircle, Star, X, ShoppingCart, Sparkles, Clock, ChevronDown, Check } from 'lucide-react'
 import CandidateCard from '../../components/ui/CandidateCard'
 import CandidateDetailModal from '../../components/modals/CandidateDetailModal'
 import Pagination from '../../components/ui/Pagination'
@@ -21,6 +21,213 @@ const EXP_RANGES = [
   { label: 'أكثر من 10 سنوات', value: '10+' },
 ]
 
+function SearchableJobFilter({ jobs, selectedJobId, onSelect, isRtl }) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const wrapperRef = useRef(null)
+
+  const selectedJob = useMemo(
+    () => jobs.find(j => String(j._id) === String(selectedJobId)),
+    [jobs, selectedJobId]
+  )
+
+  const filteredJobs = useMemo(() => {
+    if (!search.trim()) return jobs
+    const q = search.trim().toLowerCase()
+    return jobs.filter(j => {
+      const name = (j.name || '').toLowerCase()
+      const nameAr = (j.nameAr || '').toLowerCase()
+      const cat = (j.categoryId?.nameAr || j.categoryId?.name || '').toLowerCase()
+      return name.includes(q) || nameAr.includes(q) || cat.includes(q)
+    })
+  }, [jobs, search])
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      <div
+        onClick={() => setOpen(!open)}
+        className="form-control"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          padding: '0.625rem 0.85rem',
+          userSelect: 'none',
+          backgroundColor: '#ffffff',
+          borderColor: '#000000',
+          minHeight: '42px'
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: selectedJob ? 700 : 500, color: '#000000' }}>
+          {selectedJob
+            ? (isRtl ? selectedJob.nameAr || selectedJob.name : selectedJob.name || selectedJob.nameAr)
+            : (isRtl ? '-- كل المهن --' : '-- All Jobs --')}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+          {selectedJob && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation()
+                onSelect('')
+                setSearch('')
+              }}
+              title={isRtl ? 'إلغاء التحديد' : 'Clear'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: '#f4f4f5',
+                color: '#000000',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={12} />
+            </span>
+          )}
+          <ChevronDown size={16} style={{ color: '#000000' }} />
+        </div>
+      </div>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            background: '#ffffff',
+            border: '1.5px solid #000000',
+            borderRadius: '8px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+            padding: '0.5rem',
+            maxHeight: '280px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+            <Search
+              size={15}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                [isRtl ? 'right' : 'left']: '10px',
+                transform: 'translateY(-50%)',
+                color: '#71717a'
+              }}
+            />
+            <input
+              type="text"
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={isRtl ? 'ابحث عن اسم المهنة...' : 'Search job title...'}
+              style={{
+                width: '100%',
+                padding: isRtl ? '0.45rem 2rem 0.45rem 0.75rem' : '0.45rem 0.75rem 0.45rem 2rem',
+                borderRadius: '6px',
+                border: '1px solid #000000',
+                fontSize: '0.85rem',
+                outline: 'none',
+                background: '#ffffff',
+                color: '#000000'
+              }}
+            />
+          </div>
+
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {/* All Jobs option */}
+            <div
+              onClick={() => {
+                onSelect('')
+                setOpen(false)
+                setSearch('')
+              }}
+              style={{
+                padding: '0.5rem 0.75rem',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                color: !selectedJobId ? '#000000' : '#52525b',
+                fontWeight: !selectedJobId ? 700 : 500,
+                background: !selectedJobId ? '#f4f4f5' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'background 0.1s'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#f4f4f5')}
+              onMouseLeave={(e) => {
+                if (selectedJobId) e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              <span>{isRtl ? '-- كل المهن --' : '-- All Jobs --'}</span>
+              {!selectedJobId && <Check size={14} color="#000000" />}
+            </div>
+
+            {filteredJobs.length === 0 ? (
+              <div style={{ padding: '0.75rem', textAlign: 'center', color: '#71717a', fontSize: '0.85rem' }}>
+                {isRtl ? 'لا توجد مهن مطابقة لبحثك' : 'No matching jobs found'}
+              </div>
+            ) : (
+              filteredJobs.map((j) => {
+                const isSelected = String(j._id) === String(selectedJobId)
+                return (
+                  <div
+                    key={j._id}
+                    onClick={() => {
+                      onSelect(j._id)
+                      setOpen(false)
+                      setSearch('')
+                    }}
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      color: isSelected ? '#000000' : '#18181b',
+                      fontWeight: isSelected ? 700 : 500,
+                      background: isSelected ? '#f4f4f5' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'background 0.1s'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f4f4f5')}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    <span>{isRtl ? j.nameAr || j.name : j.name || j.nameAr}</span>
+                    {isSelected && <Check size={14} color="#000000" />}
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CompanySearch() {
   const { isRtl } = useLanguage()
   const { showToast } = useToast()
@@ -35,8 +242,7 @@ export default function CompanySearch() {
   const [filters, setFilters] = useState({
     desiredJobId: '',
     governorate: '',
-    expRange: '',
-    isOpenToWork: true
+    expRange: ''
   })
 
   const fetchEntitlements = useCallback(async () => {
@@ -55,7 +261,7 @@ export default function CompanySearch() {
 
   const doSearch = useCallback((currentPage = 1) => {
     setLoading(true)
-    const params = { page: currentPage, limit: 12, isOpenToWork: filters.isOpenToWork || undefined }
+    const params = { page: currentPage, limit: 12 }
     if (filters.desiredJobId) params.desiredJobId = filters.desiredJobId
     if (filters.governorate) params.governorate = filters.governorate
     if (filters.expRange) {
@@ -254,13 +460,15 @@ export default function CompanySearch() {
         {showFilters && (
           <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <form onSubmit={handleSearch}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'المهنة' : 'Job Title'}</label>
-                  <select className="form-control" value={filters.desiredJobId} onChange={e => setFilters(p => ({ ...p, desiredJobId: e.target.value }))}>
-                    <option value="">{isRtl ? '-- كل المهن --' : '-- All Jobs --'}</option>
-                    {jobs.map(j => <option key={j._id} value={j._id}>{isRtl ? j.nameAr : j.name}</option>)}
-                  </select>
+                  <SearchableJobFilter
+                    jobs={jobs}
+                    selectedJobId={filters.desiredJobId}
+                    onSelect={(jobId) => setFilters(p => ({ ...p, desiredJobId: jobId }))}
+                    isRtl={isRtl}
+                  />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'المحافظة' : 'Governorate'}</label>
@@ -275,13 +483,7 @@ export default function CompanySearch() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={filters.isOpenToWork} onChange={e => setFilters(p => ({ ...p, isOpenToWork: e.target.checked }))} style={{ width: 16, height: 16 }} />
-                  <span style={{ fontSize: '0.9375rem', color: 'var(--slate-700)', fontWeight: 600 }}>
-                    {isRtl ? 'المتاحون لعروض العمل فقط' : 'Open to work only'}
-                  </span>
-                </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: isRtl ? 'flex-start' : 'flex-end', gap: '0.75rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Search size={18} />
                   {isRtl ? 'بحث' : 'Search'}

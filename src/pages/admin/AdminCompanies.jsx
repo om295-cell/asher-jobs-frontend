@@ -113,7 +113,9 @@ export default function AdminCompanies() {
     area: 'العاشر من رمضان',
     verifiedByCompanyId: '',
     subscriptionPlan: 'Basic',
-    customPriceEgp: ''
+    customPriceEgp: '',
+    subscriptionDurationDays: '30',
+    paymentMethod: 'cash'
   });
   const [createSubmitting, setCreateSubmitting] = useState(false);
 
@@ -121,7 +123,7 @@ export default function AdminCompanies() {
   const [statusModal, setStatusModal] = useState({ open: false, companyId: null, companyName: '', status: 'active', reason: '' });
 
   // Plan Edit Modal
-  const [planModal, setPlanModal] = useState({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 });
+  const [planModal, setPlanModal] = useState({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500, durationDays: 30, paymentMethod: 'cash', status: 'active', notes: '' });
 
   // Individual Analytics Modal
   const [analyticsModal, setAnalyticsModal] = useState({ open: false, data: null, loading: false });
@@ -263,6 +265,8 @@ export default function AdminCompanies() {
         governorate: createFormData.governorate,
         area: createFormData.area,
         subscriptionPlan: createFormData.subscriptionPlan,
+        subscriptionDurationDays: Number(createFormData.subscriptionDurationDays) || 30,
+        paymentMethod: createFormData.paymentMethod,
         customPriceEgp: createFormData.customPriceEgp ? Number(createFormData.customPriceEgp) : undefined
       };
 
@@ -280,7 +284,9 @@ export default function AdminCompanies() {
           area: 'العاشر من رمضان',
           verifiedByCompanyId: '',
           subscriptionPlan: 'Basic',
-          customPriceEgp: ''
+          customPriceEgp: '',
+          subscriptionDurationDays: '30',
+          paymentMethod: 'cash'
         });
         fetchAccounts(1);
         adminApi.getEligibleVerifiers().then((r) => setEligibleVerifiers(r.data?.data || []));
@@ -330,11 +336,15 @@ export default function AdminCompanies() {
     e.preventDefault();
     try {
       await adminApi.updateEmployerSubscription(planModal.companyId, {
-        subscriptionPlan: planModal.plan,
-        subscriptionPriceEgp: Number(planModal.priceEgp)
+        plan: planModal.plan,
+        priceEgp: Number(planModal.priceEgp),
+        durationDays: Number(planModal.durationDays) || 30,
+        paymentMethod: planModal.paymentMethod,
+        status: planModal.status,
+        notes: planModal.notes
       });
-      showToast('تم تحديث خطة الاشتراك وسعرها بنجاح', 'success');
-      setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 });
+      showToast('تم تحديث خطة الاشتراك بنجاح', 'success');
+      setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500, durationDays: 30, paymentMethod: 'cash', status: 'active', notes: '' });
       fetchAccounts(page);
     } catch (err) {
       showToast(err.response?.data?.message || 'فشل تحديث الاشتراك', 'error');
@@ -714,6 +724,22 @@ export default function AdminCompanies() {
                             <div style={{ fontSize: '0.8125rem', color: '#000000', fontWeight: 700 }}>
                               {comp.subscriptionPriceEgp || comp.monthlyPriceEgp || 0} ج.م
                             </div>
+                            <div style={{ marginTop: '0.2rem', display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                              {comp.paymentMethod === 'cash' && (
+                                <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#f4f4f5', color: '#000', border: '1px solid #d4d4d8' }}>💵 نقدي</span>
+                              )}
+                              {comp.paymentMethod === 'free' && (
+                                <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#f4f4f5', color: '#000', border: '1px solid #d4d4d8' }}>🎁 مجاني</span>
+                              )}
+                              {comp.paymentMethod === 'online' && (
+                                <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#f4f4f5', color: '#000', border: '1px solid #d4d4d8' }}>💳 أونلاين</span>
+                              )}
+                              {comp.subscriptionEndDate && (
+                                <span style={{ fontSize: '0.68rem', color: 'var(--slate-500)', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--slate-50)', border: '1px dashed var(--slate-300)' }}>
+                                  ⏳ {formatRemainingTime(comp.subscriptionEndDate)}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* Status */}
@@ -784,7 +810,11 @@ export default function AdminCompanies() {
                                     companyId: comp._id,
                                     companyName: comp.companyName,
                                     plan: comp.subscriptionPlan || 'Basic',
-                                    priceEgp: comp.subscriptionPriceEgp || 500
+                                    priceEgp: comp.subscriptionPriceEgp || 500,
+                                    durationDays: 30,
+                                    paymentMethod: comp.paymentMethod || 'cash',
+                                    status: comp.subscriptionStatus || 'active',
+                                    notes: ''
                                   })
                                 }
                                 className="btn btn-outline btn-sm"
@@ -1397,30 +1427,65 @@ export default function AdminCompanies() {
                   </div>
                 </div>
 
-                {/* Subscription Plan & Price */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">خطة الاشتراك *</label>
-                    <select
-                      className="form-control"
-                      value={createFormData.subscriptionPlan}
-                      onChange={(e) => setCreateFormData({ ...createFormData, subscriptionPlan: e.target.value })}
-                    >
-                      <option value="Basic">الأساسية (Basic - 500 ج.م)</option>
-                      <option value="Gold">الذهبية (Gold - 1000 ج.م)</option>
-                      <option value="Platinum">البلاتينية (Platinum - 2000 ج.م)</option>
-                    </select>
+                {/* Subscription Plan & Price & Duration */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginBottom: '0.5rem' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.875rem', color: 'var(--slate-800)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <CreditCard size={15} />
+                    بيانات الاشتراك الأولي
                   </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">خطة الاشتراك *</label>
+                      <select
+                        className="form-control"
+                        value={createFormData.subscriptionPlan}
+                        onChange={(e) => setCreateFormData({ ...createFormData, subscriptionPlan: e.target.value })}
+                      >
+                        <option value="Basic">الأساسية (Basic - 500 ج.م)</option>
+                        <option value="Gold">الذهبية (Gold - 1000 ج.م)</option>
+                        <option value="Platinum">البلاتينية (Platinum - 2000 ج.م)</option>
+                      </select>
+                    </div>
 
-                  <div className="form-group">
-                    <label className="form-label">سعر مخصص (EGP) (اختياري)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={createFormData.customPriceEgp}
-                      onChange={(e) => setCreateFormData({ ...createFormData, customPriceEgp: e.target.value })}
-                      placeholder="السعر الافتراضي للخطة..."
-                    />
+                    <div className="form-group">
+                      <label className="form-label">سعر مخصص (ج.م) (اختياري)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={createFormData.customPriceEgp}
+                        onChange={(e) => setCreateFormData({ ...createFormData, customPriceEgp: e.target.value })}
+                        placeholder="السعر الافتراضي للخطة..."
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">مدة الاشتراك (أيام) *</label>
+                      <select
+                        className="form-control"
+                        value={createFormData.subscriptionDurationDays}
+                        onChange={(e) => setCreateFormData({ ...createFormData, subscriptionDurationDays: e.target.value })}
+                      >
+                        <option value="30">30 يوم (شهر واحد)</option>
+                        <option value="60">60 يوم (شهران)</option>
+                        <option value="90">90 يوم (3 أشهر)</option>
+                        <option value="180">180 يوم (6 أشهر)</option>
+                        <option value="365">365 يوم (سنة كاملة)</option>
+                        <option value="3650">مدى الحياة (10 سنوات)</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">طريقة الدفع *</label>
+                      <select
+                        className="form-control"
+                        value={createFormData.paymentMethod}
+                        onChange={(e) => setCreateFormData({ ...createFormData, paymentMethod: e.target.value })}
+                      >
+                        <option value="cash">💵 نقدي (Cash) - دفع خارجي</option>
+                        <option value="free">🎁 مجاني (Free) - تفعيل مجاني</option>
+                        <option value="online">💳 أونلاين (Online) - عبر المنصة</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -1508,79 +1573,129 @@ export default function AdminCompanies() {
 
         {/* MODAL 3: PLAN EDIT */}
         {planModal.open && (
-          <div className="modal-overlay" onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 })}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460, padding: '1.75rem' }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '1rem' }}>
-                تعديل خطة اشتراك "{planModal.companyName}"
-              </h3>
+          <div className="modal-overlay" onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500, durationDays: 30, paymentMethod: 'cash', status: 'active', notes: '' })}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520, padding: '1.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--slate-900)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <CreditCard size={20} />
+                  تجديد / تعديل اشتراك
+                </h3>
+                <button type="button" onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500, durationDays: 30, paymentMethod: 'cash', status: 'active', notes: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}>
+                  <X size={20} />
+                </button>
+              </div>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--slate-600)', marginBottom: '1rem', padding: '0.6rem 0.875rem', background: 'var(--slate-50)', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                الحساب: <strong>{planModal.companyName}</strong>
+              </p>
               <form onSubmit={handlePlanSubmit}>
-                <div className="form-group">
-                  <label className="form-label">الخطة</label>
-                  <select
-                    className="form-control"
-                    value={planModal.plan}
-                    onChange={(e) => {
-                      const p = e.target.value;
-                      let price = 500;
-                      if (p === 'Gold') price = 1000;
-                      if (p === 'Platinum') price = 2000;
-                      setPlanModal({ ...planModal, plan: p, priceEgp: price });
-                    }}
-                  >
-                    <option value="Basic">الأساسية (Basic - 500 ج.م)</option>
-                    <option value="Gold">الذهبية (Gold - 1000 ج.م)</option>
-                    <option value="Platinum">البلاتينية (Platinum - 2000 ج.م)</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <label className="form-label" style={{ margin: 0 }}>السعر الشهري (EGP)</label>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)' }}>
-                      خصم سريع:
-                      {[10, 20, 30, 50].map(pct => {
-                        const baseForPlan = planModal.plan === 'Platinum' ? 2000 : planModal.plan === 'Gold' ? 1000 : 500;
-                        const discPrice = Math.round(baseForPlan * (1 - pct / 100));
-                        return (
-                          <button
-                            key={pct}
-                            type="button"
-                            onClick={() => setPlanModal(prev => ({ ...prev, priceEgp: discPrice }))}
-                            style={{
-                              marginLeft: '0.3rem',
-                              padding: '0.1rem 0.35rem',
-                              fontSize: '0.7rem',
-                              border: '1px solid var(--border)',
-                              borderRadius: '4px',
-                              background: 'var(--slate-100)',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            -{pct}%
-                          </button>
-                        );
-                      })}
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">الباقة *</label>
+                    <select
+                      className="form-control"
+                      value={planModal.plan}
+                      onChange={(e) => {
+                        const p = e.target.value;
+                        let price = 500;
+                        if (p === 'Gold') price = 1000;
+                        if (p === 'Platinum') price = 2000;
+                        setPlanModal({ ...planModal, plan: p, priceEgp: price });
+                      }}
+                    >
+                      <option value="Basic">الأساسية (Basic)</option>
+                      <option value="Gold">الذهبية (Gold)</option>
+                      <option value="Platinum">البلاتينية (Platinum)</option>
+                    </select>
                   </div>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={planModal.priceEgp}
-                    onChange={(e) => setPlanModal({ ...planModal, priceEgp: Number(e.target.value) })}
-                    required
-                  />
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>السعر (ج.م) *</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--slate-500)', display: 'flex', gap: '0.2rem' }}>
+                        {[10, 20, 50].map(pct => {
+                          const base = planModal.plan === 'Platinum' ? 2000 : planModal.plan === 'Gold' ? 1000 : 500;
+                          return (
+                            <button key={pct} type="button"
+                              onClick={() => setPlanModal(prev => ({ ...prev, priceEgp: Math.round(base * (1 - pct / 100)) }))}
+                              style={{ padding: '0.1rem 0.3rem', fontSize: '0.68rem', border: '1px solid var(--border)', borderRadius: '3px', background: 'var(--slate-100)', cursor: 'pointer' }}
+                            >-{pct}%</button>
+                          );
+                        })}
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={planModal.priceEgp}
+                      onChange={(e) => setPlanModal({ ...planModal, priceEgp: Number(e.target.value) })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">مدة التجديد (أيام) *</label>
+                    <select
+                      className="form-control"
+                      value={planModal.durationDays}
+                      onChange={(e) => setPlanModal({ ...planModal, durationDays: e.target.value })}
+                    >
+                      <option value="30">30 يوم (شهر واحد)</option>
+                      <option value="60">60 يوم (شهران)</option>
+                      <option value="90">90 يوم (3 أشهر)</option>
+                      <option value="180">180 يوم (6 أشهر)</option>
+                      <option value="365">365 يوم (سنة كاملة)</option>
+                      <option value="3650">مدى الحياة (10 سنوات)</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">طريقة الدفع *</label>
+                    <select
+                      className="form-control"
+                      value={planModal.paymentMethod}
+                      onChange={(e) => setPlanModal({ ...planModal, paymentMethod: e.target.value })}
+                    >
+                      <option value="cash">💵 نقدي (Cash) - دفع خارجي</option>
+                      <option value="free">🎁 مجاني (Free) - تفعيل مجاني</option>
+                      <option value="online">💳 أونلاين (Online) - عبر المنصة</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="form-label">حالة الاشتراك *</label>
+                    <select
+                      className="form-control"
+                      value={planModal.status}
+                      onChange={(e) => setPlanModal({ ...planModal, status: e.target.value })}
+                    >
+                      <option value="active">نشط (Active) - مفعّل الآن</option>
+                      <option value="inactive">غير نشط (Inactive) - معلق</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="form-label">ملاحظات (اختياري)</label>
+                    <textarea
+                      rows={2}
+                      className="form-control"
+                      value={planModal.notes}
+                      onChange={(e) => setPlanModal({ ...planModal, notes: e.target.value })}
+                      placeholder="مثال: دفع نقدي عبر المندوب - الدفع تم بتاريخ ..."
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                   <button
                     type="button"
-                    onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500 })}
+                    onClick={() => setPlanModal({ open: false, companyId: null, companyName: '', plan: 'Basic', priceEgp: 500, durationDays: 30, paymentMethod: 'cash', status: 'active', notes: '' })}
                     className="btn btn-outline"
                   >
                     إلغاء
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    حفظ الاشتراك
+                    <Save size={15} /> حفظ وتجديد الاشتراك
                   </button>
                 </div>
               </form>

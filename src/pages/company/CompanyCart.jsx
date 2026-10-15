@@ -38,10 +38,17 @@ export default function CompanyCart() {
         companyApi.getCart(),
         companyApi.getEntitlements()
       ]);
-      setCart(cartRes.data?.data || []);
+      const rawCart = cartRes.data?.data;
+      const cartItems = Array.isArray(rawCart)
+        ? rawCart
+        : Array.isArray(rawCart?.items)
+          ? rawCart.items
+          : [];
+      setCart(cartItems);
       setEntitlements(entRes.data?.data || null);
     } catch (err) {
       showToast(err.response?.data?.message || 'فشل تحميل بيانات السلة', 'error');
+      setCart([]);
     } finally {
       setLoading(false);
     }
@@ -73,7 +80,8 @@ export default function CompanyCart() {
   };
 
   const handleExport = async () => {
-    if (cart.length === 0) return;
+    const currentItems = Array.isArray(cart) ? cart : [];
+    if (currentItems.length === 0) return;
     setExporting(true);
     try {
       const res = await companyApi.exportCart(exportFormat);
@@ -114,7 +122,8 @@ export default function CompanyCart() {
   }
 
   const isCartEligible = entitlements?.limits?.cartEnabled;
-  const totalCandidatesCount = cart.reduce((acc, item) => acc + (item.candidates?.length || 0), 0);
+  const cartList = Array.isArray(cart) ? cart : [];
+  const totalCandidatesCount = cartList.reduce((acc, item) => acc + (item.candidates?.length || item.quantity || 0), 0);
 
   if (!isCartEligible) {
     return (
@@ -161,11 +170,11 @@ export default function CompanyCart() {
               </h1>
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              إجمالي {cart.length} مسمى وظيفي • {totalCandidatesCount} مرشح مختار (بحد أقصى 10 لكل مسمى)
+              إجمالي {cartList.length} مسمى وظيفي • {totalCandidatesCount} مرشح مختار (بحد أقصى 10 لكل مسمى)
             </p>
           </div>
 
-          {cart.length > 0 && (
+          {cartList.length > 0 && (
             <button
               onClick={handleClearCart}
               className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors flex items-center gap-1.5"
@@ -196,7 +205,7 @@ export default function CompanyCart() {
           </div>
         )}
 
-        {cart.length === 0 ? (
+        {cartList.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
             <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingCart className="w-8 h-8" />
@@ -217,24 +226,24 @@ export default function CompanyCart() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items List (2 cols) */}
             <div className="lg:col-span-2 space-y-6">
-              {cart.map((item) => (
+              {cartList.map((item) => (
                 <div
-                  key={item._id || item.jobId?._id}
+                  key={item._id || item.jobId?._id || item.jobId}
                   className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
                 >
                   <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <Briefcase className="w-5 h-5 text-blue-600" />
                       <h3 className="font-bold text-slate-800 text-base">
-                        {item.jobId?.title || 'مسمى وظيفي'}
+                        {item.jobId?.nameAr || item.jobId?.name || item.jobId?.title || 'مسمى وظيفي'}
                       </h3>
                       <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {item.candidates?.length || 0} / 10 مرشحين
+                        {item.candidates?.length ? `${item.candidates.length} / 10 مرشحين` : `${item.quantity || 1} مرشح مطلوب (متاح: ${item.availableCandidatesCount ?? 0})`}
                       </span>
                     </div>
 
                     <button
-                      onClick={() => handleRemoveItem(item.jobId?._id)}
+                      onClick={() => handleRemoveItem(item.jobId?._id || item.jobId)}
                       className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors"
                       title="حذف هذا المسمى من السلة"
                     >
@@ -243,42 +252,55 @@ export default function CompanyCart() {
                   </div>
 
                   <div className="p-4 divide-y divide-slate-100">
-                    {item.candidates?.map((candidate) => (
-                      <div
-                        key={candidate._id}
-                        className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">
-                            {candidate.fullName?.charAt(0) || 'م'}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-slate-900">{candidate.fullName}</h4>
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-0.5">
-                              {candidate.phone && (
-                                <span className="flex items-center gap-1">
-                                  <Phone className="w-3 h-3 text-emerald-600" />
-                                  <span dir="ltr">{candidate.phone}</span>
-                                </span>
-                              )}
-                              {candidate.governorate && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-slate-400" />
-                                  <span>{candidate.governorate}</span>
-                                </span>
-                              )}
-                              {candidate.yearsOfExperience !== undefined && (
-                                <span>خبرة: {candidate.yearsOfExperience} سنوات</span>
-                              )}
+                    {item.candidates && item.candidates.length > 0 ? (
+                      item.candidates.map((candidate) => (
+                        <div
+                          key={candidate._id}
+                          className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">
+                              {candidate.fullName?.charAt(0) || 'م'}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-slate-900">{candidate.fullName}</h4>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-0.5">
+                                {candidate.phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3 text-emerald-600" />
+                                    <span dir="ltr">{candidate.phone}</span>
+                                  </span>
+                                )}
+                                {candidate.governorate && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3 text-slate-400" />
+                                    <span>{candidate.governorate}</span>
+                                  </span>
+                                )}
+                                {candidate.yearsOfExperience !== undefined && (
+                                  <span>خبرة: {candidate.yearsOfExperience} سنوات</span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <span className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-md border border-emerald-200">
-                          جاهز للتصدير
+                          <span className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-md border border-emerald-200">
+                            جاهز للتصدير
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-2 text-sm text-slate-600 flex items-center justify-between">
+                        <div>
+                          <span>الكمية المطلوبة: </span>
+                          <span className="font-bold text-slate-900">{item.quantity || 1}</span>
+                          {item.notes && <span className="text-xs text-slate-400 mr-2">({item.notes})</span>}
+                        </div>
+                        <span className={`text-xs px-2.5 py-1 rounded-md font-semibold ${item.isSufficient !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                          {item.isSufficient !== false ? 'متوفر في قاعدة البيانات' : 'أقل من المطلوب'}
                         </span>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               ))}

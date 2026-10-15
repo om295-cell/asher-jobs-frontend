@@ -537,18 +537,6 @@ export default function Navbar() {
                   <Sparkles size={16} />
                   <span>{isRtl ? 'تصفح VIP' : 'VIP Browse'}</span>
                 </Link>
-                <Link
-                  to="/company/requests"
-                  style={{
-                    fontSize: '0.9375rem',
-                    fontWeight: 700,
-                    color: isActive('/company/requests') ? '#000000' : '#52525b',
-                    borderBottom: isActive('/company/requests') ? '2px solid #000000' : '2px solid transparent',
-                    paddingBottom: '2px',
-                  }}
-                >
-                  {t('navRequests')}
-                </Link>
               </>
             )}
 
@@ -685,14 +673,16 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="desktop-auth-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link
-                to={role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
-                className="btn btn-primary btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                <User size={15} />
-                <span>{t('navDashboard')}</span>
-              </Link>
+              {role === 'candidate' && (
+                <Link
+                  to="/candidate/dashboard"
+                  className="btn btn-primary btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <User size={15} />
+                  <span>{t('navDashboard')}</span>
+                </Link>
+              )}
               <button
                 className="btn btn-outline btn-sm"
                 onClick={handleLogout}
@@ -830,9 +820,6 @@ export default function Navbar() {
                           <Sparkles size={16} />
                           {isRtl ? 'تصفح قاعدة البيانات (VIP)' : 'VIP Browse'}
                         </Link>
-                        <Link to="/company/requests" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px' }}>
-                          {t('navRequests')}
-                        </Link>
                       </>
                     )}
                     {role === 'candidate' && (
@@ -873,15 +860,17 @@ export default function Navbar() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '0.5rem' }}>
-                <Link
-                  to={role === 'company' ? '/company/dashboard' : '/candidate/dashboard'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-primary"
-                  style={{ width: '100%' }}
-                >
-                  <User size={16} />
-                  <span>{t('navDashboard')}</span>
-                </Link>
+                {role === 'candidate' && (
+                  <Link
+                    to="/candidate/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="btn btn-primary"
+                    style={{ width: '100%' }}
+                  >
+                    <User size={16} />
+                    <span>{t('navDashboard')}</span>
+                  </Link>
+                )}
                 <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%' }}>
                   <LogOut size={16} />
                   <span>{t('navLogout')}</span>

@@ -92,7 +92,6 @@ export default function CompanyDashboard() {
             { icon: Search, label: isRtl ? 'عمليات البحث' : 'Searches Done', value: stats?.totalSearches ?? 0 },
             { icon: Phone, label: isRtl ? 'تواصل مع مرشحين' : 'Candidates Contacted', value: stats?.contacted ?? 0 },
             { icon: Star, label: isRtl ? 'مرشحون مميّزون' : 'Shortlisted', value: stats?.shortlisted ?? 0 },
-            { icon: FileText, label: isRtl ? 'طلبات التوظيف' : 'Recruitment Requests', value: stats?.requests ?? 0 },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
               <div style={{ width: 44, height: 44, borderRadius: '10px', background: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -110,7 +109,6 @@ export default function CompanyDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[
             { to: '/company/search', icon: Search, label: isRtl ? 'البحث عن مرشحين' : 'Search Candidates', desc: isRtl ? 'ابحث بالمهنة والموقع والخبرة' : 'Filter by job, location, experience', disabled: isPending },
-            { to: '/company/requests', icon: FileText, label: isRtl ? 'طلبات التوظيف' : 'Recruitment Requests', desc: isRtl ? 'تحكّم في طلبات التوظيف المفتوحة' : 'Manage open hiring requests', disabled: isPending },
             { to: '/company/profile', icon: Users, label: isRtl ? 'ملف الشركة' : 'Company Profile', desc: isRtl ? 'عدّل بيانات الشركة' : 'Edit your company information', disabled: false },
             { to: '/company/subscription', icon: TrendingUp, label: isRtl ? 'الاشتراك' : 'Subscription', desc: isRtl ? 'إدارة خطة الاشتراك' : 'Manage your subscription plan', disabled: false },
           ].map(({ to, icon: Icon, label, desc, disabled }) => (

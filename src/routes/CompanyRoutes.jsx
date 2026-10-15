@@ -1,12 +1,9 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import { Route, Navigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import ProtectedRoute from '../components/guards/ProtectedRoute'
 import CompanyGuard from '../components/guards/CompanyGuard'
-import CompanyDashboard from '../pages/company/CompanyDashboard'
 import CompanySearch from '../pages/company/CompanySearch'
-import CompanyRequests from '../pages/company/CompanyRequests'
-import CompanyRequestDetail from '../pages/company/CompanyRequestDetail'
 import CompanyReports from '../pages/company/CompanyReports'
 import CompanyProfile from '../pages/company/CompanyProfile'
 import CompanySubscription from '../pages/company/CompanySubscription'
@@ -26,7 +23,12 @@ export default function CompanyRoutes() {
     <>
       {/* Pending page accessible before approval */}
       <Route path="/company/pending"       element={<Layout showFooter={false}><PR><CompanyPending /></PR></Layout>} />
-      <Route path="/company/dashboard"     element={<Layout showFooter={false}><PR><CompanyDashboard /></PR></Layout>} />
+
+      {/* Redirect removed dashboard & requests pages to search */}
+      <Route path="/company/dashboard"     element={<Navigate to="/company/search" replace />} />
+      <Route path="/company/requests"      element={<Navigate to="/company/search" replace />} />
+      <Route path="/company/requests/:id"  element={<Navigate to="/company/search" replace />} />
+
       <Route path="/company/profile"       element={<Layout showFooter={false}><PR><CompanyProfile /></PR></Layout>} />
       <Route path="/company/subscription"  element={<Layout showFooter={false}><PR><CompanySubscription /></PR></Layout>} />
 
@@ -34,8 +36,6 @@ export default function CompanyRoutes() {
       <Route path="/company/search"        element={<Layout showFooter={false}><CG><CompanySearch /></CG></Layout>} />
       <Route path="/company/cart"          element={<Layout showFooter={false}><CG><CompanyCart /></CG></Layout>} />
       <Route path="/company/browse"        element={<Layout showFooter={false}><CG><CompanyBrowse /></CG></Layout>} />
-      <Route path="/company/requests"      element={<Layout showFooter={false}><CG><CompanyRequests /></CG></Layout>} />
-      <Route path="/company/requests/:id"  element={<Layout showFooter={false}><CG><CompanyRequestDetail /></CG></Layout>} />
       <Route path="/company/reports"       element={<Layout showFooter={false}><CG><CompanyReports /></CG></Layout>} />
     </>
   )

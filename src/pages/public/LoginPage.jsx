@@ -32,7 +32,7 @@ export default function LoginPage() {
       if (role === 'admin') navigate('/admin/dashboard')
       else if (role === 'company') {
         const status = data.profile?.verificationStatus
-        if (status === 'Approved') navigate('/company/dashboard')
+        if (status === 'Approved') navigate('/company/search')
         else navigate('/company/pending')
       } else {
         navigate('/candidate/dashboard')

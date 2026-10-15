@@ -12,7 +12,7 @@ export default function GuestRoute({ children }) {
   if (loading) return <LoadingSpinner fullScreen />
   if (isAuthenticated) {
     if (role === 'admin') return <Navigate to="/admin/dashboard" replace />
-    if (role === 'company') return <Navigate to="/company/dashboard" replace />
+    if (role === 'company') return <Navigate to="/company/search" replace />
     return <Navigate to="/candidate/dashboard" replace />
   }
   return children

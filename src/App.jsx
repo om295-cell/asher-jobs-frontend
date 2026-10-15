@@ -13,8 +13,8 @@ export default function App() {
   return (
     <LanguageProvider>
       <GeoGuard>
-        <AuthProvider>
-          <ToastProvider>
+        <ToastProvider>
+          <AuthProvider>
             <BrowserRouter>
               <Routes>
                 {PublicRoutes()}
@@ -23,8 +23,8 @@ export default function App() {
                 {AdminRoutes()}
               </Routes>
             </BrowserRouter>
-          </ToastProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </ToastProvider>
       </GeoGuard>
     </LanguageProvider>
   )

@@ -254,7 +254,9 @@ export default function AdminCompanies() {
         accountType,
         verificationMethod,
         verifiedByCompanyId,
-        companyName: createFormData.companyName,
+        companyName: (createFormData.category === 'B' || createFormData.category === 'C2')
+          ? createFormData.contactPerson
+          : createFormData.companyName,
         contactPerson: createFormData.contactPerson,
         email: createFormData.email,
         phone: createFormData.phone,
@@ -1303,21 +1305,9 @@ export default function AdminCompanies() {
                 )}
 
                 {/* Account Details */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {(createFormData.category === 'B' || createFormData.category === 'C2') ? (
                   <div className="form-group">
-                    <label className="form-label">اسم المنشأة / الاسم التجاري *</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-control"
-                      value={createFormData.companyName}
-                      onChange={(e) => setCreateFormData({ ...createFormData, companyName: e.target.value })}
-                      placeholder="مثال: مصنع النور للصناعات"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">اسم المسؤول / ممثل التوظيف *</label>
+                    <label className="form-label">اسم مسؤول التوظيف (HR) *</label>
                     <input
                       type="text"
                       required
@@ -1327,7 +1317,33 @@ export default function AdminCompanies() {
                       placeholder="مثال: أ. أحمد علي"
                     />
                   </div>
-                </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">اسم المنشأة / الاسم التجاري *</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-control"
+                        value={createFormData.companyName}
+                        onChange={(e) => setCreateFormData({ ...createFormData, companyName: e.target.value })}
+                        placeholder="مثال: مصنع النور للصناعات"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">اسم المسؤول / ممثل التوظيف *</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-control"
+                        value={createFormData.contactPerson}
+                        onChange={(e) => setCreateFormData({ ...createFormData, contactPerson: e.target.value })}
+                        placeholder="مثال: أ. أحمد علي"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">

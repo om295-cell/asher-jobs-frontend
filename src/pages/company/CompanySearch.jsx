@@ -12,7 +12,6 @@ import Pagination from '../../components/ui/Pagination'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 
-const GOVERNORATES = ['', 'الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط']
 const EXP_RANGES = [
   { label: 'الكل', value: '' },
   { label: '0 - 2 سنة', value: '0-2' },
@@ -241,7 +240,6 @@ export default function CompanySearch() {
   const [entitlements, setEntitlements] = useState(null)
   const [filters, setFilters] = useState({
     desiredJobId: '',
-    governorate: '',
     expRange: ''
   })
 
@@ -263,7 +261,6 @@ export default function CompanySearch() {
     setLoading(true)
     const params = { page: currentPage, limit: 12 }
     if (filters.desiredJobId) params.desiredJobId = filters.desiredJobId
-    if (filters.governorate) params.governorate = filters.governorate
     if (filters.expRange) {
       const parts = filters.expRange.split('-')
       if (parts.length === 2) { params.minExp = parts[0]; params.maxExp = parts[1] }
@@ -460,7 +457,7 @@ export default function CompanySearch() {
         {showFilters && (
           <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
             <form onSubmit={handleSearch}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'المهنة' : 'Job Title'}</label>
                   <SearchableJobFilter
@@ -469,12 +466,6 @@ export default function CompanySearch() {
                     onSelect={(jobId) => setFilters(p => ({ ...p, desiredJobId: jobId }))}
                     isRtl={isRtl}
                   />
-                </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">{isRtl ? 'المحافظة' : 'Governorate'}</label>
-                  <select className="form-control" value={filters.governorate} onChange={e => setFilters(p => ({ ...p, governorate: e.target.value }))}>
-                    {GOVERNORATES.map(g => <option key={g} value={g}>{g || (isRtl ? 'كل المحافظات' : 'All')}</option>)}
-                  </select>
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">{isRtl ? 'سنوات الخبرة' : 'Experience Range'}</label>

@@ -8,12 +8,13 @@ import CompanyReports from '../pages/company/CompanyReports'
 import CompanyProfile from '../pages/company/CompanyProfile'
 import CompanySubscription from '../pages/company/CompanySubscription'
 import CompanyPending from '../pages/company/CompanyPending'
+import CompanyExpired from '../pages/company/CompanyExpired'
 import CompanyCart from '../pages/company/CompanyCart'
 import CompanyBrowse from '../pages/company/CompanyBrowse'
 
-// Shorthand for company-approved guard
+// Shorthand for company-approved guard (includes subscription check)
 const CG = ({ children }) => <CompanyGuard>{children}</CompanyGuard>
-// Shorthand for basic company auth (no approval check)
+// Shorthand for basic company auth (no approval / subscription check)
 const PR = ({ children }) => (
   <ProtectedRoute roles={['company']}>{children}</ProtectedRoute>
 )
@@ -24,6 +25,9 @@ export default function CompanyRoutes() {
       {/* Pending page accessible before approval */}
       <Route path="/company/pending"       element={<Layout showFooter={false}><PR><CompanyPending /></PR></Layout>} />
 
+      {/* Expired subscription lock page — accessible without CompanyGuard */}
+      <Route path="/company/expired"       element={<PR><CompanyExpired /></PR>} />
+
       {/* Redirect removed dashboard & requests pages to search */}
       <Route path="/company/dashboard"     element={<Navigate to="/company/search" replace />} />
       <Route path="/company/requests"      element={<Navigate to="/company/search" replace />} />
@@ -32,7 +36,7 @@ export default function CompanyRoutes() {
       <Route path="/company/profile"       element={<Layout showFooter={false}><PR><CompanyProfile /></PR></Layout>} />
       <Route path="/company/subscription"  element={<Layout showFooter={false}><PR><CompanySubscription /></PR></Layout>} />
 
-      {/* Pages that require Approved status */}
+      {/* Pages that require Approved status + active subscription */}
       <Route path="/company/search"        element={<Layout showFooter={false}><CG><CompanySearch /></CG></Layout>} />
       <Route path="/company/cart"          element={<Layout showFooter={false}><CG><CompanyCart /></CG></Layout>} />
       <Route path="/company/browse"        element={<Layout showFooter={false}><CG><CompanyBrowse /></CG></Layout>} />

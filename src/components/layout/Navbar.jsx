@@ -474,18 +474,20 @@ export default function Navbar() {
             >
               {t('navAbout')}
             </Link>
-            <Link
-              to="/recommend"
-              style={{
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                color: isActive('/recommend') ? '#000000' : '#52525b',
-                borderBottom: isActive('/recommend') ? '2px solid #000000' : '2px solid transparent',
-                paddingBottom: '2px',
-              }}
-            >
-              {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
-            </Link>
+            {!(isAuthenticated && role === 'company') && (
+              <Link
+                to="/recommend"
+                style={{
+                  fontSize: '0.9375rem',
+                  fontWeight: 700,
+                  color: isActive('/recommend') ? '#000000' : '#52525b',
+                  borderBottom: isActive('/recommend') ? '2px solid #000000' : '2px solid transparent',
+                  paddingBottom: '2px',
+                }}
+              >
+                {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+              </Link>
+            )}
 
             {isAuthenticated && role === 'company' && (
               <>
@@ -799,9 +801,11 @@ export default function Navbar() {
                   <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/about') ? '#f4f4f5' : 'transparent' }}>
                     {t('navAbout')}
                   </Link>
-                  <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
-                    {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
-                  </Link>
+                  {!(isAuthenticated && role === 'company') && (
+                    <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
+                      {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+                    </Link>
+                  )}
                 </div>
 
                 {isAuthenticated && (

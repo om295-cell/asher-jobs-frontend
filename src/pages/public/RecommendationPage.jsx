@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { jobsApi } from '../../api/jobs.api';
 import { recommendationApi } from '../../api/recommendation.api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -239,8 +240,15 @@ function SearchableJobSelect({ jobs, selectedJobId, onSelect, error, isRtl }) {
 export default function RecommendationPage() {
   const { isRtl } = useLanguage();
   const { showToast } = useToast();
+  const { isAuthenticated, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && role === 'company') {
+      navigate('/company/search', { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
 
   // Tab: 'form' or 'track'
   const [activeTab, setActiveTab] = useState('form');

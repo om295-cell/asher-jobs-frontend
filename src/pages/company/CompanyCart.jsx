@@ -131,7 +131,7 @@ export default function CompanyCart() {
       <div
         style={{
           padding: '3.5rem 1rem',
-          background: 'linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%)',
+          background: '#ffffff',
           minHeight: '80vh',
           display: 'flex',
           alignItems: 'center',
@@ -143,16 +143,16 @@ export default function CompanyCart() {
           <div
             style={{
               background: '#ffffff',
-              borderRadius: '20px',
-              border: '1px solid #e4e4e7',
-              boxShadow: '0 20px 40px -15px rgba(0,0,0,0.07)',
+              borderRadius: '16px',
+              border: '1.5px solid #000000',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.06)',
               padding: 'clamp(2rem, 5vw, 2.75rem)',
               textAlign: 'center',
               position: 'relative',
               overflow: 'hidden'
             }}
           >
-            {/* Top Gold Accent Bar */}
+            {/* Top Black Accent Bar */}
             <div
               style={{
                 position: 'absolute',
@@ -160,27 +160,26 @@ export default function CompanyCart() {
                 left: 0,
                 right: 0,
                 height: 4,
-                background: 'linear-gradient(90deg, #f59e0b, #d97706, #b45309)'
+                background: '#000000'
               }}
             />
 
-            {/* Glowing Icon Container */}
+            {/* Black Icon Container */}
             <div
               style={{
-                width: 80,
-                height: 80,
+                width: 72,
+                height: 72,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                color: '#b45309',
+                background: '#000000',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1.5rem',
-                border: '2px solid #fcd34d',
-                boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.25)'
+                border: '2px solid #000000'
               }}
             >
-              <ShoppingCart size={36} />
+              <ShoppingCart size={32} />
             </div>
 
             {/* Plan Badge */}
@@ -192,14 +191,14 @@ export default function CompanyCart() {
                   gap: '0.4rem',
                   padding: '0.35rem 0.9rem',
                   borderRadius: '9999px',
-                  background: '#fef3c7',
-                  color: '#92400e',
+                  background: '#ffffff',
+                  color: '#000000',
                   fontSize: '0.8125rem',
                   fontWeight: 700,
-                  border: '1px solid #fde68a'
+                  border: '1.5px solid #000000'
                 }}
               >
-                <Crown size={14} />
+                <Crown size={14} color="#000000" />
                 <span>{isRtl ? 'خاصية حصرية للباقة الذهبية والبلاتينية' : 'Gold & Platinum Exclusive'}</span>
               </span>
             </div>
@@ -209,7 +208,7 @@ export default function CompanyCart() {
               style={{
                 fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
                 fontWeight: 800,
-                color: '#18181b',
+                color: '#000000',
                 marginBottom: '0.85rem',
                 lineHeight: 1.3
               }}
@@ -220,7 +219,7 @@ export default function CompanyCart() {
             {/* Description */}
             <p
               style={{
-                color: '#52525b',
+                color: '#3f3f46',
                 fontSize: '0.975rem',
                 lineHeight: 1.7,
                 marginBottom: '1.75rem',
@@ -232,14 +231,14 @@ export default function CompanyCart() {
               {isRtl ? (
                 <>
                   خاصية سلة المرشحين وتصدير ملفات الإكسيل المتعددة متاحة حصرياً لمشتركي{' '}
-                  <strong style={{ color: '#b45309' }}>الباقة الذهبية (Gold)</strong> و{' '}
-                  <strong style={{ color: '#4338ca' }}>الباقة البلاتينية (Platinum)</strong>.
+                  <strong style={{ color: '#000000', fontWeight: 800 }}>الباقة الذهبية (Gold)</strong> و{' '}
+                  <strong style={{ color: '#000000', fontWeight: 800 }}>الباقة البلاتينية (Platinum)</strong>.
                 </>
               ) : (
                 <>
                   The Multi-Title Candidate Cart and bulk Excel export features are available exclusively to{' '}
-                  <strong style={{ color: '#b45309' }}>Gold</strong> and{' '}
-                  <strong style={{ color: '#4338ca' }}>Platinum</strong> subscribers.
+                  <strong style={{ color: '#000000', fontWeight: 800 }}>Gold</strong> and{' '}
+                  <strong style={{ color: '#000000', fontWeight: 800 }}>Platinum</strong> subscribers.
                 </>
               )}
             </p>
@@ -256,57 +255,57 @@ export default function CompanyCart() {
             >
               <div
                 style={{
-                  background: '#fcfcfc',
-                  border: '1px solid #e4e4e7',
-                  borderRadius: '12px',
+                  background: '#ffffff',
+                  border: '1px solid #000000',
+                  borderRadius: '10px',
                   padding: '0.875rem'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <FileSpreadsheet size={16} color="#059669" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                  <FileSpreadsheet size={16} color="#000000" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#000000' }}>
                     {isRtl ? 'تصدير إكسيل متعدد' : 'Multi-Sheet Excel'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.75rem', color: '#52525b', lineHeight: 1.4 }}>
                   {isRtl ? 'تصدير عدة تخصصات في ملف موحد أو صفحات منفصلة' : 'Export multiple job titles in one combined sheet'}
                 </div>
               </div>
 
               <div
                 style={{
-                  background: '#fcfcfc',
-                  border: '1px solid #e4e4e7',
-                  borderRadius: '12px',
+                  background: '#ffffff',
+                  border: '1px solid #000000',
+                  borderRadius: '10px',
                   padding: '0.875rem'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <Briefcase size={16} color="#d97706" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                  <Briefcase size={16} color="#000000" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#000000' }}>
                     {isRtl ? 'حتى 10 لكل مسمى' : 'Up to 10 per Title'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.75rem', color: '#52525b', lineHeight: 1.4 }}>
                   {isRtl ? 'تجميع احتياجات المصنع بالكامل قبل التصدير' : 'Collect candidates across all factory departments'}
                 </div>
               </div>
 
               <div
                 style={{
-                  background: '#fcfcfc',
-                  border: '1px solid #e4e4e7',
-                  borderRadius: '12px',
+                  background: '#ffffff',
+                  border: '1px solid #000000',
+                  borderRadius: '10px',
                   padding: '0.875rem'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <Sparkles size={16} color="#7c3aed" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#18181b' }}>
+                  <Sparkles size={16} color="#000000" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#000000' }}>
                     {isRtl ? 'توفير الوقت والميزانية' : 'Save Time & Effort'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#71717a', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.75rem', color: '#52525b', lineHeight: 1.4 }}>
                   {isRtl ? 'إدارة التوظيف السريع بضغطة زر واحدة' : 'Instant bulk hiring and full pipeline control'}
                 </div>
               </div>
@@ -327,16 +326,19 @@ export default function CompanyCart() {
                 className="btn btn-primary"
                 style={{
                   padding: '0.75rem 1.75rem',
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   fontSize: '0.95rem',
                   fontWeight: 700,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  background: '#000000',
+                  color: '#ffffff',
+                  borderColor: '#000000'
                 }}
               >
-                <Crown size={18} />
+                <Crown size={18} color="#ffffff" />
                 <span>{isRtl ? 'ترقية الباقة الآن' : 'Upgrade Plan Now'}</span>
               </Link>
 
@@ -345,13 +347,16 @@ export default function CompanyCart() {
                 className="btn btn-outline"
                 style={{
                   padding: '0.75rem 1.5rem',
-                  borderRadius: '10px',
+                  borderRadius: '8px',
                   fontSize: '0.95rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  background: '#ffffff',
+                  color: '#000000',
+                  borderColor: '#000000'
                 }}
               >
                 <span>{isRtl ? 'العودة إلى البحث عن المرشحين' : 'Back to Search'}</span>

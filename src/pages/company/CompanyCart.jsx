@@ -17,7 +17,8 @@ import {
   Briefcase,
   Layers,
   ArrowRight,
-  Crown
+  Crown,
+  Sparkles
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';

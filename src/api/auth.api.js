@@ -13,6 +13,6 @@ export const authApi = {
       : { currentPassword: currentPasswordOrData, newPassword };
     return api.put('/auth/password', body);
   },
-  changeInitialPassword: (currentPassword, newPassword) =>
-    api.post('/auth/change-initial-password', { currentPassword, newPassword })
+  changeInitialPassword: (newPassword) =>
+    api.post('/auth/change-initial-password', { newPassword })
 };

@@ -1,14 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../translations';
+import { cookieHelper } from '../utils/cookie';
 
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
   // Default to Arabic as primary business language in Egypt / 10th of Ramadan
-  const [lang, setLang] = useState(() => localStorage.getItem('asher_lang') || 'ar');
+  const [lang, setLang] = useState(() => {
+    if (typeof window === 'undefined') return 'ar';
+    return cookieHelper.get('asher_lang') || localStorage.getItem('asher_lang') || 'ar';
+  });
 
   useEffect(() => {
     localStorage.setItem('asher_lang', lang);
+    cookieHelper.set('asher_lang', lang, 365);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);

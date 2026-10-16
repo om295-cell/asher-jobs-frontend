@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { companyApi } from '../../api/company.api';
+import { smartCache } from '../../utils/smartCache';
 import {
   Search, Download, ShoppingCart, Eye, CheckCircle,
   CreditCard, Clock, AlertCircle, ChevronDown, ChevronUp,
@@ -134,9 +135,11 @@ export default function CompanySubscription() {
   const { profile, refreshProfile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [plans, setPlans] = useState([]);
+  // Instant hydration from cache for 0ms initial render
+  const cachedPlans = smartCache.get('plans_catalog', 180);
+  const [plans, setPlans] = useState(() => cachedPlans?.data || []);
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cachedPlans?.data?.length);
   const [selectedMonths, setSelectedMonths] = useState(1);
   const [initiating, setInitiating] = useState(''); // plan name being initiated
   const [showHistory, setShowHistory] = useState(false);
@@ -147,17 +150,23 @@ export default function CompanySubscription() {
   const subscriptionEndDate = profile?.subscriptionEndDate;
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!cachedPlans?.data?.length) setLoading(true);
     try {
       const [plansRes, ordersRes] = await Promise.allSettled([
         companyApi.getPlans(),
         companyApi.getPaymentHistory()
       ]);
-      if (plansRes.status === 'fulfilled') setPlans(plansRes.value.data?.data || []);
-      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data?.data || []);
+      if (plansRes.status === 'fulfilled') {
+        const freshPlans = plansRes.value.data?.data || [];
+        setPlans(freshPlans);
+        smartCache.set('plans_catalog', freshPlans);
+      }
+      if (ordersRes.status === 'fulfilled') {
+        setOrders(ordersRes.value.data?.data || []);
+      }
     } catch (e) {}
     setLoading(false);
-  }, []);
+  }, [cachedPlans]);
 
   useEffect(() => {
     load();

@@ -16,9 +16,10 @@ import {
   CreditCard,
   Save,
   MessageCircle,
-  Clock,
   KeyRound,
-  UserCheck
+  UserCheck,
+  Receipt,
+  RotateCcw
 } from 'lucide-react'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import StatusBadge from '../../components/ui/StatusBadge'
@@ -32,9 +33,22 @@ export default function AdminCompanyDetail() {
 
   const [company, setCompany] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState([])
+  const [loadingOrders, setLoadingOrders] = useState(false)
+  const [processingOrder, setProcessingOrder] = useState(null)
   const [savingSub, setSavingSub] = useState(false)
   const [subForm, setSubForm] = useState({ plan: 'Basic', priceEgp: 500, status: 'active' })
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', action: null })
+
+  const fetchOrders = () => {
+    setLoadingOrders(true)
+    adminApi.getCompanyOrders(id)
+      .then(res => {
+        setOrders(res.data?.data || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoadingOrders(false))
+  }
 
   const fetchCompany = () => {
     setLoading(true)
@@ -56,7 +70,40 @@ export default function AdminCompanyDetail() {
 
   useEffect(() => {
     fetchCompany()
+    fetchOrders()
   }, [id])
+
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
+    const isRefund = newStatus === 'refunded'
+    setConfirmModal({
+      open: true,
+      title: isRefund
+        ? (isRtl ? 'تحويل حالة المعاملة إلى مسترد (Refund)' : 'Mark Payment as Refunded')
+        : (isRtl ? 'إعادة تعيين الحالة إلى مدفوع' : 'Mark Payment as Paid'),
+      message: isRefund
+        ? (isRtl
+            ? 'هل قمت باسترداد المبلغ يدوياً للعميل وتريد تعيين المعاملة كـ "مسترد"؟ سيتم تعطيل اشتراك الشركة النشط تلقائياً لحين تجديده.'
+            : 'Have you processed the refund manually? This will mark the order as refunded and deactivate the active subscription.')
+        : (isRtl
+            ? 'هل تريد إعادة تفعيل هذا الدفع وتنشيط اشتراك الشركة؟'
+            : 'Restore payment status to paid and activate subscription?'),
+      confirmText: isRefund ? (isRtl ? 'تأكيد الاسترداد' : 'Confirm Refund') : (isRtl ? 'تأكيد' : 'Confirm'),
+      danger: isRefund,
+      action: async () => {
+        try {
+          setProcessingOrder(orderId)
+          await adminApi.updateCompanyOrderStatus(company._id, orderId, newStatus, 'Updated manually by admin')
+          showToast(isRtl ? 'تم تحديث حالة المعاملة بنجاح' : 'Order status updated successfully', 'success')
+          fetchOrders()
+          fetchCompany()
+        } catch (err) {
+          showToast(err.response?.data?.message || 'Failed to update order status', 'error')
+        } finally {
+          setProcessingOrder(null)
+        }
+      }
+    })
+  }
 
   if (loading) return <LoadingSpinner />
   if (!company) {
@@ -396,6 +443,171 @@ export default function AdminCompanyDetail() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Payment History & Manual Refund Section */}
+        <div className="card card-responsive" style={{ marginTop: '1.5rem', padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Receipt size={20} color="var(--primary)" />
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--slate-900)', margin: 0 }}>
+                {isRtl ? 'سجل مدفوعات واشتراكات الشركة (Paymob)' : 'Payment Transactions & Invoices'}
+              </h2>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--slate-500)', fontWeight: 600 }}>
+              {isRtl ? `إجمالي العمليات: ${orders.length}` : `Total: ${orders.length}`}
+            </span>
+          </div>
+
+          {loadingOrders ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center' }}>
+              <LoadingSpinner />
+            </div>
+          ) : orders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--slate-400)', fontSize: '0.9rem' }}>
+              {isRtl ? 'لا توجد عمليات دفع مسجلة لهذه الشركة حتى الآن.' : 'No payment transactions recorded for this company.'}
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{isRtl ? 'الباقة' : 'Plan'}</th>
+                    <th>{isRtl ? 'المدة' : 'Duration'}</th>
+                    <th>{isRtl ? 'المبلغ' : 'Amount'}</th>
+                    <th>{isRtl ? 'حالة الدفع' : 'Payment Status'}</th>
+                    <th>{isRtl ? 'تاريخ العملية' : 'Date'}</th>
+                    <th>{isRtl ? 'الإجراءات (سوبر أدمن)' : 'Actions'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(order => {
+                    const isPaid = order.status === 'paid'
+                    const isRefunded = order.status === 'refunded'
+                    const isPending = order.status === 'pending'
+                    const isFailed = order.status === 'failed'
+
+                    return (
+                      <tr key={order._id}>
+                        <td>
+                          <div style={{ fontWeight: 800, color: 'var(--slate-900)' }}>
+                            {order.planName === 'Platinum' ? (isRtl ? 'البلاتينية' : 'Platinum') : order.planName === 'Gold' ? (isRtl ? 'الذهبية' : 'Gold') : (isRtl ? 'الأساسية' : 'Basic')}
+                          </div>
+                          {order.paymobTransactionId && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', fontFamily: 'monospace' }}>
+                              Tx: {order.paymobTransactionId}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.85rem' }}>
+                          {order.billingMonths} {order.billingMonths === 1 ? (isRtl ? 'شهر' : 'Month') : (isRtl ? 'أشهر' : 'Months')}
+                        </td>
+                        <td style={{ fontWeight: 800, fontSize: '0.95rem' }}>
+                          {order.amountEgp?.toLocaleString()} {isRtl ? 'ج.م' : 'EGP'}
+                        </td>
+                        <td>
+                          {isPaid && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                              padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem', fontWeight: 800,
+                              background: '#000', color: '#fff'
+                            }}>
+                              <CheckCircle size={12} /> {isRtl ? 'مدفوع / مكتمل' : 'Completed'}
+                            </span>
+                          )}
+                          {isRefunded && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                              padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem', fontWeight: 800,
+                              background: 'var(--slate-200)', color: 'var(--slate-800)'
+                            }}>
+                              <RotateCcw size={12} /> {isRtl ? 'مسترد (Refunded)' : 'Refunded'}
+                            </span>
+                          )}
+                          {isPending && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                              padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem', fontWeight: 700,
+                              background: 'var(--amber-light)', color: 'var(--amber)'
+                            }}>
+                              {isRtl ? 'قيد الدفع' : 'Pending'}
+                            </span>
+                          )}
+                          {isFailed && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                              padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem', fontWeight: 700,
+                              background: 'var(--rose-light)', color: 'var(--rose)'
+                            }}>
+                              {isRtl ? 'فشل' : 'Failed'}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>
+                          <div>{new Date(order.createdAt).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US')}</div>
+                          {order.refundedAt && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)' }}>
+                              {isRtl ? `استرداد: ${new Date(order.refundedAt).toLocaleDateString('ar-EG')}` : `Refunded: ${new Date(order.refundedAt).toLocaleDateString('en-US')}`}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {isPaid && (
+                            <button
+                              type="button"
+                              disabled={processingOrder === order._id}
+                              onClick={() => handleUpdateOrderStatus(order._id, 'refunded')}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '0.3rem 0.65rem',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: 'var(--rose)',
+                                borderColor: 'var(--rose-light)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem'
+                              }}
+                            >
+                              <RotateCcw size={13} />
+                              {isRtl ? 'تحويل إلى مسترد' : 'Mark as Refunded'}
+                            </button>
+                          )}
+                          {isRefunded && (
+                            <button
+                              type="button"
+                              disabled={processingOrder === order._id}
+                              onClick={() => handleUpdateOrderStatus(order._id, 'paid')}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '0.3rem 0.65rem',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: '#000',
+                                borderColor: 'var(--border)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem'
+                              }}
+                            >
+                              {isRtl ? 'إعادة كـ مدفوع' : 'Restore to Paid'}
+                            </button>
+                          )}
+                          {(isPending || isFailed) && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--slate-400)' }}>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

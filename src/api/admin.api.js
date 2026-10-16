@@ -18,6 +18,8 @@ export const adminApi = {
   rejectCompany: (id, reason) => api.patch(`/admin/companies/${id}/reject`, { reason }),
   toggleBlockCompany: (id, isBlocked, blockReason) => api.patch(`/admin/companies/${id}/block`, { isBlocked, blockReason }),
   updateCompanySubscription: (id, data) => api.patch(`/admin/companies/${id}/subscription`, data),
+  getCompanyOrders: (id) => api.get(`/admin/companies/${id}/orders`),
+  updateCompanyOrderStatus: (id, orderId, status, reason) => api.patch(`/admin/companies/${id}/orders/${orderId}/status`, { status, reason }),
 
   // Recruitment Requests
   listRequests: (params) => api.get('/admin/requests', { params }),

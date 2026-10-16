@@ -338,32 +338,17 @@ export default function CompanySubscription() {
                     transition: 'box-shadow 0.2s ease'
                   }}
                 >
-                  {/* Plan Discount Badge */}
-                  {isDiscountActive && (
-                    <div style={{
-                      position: 'absolute', top: '-12px', left: isGold ? '1rem' : '1.5rem',
-                      background: '#16a34a', color: '#fff',
-                      fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.65rem',
-                      borderRadius: 'var(--radius-full)', letterSpacing: '0.02em',
-                      boxShadow: '0 2px 4px rgba(22, 163, 74, 0.25)',
-                      zIndex: 1, display: 'flex', alignItems: 'center', gap: '0.35rem'
-                    }}>
-                      <span>🏷️ خصم {plan.discountPct}% {plan.discountLabel ? `• ${plan.discountLabel}` : ''}</span>
-                      {remainingTime && (
-                        <span style={{ background: '#14532d', padding: '0.1rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem' }}>
-                          ⏳ باقي {remainingTime}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Popular badge */}
+                  {/* Popular badge - Centered on top border */}
                   {isGold && (
                     <div style={{
-                      position: 'absolute', top: '-12px', right: '1.5rem',
+                      position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
                       background: '#000', color: '#fff',
-                      fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.65rem',
-                      borderRadius: 'var(--radius-full)', letterSpacing: '0.03em'
+                      fontSize: '0.72rem', fontWeight: 900, padding: '0.22rem 0.9rem',
+                      borderRadius: 'var(--radius-full)', letterSpacing: '0.03em',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                      border: '1px solid #000',
+                      whiteSpace: 'nowrap',
+                      zIndex: 2
                     }}>
                       الأكثر اختياراً
                     </div>
@@ -380,7 +365,7 @@ export default function CompanySubscription() {
                       {meta.icon}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 900, fontSize: '1rem', color: '#000' }}>
+                      <div style={{ fontWeight: 900, fontSize: '1.05rem', color: '#000' }}>
                         {plan.displayNameAr || plan.displayName}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>
@@ -388,6 +373,40 @@ export default function CompanySubscription() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Plan Discount & Countdown Banner - Clean & inside the card */}
+                  {isDiscountActive && (
+                    <div style={{
+                      background: '#000', color: '#fff',
+                      borderRadius: 'var(--radius-md)', padding: '0.55rem 0.8rem',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      flexWrap: 'wrap', gap: '0.4rem', border: '1px solid #000'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <span style={{
+                          background: '#fff', color: '#000',
+                          padding: '0.12rem 0.45rem', borderRadius: '4px',
+                          fontSize: '0.72rem', fontWeight: 900
+                        }}>
+                          خصم {plan.discountPct}%
+                        </span>
+                        {plan.discountLabel && (
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f4f4f5' }}>
+                            {plan.discountLabel}
+                          </span>
+                        )}
+                      </div>
+                      {remainingTime && (
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                          fontSize: '0.72rem', fontWeight: 700, color: '#a1a1aa'
+                        }}>
+                          <Clock size={12} />
+                          <span>باقي {remainingTime}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Pricing */}
                   <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
@@ -405,23 +424,13 @@ export default function CompanySubscription() {
                       )}
                     </div>
                     {pricing.discountPct > 0 && (
-                      <div style={{ fontSize: '0.78rem', color: '#16a34a', marginTop: '0.25rem', fontWeight: 700 }}>
+                      <div style={{ fontSize: '0.78rem', color: '#000', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <s style={{ color: 'var(--slate-400)', fontWeight: 500 }}>{pricing.originalTotal.toLocaleString()} ج.م</s>
-                        {' '}وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)
-                        {plan.discountLabel && (
-                          <div style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 600, marginTop: '0.1rem' }}>
-                            🎉 {plan.discountLabel}
-                          </div>
-                        )}
-                        {isDiscountActive && plan.discountEndsAt && (
-                          <div style={{ fontSize: '0.7rem', color: 'var(--slate-500)', fontWeight: 500, marginTop: '0.2rem' }}>
-                            ⏳ ينتهي العرض في: {new Date(plan.discountEndsAt).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        )}
+                        <span style={{ fontWeight: 800 }}>وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)</span>
                       </div>
                     )}
                     {selectedMonths > 1 && (
-                      <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', marginTop: '0.1rem' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', marginTop: '0.15rem' }}>
                         يعادل {Math.round(pricing.total / selectedMonths).toLocaleString()} ج.م / شهر
                       </div>
                     )}
@@ -465,60 +474,83 @@ export default function CompanySubscription() {
           </div>
         )}
 
-        {/* ── Payment History ── */}
-        {orders.length > 0 && (
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <button
-              type="button"
-              onClick={() => setShowHistory(h => !h)}
-              style={{
-                width: '100%', padding: '1rem 1.25rem',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: '0.9rem', fontWeight: 700, color: '#000'
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Clock size={16} /> سجل المدفوعات ({orders.length})
-              </span>
-              {showHistory ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
+        {/* ── Payment History (Only Paid and Refunded) ── */}
+        {(() => {
+          const completedOrders = orders.filter(o => o.status === 'paid' || o.status === 'refunded');
+          if (completedOrders.length === 0) return null;
 
-            {showHistory && (
-              <div className="table-responsive" style={{ borderTop: '1px solid #000' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>الباقة</th>
-                      <th>المدة</th>
-                      <th>المبلغ</th>
-                      <th>الحالة</th>
-                      <th>التاريخ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map(order => (
-                      <tr key={order._id}>
-                        <td style={{ fontWeight: 700 }}>{order.planName}</td>
-                        <td>{order.billingMonths} {order.billingMonths === 1 ? 'شهر' : 'أشهر'}</td>
-                        <td style={{ fontWeight: 700 }}>{order.amountEgp?.toLocaleString()} ج.م</td>
-                        <td>
-                          {order.status === 'paid' && <span className="badge badge-available">مدفوع</span>}
-                          {order.status === 'pending' && <span className="badge badge-pending">قيد الانتظار</span>}
-                          {order.status === 'failed' && <span className="badge badge-rejected">فشل</span>}
-                          {order.status === 'expired' && <span className="badge badge-rejected">منتهي</span>}
-                        </td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>
-                          {new Date(order.createdAt).toLocaleDateString('ar-EG')}
-                        </td>
+          return (
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <button
+                type="button"
+                onClick={() => setShowHistory(h => !h)}
+                style={{
+                  width: '100%', padding: '1rem 1.25rem',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '0.9rem', fontWeight: 700, color: '#000'
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Clock size={16} /> سجل المدفوعات والاشتراكات ({completedOrders.length})
+                </span>
+                {showHistory ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {showHistory && (
+                <div className="table-responsive" style={{ borderTop: '1px solid #000' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>الباقة</th>
+                        <th>المدة</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+                    </thead>
+                    <tbody>
+                      {completedOrders.map(order => (
+                        <tr key={order._id}>
+                          <td style={{ fontWeight: 700 }}>
+                            {order.planName === 'Platinum' ? 'البلاتينية' : order.planName === 'Gold' ? 'الذهبية' : 'الأساسية'}
+                          </td>
+                          <td>{order.billingMonths} {order.billingMonths === 1 ? 'شهر' : 'أشهر'}</td>
+                          <td style={{ fontWeight: 800 }}>{order.amountEgp?.toLocaleString()} ج.م</td>
+                          <td>
+                            {order.status === 'paid' && (
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                                padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                                fontSize: '0.75rem', fontWeight: 800,
+                                background: '#000', color: '#fff'
+                              }}>
+                                <CheckCircle size={12} /> مدفوع / مكتمل
+                              </span>
+                            )}
+                            {order.status === 'refunded' && (
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                                padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)',
+                                fontSize: '0.75rem', fontWeight: 800,
+                                background: 'var(--slate-200)', color: 'var(--slate-800)'
+                              }}>
+                                مسترد (Refunded)
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ fontSize: '0.8rem', color: 'var(--slate-500)' }}>
+                            {new Date(order.paidAt || order.createdAt).toLocaleDateString('ar-EG')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ── Info note ── */}
         <div style={{

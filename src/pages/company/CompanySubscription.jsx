@@ -282,17 +282,21 @@ export default function CompanySubscription() {
                   background: selectedMonths === cycle.months ? '#000' : '#fff',
                   color: selectedMonths === cycle.months ? '#fff' : 'var(--slate-700)',
                   transition: 'all 0.15s ease',
-                  position: 'relative'
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem'
                 }}
               >
-                {cycle.label}
+                <span>{cycle.label}</span>
                 {cycle.discount > 0 && (
                   <span style={{
-                    position: 'absolute', top: '-8px', right: '-6px',
                     background: selectedMonths === cycle.months ? '#fff' : '#000',
                     color: selectedMonths === cycle.months ? '#000' : '#fff',
-                    fontSize: '0.6rem', fontWeight: 900, padding: '0.1rem 0.3rem',
-                    borderRadius: '4px'
+                    fontSize: '0.65rem',
+                    fontWeight: 900,
+                    padding: '0.1rem 0.35rem',
+                    borderRadius: '4px',
+                    lineHeight: 1.2
                   }}>
                     -{cycle.discount}%
                   </span>
@@ -308,7 +312,13 @@ export default function CompanySubscription() {
             لا توجد باقات متاحة حالياً. تواصل مع الإدارة.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            gap: '1.75rem',
+            marginBottom: '2rem',
+            paddingTop: '0.85rem'
+          }}>
             {plans.map((plan) => {
               const meta = PLAN_META[plan.planName] || {};
               const now = new Date();
@@ -321,7 +331,8 @@ export default function CompanySubscription() {
 
               const pricing = calcPrice(plan.priceEgp || plan.priceMonthlyEgp, selectedMonths, effectivePlanDiscountPct);
               const isCurrent = currentPlan === plan.planName && hasActiveSub;
-              const isGold = plan.planName === 'Gold';
+              // Real calculation from backend based on actual subscribers & paid orders
+              const isMostChosen = Boolean(plan.isMostChosen);
               const isInitiating = initiating === plan.planName;
 
               return (
@@ -332,24 +343,29 @@ export default function CompanySubscription() {
                     padding: '1.5rem',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '1rem',
-                    border: isGold ? '2px solid #000' : '1px solid #000',
+                    gap: '1.1rem',
+                    border: isMostChosen ? '2px solid #000' : '1px solid #000',
                     position: 'relative',
-                    transition: 'box-shadow 0.2s ease'
+                    transition: 'box-shadow 0.2s ease',
+                    background: '#fff'
                   }}
                 >
-                  {/* Popular badge - Centered on top border */}
-                  {isGold && (
+                  {/* Popular badge - Centered on top border with star icon */}
+                  {isMostChosen && (
                     <div style={{
-                      position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
+                      position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
                       background: '#000', color: '#fff',
-                      fontSize: '0.72rem', fontWeight: 900, padding: '0.22rem 0.9rem',
+                      fontSize: '0.72rem', fontWeight: 900, padding: '0.22rem 0.95rem',
                       borderRadius: 'var(--radius-full)', letterSpacing: '0.03em',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                      border: '1px solid #000',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+                      border: '1.5px solid #000',
                       whiteSpace: 'nowrap',
-                      zIndex: 2
+                      zIndex: 3,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
                     }}>
+                      <Star size={11} fill="#fff" strokeWidth={0} />
                       الأكثر اختياراً
                     </div>
                   )}
@@ -374,35 +390,35 @@ export default function CompanySubscription() {
                     </div>
                   </div>
 
-                  {/* Plan Discount & Countdown Banner - Clean & inside the card */}
+                  {/* Plan Discount & Countdown Banner - Clean, 2 separate rows so nothing overlaps */}
                   {isDiscountActive && (
                     <div style={{
                       background: '#000', color: '#fff',
-                      borderRadius: 'var(--radius-md)', padding: '0.55rem 0.8rem',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      flexWrap: 'wrap', gap: '0.4rem', border: '1px solid #000'
+                      borderRadius: 'var(--radius-md)', padding: '0.75rem 0.85rem',
+                      display: 'flex', flexDirection: 'column', gap: '0.45rem',
+                      border: '1px solid #000'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <span style={{
                           background: '#fff', color: '#000',
-                          padding: '0.12rem 0.45rem', borderRadius: '4px',
-                          fontSize: '0.72rem', fontWeight: 900
+                          padding: '0.15rem 0.45rem', borderRadius: '4px',
+                          fontSize: '0.75rem', fontWeight: 900, lineHeight: 1.2
                         }}>
                           خصم {plan.discountPct}%
                         </span>
                         {plan.discountLabel && (
-                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f4f4f5' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f4f4f5' }}>
                             {plan.discountLabel}
                           </span>
                         )}
                       </div>
                       {remainingTime && (
                         <div style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                           fontSize: '0.72rem', fontWeight: 700, color: '#a1a1aa'
                         }}>
-                          <Clock size={12} />
-                          <span>باقي {remainingTime}</span>
+                          <Clock size={12} style={{ color: '#d4d4d8' }} />
+                          <span>باقي على انتهاء العرض: {remainingTime}</span>
                         </div>
                       )}
                     </div>

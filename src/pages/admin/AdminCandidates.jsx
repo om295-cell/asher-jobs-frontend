@@ -24,6 +24,7 @@ import StatusBadge from '../../components/ui/StatusBadge'
 import Pagination from '../../components/ui/Pagination'
 import ConfirmModal from '../../components/modals/ConfirmModal'
 import EmptyState from '../../components/ui/EmptyState'
+import CandidateExcelImportModal from '../../components/modals/CandidateExcelImportModal'
 
 export default function AdminCandidates() {
   const { isRtl } = useLanguage()
@@ -47,6 +48,7 @@ export default function AdminCandidates() {
   // Modal actions
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', action: null })
+  const [importModalOpen, setImportModalOpen] = useState(false)
 
   // Fetch categories & jobs for filter dropdowns
   useEffect(() => {
@@ -156,6 +158,26 @@ export default function AdminCandidates() {
             <p style={{ color: 'var(--slate-500)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
               {isRtl ? `إجمالي المسجلين: ${total} مرشح` : `Total registered: ${total} candidates`}
             </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setImportModalOpen(true)}
+              className="btn btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                fontWeight: 800,
+                padding: '0.6rem 1.25rem',
+                borderRadius: '10px',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)'
+              }}
+            >
+              <FileSpreadsheet size={18} />
+              {isRtl ? 'استيراد قاعدة بيانات (Excel)' : 'Import Database (Excel)'}
+            </button>
           </div>
         </div>
 
@@ -382,6 +404,13 @@ export default function AdminCandidates() {
         isDanger={confirmModal.danger}
         onConfirm={confirmModal.action}
         onClose={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+      />
+
+      <CandidateExcelImportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        categories={categories}
+        onFinished={() => fetchCandidates(1)}
       />
     </div>
   )

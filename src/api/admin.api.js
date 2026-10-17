@@ -10,6 +10,11 @@ export const adminApi = {
   updateCandidateStatus: (id, availabilityStatus) => api.patch(`/admin/candidates/${id}/status`, { availabilityStatus }),
   toggleBlockCandidate: (id, isBlocked, blockReason) => api.patch(`/admin/candidates/${id}/block`, { isBlocked, blockReason }),
   deleteCandidate: (id) => api.delete(`/admin/candidates/${id}`),
+  extractCandidatesExcel: (formData) => api.post('/admin/candidates/extract-excel', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  searchMainCandidates: (params) => api.get('/admin/candidates/search-main', { params }),
+  executeCandidateImport: (data) => api.post('/admin/candidates/import-batch', data),
 
   // Companies
   listCompanies: (params) => api.get('/admin/companies', { params }),

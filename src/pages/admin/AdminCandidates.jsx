@@ -48,7 +48,13 @@ export default function AdminCandidates() {
   // Modal actions
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', action: null })
-  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [importModalOpen, setImportModalOpen] = useState(searchParams.get('import') === 'true')
+
+  useEffect(() => {
+    if (searchParams.get('import') === 'true') {
+      setImportModalOpen(true)
+    }
+  }, [searchParams])
 
   // Fetch categories & jobs for filter dropdowns
   useEffect(() => {

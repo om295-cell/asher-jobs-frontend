@@ -112,7 +112,15 @@ export default function AdminDashboard() {
             </h1>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <Link
+              to="/admin/candidates?import=true"
+              className="btn btn-primary"
+              style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.45rem', boxShadow: '0 2px 8px rgba(37,99,235,0.2)' }}
+            >
+              <FileSpreadsheet size={16} />
+              {isRtl ? 'استيراد المرشحين (Excel)' : 'Import Candidates (Excel)'}
+            </Link>
             <button
               onClick={fetchMetrics}
               className="btn"

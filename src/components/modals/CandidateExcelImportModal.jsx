@@ -99,7 +99,26 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     return () => clearTimeout(timer);
   }, [mainSearch, mainMode, isOpen]);
 
-  if (!isOpen) return null;
+  // Filtered Items for Display in Step 2 Table (Hook called unconditionally)
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      // Tab filter
+      if (filterTab === 'conflicts' && !item.phoneExists) return false;
+      if (filterTab === 'newTitles' && item.titleExists) return false;
+      if (filterTab === 'valid' && (!item.isPhoneValid || !item.name)) return false;
+
+      // Text search
+      if (tableSearch.trim()) {
+        const query = tableSearch.toLowerCase().trim();
+        const nameMatch = item.name?.toLowerCase().includes(query);
+        const phoneMatch = item.phone?.includes(query);
+        const jobMatch = item.jobTitle?.toLowerCase().includes(query);
+        if (!nameMatch && !phoneMatch && !jobMatch) return false;
+      }
+
+      return true;
+    });
+  }, [items, filterTab, tableSearch]);
 
   const handleReset = () => {
     setStep(1);
@@ -229,26 +248,6 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     );
   };
 
-  // Filtered Items for Display in Step 2 Table
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      // Tab filter
-      if (filterTab === 'conflicts' && !item.phoneExists) return false;
-      if (filterTab === 'newTitles' && item.titleExists) return false;
-      if (filterTab === 'valid' && (!item.isPhoneValid || !item.name)) return false;
-
-      // Text search
-      if (tableSearch.trim()) {
-        const query = tableSearch.toLowerCase().trim();
-        const nameMatch = item.name?.toLowerCase().includes(query);
-        const phoneMatch = item.phone?.includes(query);
-        const jobMatch = item.jobTitle?.toLowerCase().includes(query);
-        if (!nameMatch && !phoneMatch && !jobMatch) return false;
-      }
-
-      return true;
-    });
-  }, [items, filterTab, tableSearch]);
 
   // Step 2 -> Step 3: Execute Batch Import
   const handleExecuteImport = async () => {
@@ -302,6 +301,8 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     link.click();
     document.body.removeChild(link);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div

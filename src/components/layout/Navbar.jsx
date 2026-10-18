@@ -485,7 +485,7 @@ export default function Navbar() {
                   paddingBottom: '2px',
                 }}
               >
-                {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+                {isRtl ? 'ترشيح كوادر' : 'Nominate Candidates'}
               </Link>
             )}
 
@@ -803,7 +803,7 @@ export default function Navbar() {
                   </Link>
                   {!(isAuthenticated && role === 'company') && (
                     <Link to="/recommend" onClick={() => setMobileMenuOpen(false)} style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: '#000000', borderRadius: '6px', background: isActive('/recommend') ? '#f4f4f5' : 'transparent' }}>
-                      {isRtl ? 'ترشيح كوادر (11 كادر)' : 'Nominate Candidates'}
+                      {isRtl ? 'ترشيح كوادر' : 'Nominate Candidates'}
                     </Link>
                   )}
                 </div>

@@ -123,12 +123,12 @@ export default function AdminRecommendations() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#09090b', margin: '0 0 0.35rem' }}>
-            {isRtl ? 'طلبات ترشيح الكوادر (مجموعات الـ 11)' : 'Candidate Recommendation Requests'}
+            {isRtl ? 'طلبات ترشيح الكوادر' : 'Candidate Recommendation Requests'}
           </h1>
           <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
             {isRtl
               ? 'مراجعة وتدقيق واعتماد طلبات الترشيح الجماعية المقدمة عبر الرابط العام'
-              : 'Review and approve public 11-candidate group nomination submissions'}
+              : 'Review and approve public candidate nomination submissions'}
           </p>
         </div>
 
@@ -414,7 +414,7 @@ export default function AdminRecommendations() {
                           }}
                         >
                           <Eye size={14} />
-                          {isRtl ? 'فحص الـ 11 كادر' : 'Review 11 Profiles'}
+                          {isRtl ? `فحص الكوادر (${req.people?.length || 0})` : `Review Profiles (${req.people?.length || 0})`}
                         </button>
                       </td>
                     </tr>
@@ -548,9 +548,9 @@ export default function AdminRecommendations() {
               </div>
             )}
 
-            {/* 11 People List Table */}
+            {/* People List Table */}
             <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#09090b', marginBottom: '0.75rem' }}>
-              {isRtl ? 'قائمة الكوادر الـ 11 المرفقة في الطلب:' : 'Attached 11 Candidates List:'}
+              {isRtl ? `قائمة الكوادر المرفقة في الطلب (${selectedReq.people?.length || 0} كادر):` : `Attached Candidates List (${selectedReq.people?.length || 0} Profiles):`}
             </h4>
 
             <div style={{ overflowX: 'auto', marginBottom: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '10px' }}>

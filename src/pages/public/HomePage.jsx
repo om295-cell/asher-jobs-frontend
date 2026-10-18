@@ -60,6 +60,7 @@ export default function HomePage() {
     visitors: null,
     loading: true
   })
+  const visitRecordedRef = useRef(false)
   const [categories, setCategories] = useState([])
   const [jobs, setJobs] = useState([])
   const [sectorsLoading, setSectorsLoading] = useState(true)
@@ -67,37 +68,15 @@ export default function HomePage() {
   useEffect(() => {
     let isMounted = true;
 
-    // Clean up any old cached dummy visitor count from localStorage
+    // Clean up any old cached visitor session/storage
     try {
-      const cached = localStorage.getItem('asher_site_visitors');
-      if (cached && parseInt(cached, 10) >= 1248) {
-        localStorage.removeItem('asher_site_visitors');
-      }
+      localStorage.removeItem('asher_site_visitors');
+      sessionStorage.removeItem('asher_visit_session');
     } catch (e) {}
 
-    // 1. Fetch current live stats directly from database
-    statsApi.getStats()
-      .then((res) => {
-        if (isMounted && res?.data?.data) {
-          setStats({
-            candidates: res.data.data.candidates ?? 0,
-            companies: res.data.data.companies ?? 0,
-            visitors: res.data.data.visitors ?? 0,
-            loading: false
-          });
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load stats', err);
-        if (isMounted) {
-          setStats((prev) => ({ ...prev, loading: false }));
-        }
-      });
-
-    // 2. Record visit once per unique browser session
-    const sessionKey = 'asher_visit_session';
-    if (!sessionStorage.getItem(sessionKey)) {
-      try { sessionStorage.setItem(sessionKey, '1'); } catch (e) {}
+    // 1. Record visit on every visit / reload
+    if (!visitRecordedRef.current) {
+      visitRecordedRef.current = true;
       statsApi.recordVisit()
         .then((res) => {
           if (isMounted && res?.data?.data?.visitors !== undefined) {
@@ -107,8 +86,31 @@ export default function HomePage() {
             }));
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error('Failed to record visit', err);
+        });
     }
+
+    // 2. Fetch current live platform stats directly from database
+    statsApi.getStats()
+      .then((res) => {
+        if (isMounted && res?.data?.data) {
+          setStats((prev) => ({
+            candidates: res.data.data.candidates ?? 0,
+            companies: res.data.data.companies ?? 0,
+            visitors: prev.visitors !== null
+              ? Math.max(prev.visitors, res.data.data.visitors ?? 0)
+              : (res.data.data.visitors ?? 0),
+            loading: false
+          }));
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load stats', err);
+        if (isMounted) {
+          setStats((prev) => ({ ...prev, loading: false }));
+        }
+      });
 
     return () => { isMounted = false };
   }, []);

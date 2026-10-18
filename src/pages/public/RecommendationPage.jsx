@@ -42,10 +42,10 @@ const NAME_REGEX = /^[a-zA-Z\u0600-\u06FF]+(?:\s+[a-zA-Z\u0600-\u06FF]+)+$/;
 // Egyptian Mobile: 11 digits starting with 010, 011, 012, or 015
 const PHONE_REGEX = /^01[0125][0-9]{8}$/;
 
-function createInitialPeople() {
-  return Array.from({ length: 11 }).map((_, index) => ({
+function createEmptyPerson(index, isPrimary = false) {
+  return {
     index,
-    isPrimary: index === 0,
+    isPrimary,
     fullName: '',
     phone: '',
     jobId: '',
@@ -54,7 +54,7 @@ function createInitialPeople() {
     // Up to 3 titles per person, each with their own career level and priority
     titles: [
       {
-        id: '1',
+        id: String(Date.now() + Math.random()),
         jobId: '',
         jobTitle: '',
         careerLevel: '',
@@ -69,7 +69,14 @@ function createInitialPeople() {
     levelError: '',
     phoneChecking: false,
     phoneExists: false
-  }));
+  };
+}
+
+function createInitialPeople() {
+  return [
+    createEmptyPerson(0, true),
+    createEmptyPerson(1, false)
+  ];
 }
 
 // Smart Searchable Job Dropdown Component
@@ -374,6 +381,34 @@ export default function RecommendationPage() {
     });
   };
 
+  // Add another candidate recommendation card
+  const handleAddPerson = () => {
+    setPeople((prev) => {
+      if (prev.length >= 20) {
+        showToast(isRtl ? 'الحد الأقصى للمرشحين في الطلب الواحد هو 20 مرشحاً' : 'Maximum 20 candidates per request', 'warning');
+        return prev;
+      }
+      return [...prev, createEmptyPerson(prev.length, false)];
+    });
+  };
+
+  // Remove a candidate recommendation card
+  const handleRemovePerson = (personIndex) => {
+    if (personIndex === 0) return; // Cannot remove submitter
+    if (people.length <= 2) {
+      showToast(isRtl ? 'يجب إدخال مرشح واحد على الأقل بالإضافة إلى بياناتك' : 'At least one candidate recommendation is required', 'warning');
+      return;
+    }
+    setPeople((prev) => {
+      const filtered = prev.filter((_, idx) => idx !== personIndex);
+      return filtered.map((p, idx) => ({
+        ...p,
+        index: idx,
+        isPrimary: idx === 0
+      }));
+    });
+  };
+
   // Update specific title field (jobId, jobTitle, careerLevel)
   const handleTitleChange = (personIndex, titleIndex, field, value) => {
     setPeople((prev) => {
@@ -563,10 +598,10 @@ export default function RecommendationPage() {
     }).length;
   }, [people]);
 
-  // Form validity
+  // Form validity: at least 2 people (submitter + at least 1 recommendation), all completed
   const isFormValid = useMemo(() => {
-    return completedCount === 11 && legalAccepted && !submitting;
-  }, [completedCount, legalAccepted, submitting]);
+    return people.length >= 2 && completedCount === people.length && legalAccepted && !submitting;
+  }, [people.length, completedCount, legalAccepted, submitting]);
 
   // Submit Handler
   const handleSubmit = async (e) => {
@@ -783,8 +818,8 @@ export default function RecommendationPage() {
           </h1>
           <p style={{ fontSize: '1rem', color: '#64748b', maxWidth: '620px', margin: '0 auto' }}>
             {isRtl
-              ? 'سجّل بياناتك وأضف 10 ترشيحات لكوادر مؤهلة في العاشر من رمضان والمناطق الصناعية، وسيتم فحصها واعتمادها عبر رقم طلب رسمي.'
-              : 'Submit your profile along with 10 candidate recommendations for 10th of Ramadan industrial zones.'}
+              ? 'سجّل بياناتك كمرشح رئيسي وأضف ترشيحات لكوادر مؤهلة في العاشر من رمضان والمناطق الصناعية، وسيتم فحصها واعتمادها عبر رقم طلب رسمي.'
+              : 'Submit your profile along with qualified candidate recommendations for 10th of Ramadan industrial zones.'}
           </p>
 
           {/* Tab Selector */}
@@ -814,7 +849,7 @@ export default function RecommendationPage() {
                 transition: 'all 0.15s'
               }}
             >
-              {isRtl ? 'تقديم طلب ترشيح (11 كادر)' : 'Submit Recommendation (11 People)'}
+              {isRtl ? 'تقديم طلب ترشيح الكوادر' : 'Submit Recommendations'}
             </button>
             <button
               type="button"
@@ -881,8 +916,8 @@ export default function RecommendationPage() {
                         ? 'نظراً لتطابق رقم الهاتف مع طلب سابق باسم مختلف، تم تحويل الطلب للمراجعة الإدارية للتحقق من صحة البيانات. يُرجى المتابعة بعد 24 ساعة برقم الطلب المرجعي أدناه.'
                         : 'Due to duplicate phone verification, your request is under administrative review. Please follow up after 24 hours using the reference number below.')
                     : (isRtl
-                        ? 'تم حفظ بيانات الـ 11 كادراً بنجاح، وطلبك الآن قيد المراجعة والتدقيق الإداري.'
-                        : 'All 11 candidate profiles have been recorded and are pending review.')}
+                        ? `تم حفظ بيانات الـ ${submittedData.peopleCount || submittedData.people?.length || people.length} كادراً بنجاح، وطلبك الآن قيد المراجعة والتدقيق الإداري.`
+                        : 'All candidate profiles have been recorded and are pending review.')}
                 </p>
 
                 {/* Request Number Box */}
@@ -997,8 +1032,8 @@ export default function RecommendationPage() {
                     </h3>
                     <p style={{ fontSize: '0.875rem', color: '#b45309', margin: 0, lineHeight: 1.6 }}>
                       {isRtl
-                        ? 'يرجى العلم بأن جميع الترشيحات الـ 10 المسجلة مرتبطة ارتباطاً تاماً برقم هاتف مقدم الطلب الأساسي. يُحظر تماماً إدخال بيانات وهمية أو تضليل، وأي ضرر أو إساءة استخدام يعرّض صاحب الرقم الأساسي للمساءلة القانونية واتخاذ الإجراءات الجنائية اللازمة.'
-                        : 'All 10 recommendations are legally attached to the primary submitter phone number. False information, damage, or misuse will lead to legal action.'}
+                        ? 'يرجى العلم بأن جميع الترشيحات المسجلة مرتبطة ارتباطاً تاماً برقم هاتف مقدم الطلب الأساسي. يُحظر تماماً إدخال بيانات وهمية أو تضليل، وأي ضرر أو إساءة استخدام يعرّض صاحب الرقم الأساسي للمساءلة القانونية واتخاذ الإجراءات الجنائية اللازمة.'
+                        : 'All candidate recommendations are legally attached to the primary submitter phone number. False information, damage, or misuse will lead to legal action.'}
                     </p>
                   </div>
                 </div>
@@ -1020,10 +1055,10 @@ export default function RecommendationPage() {
                 >
                   <div>
                     <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
-                      {isRtl ? 'نسبة اكتمال بيانات المرشحين الـ 11' : '11 Candidate Profiles Progress'}
+                      {isRtl ? 'نسبة اكتمال بيانات الكوادر والترشيحات' : 'Candidate Profiles Progress'}
                     </div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#09090b' }}>
-                      {completedCount} {isRtl ? 'من 11 كادر مكتمل' : 'of 11 completed'}
+                      {completedCount} {isRtl ? `من ${people.length} كادر مكتمل` : `of ${people.length} completed`}
                     </div>
                   </div>
 
@@ -1139,19 +1174,52 @@ export default function RecommendationPage() {
                             </div>
                           </div>
 
-                          <div
-                            style={{
-                              padding: '0.25rem 0.65rem',
-                              borderRadius: '6px',
-                              background: isDuplicate ? '#fee2e2' : isPrimary ? '#09090b' : '#f8fafc',
-                              color: isDuplicate ? '#dc2626' : isPrimary ? '#ffffff' : '#64748b',
-                              fontSize: '0.75rem',
-                              fontWeight: 700
-                            }}
-                          >
-                            {isPrimary
-                              ? (isRtl ? 'صاحب الطلب' : 'Submitter')
-                              : (isRtl ? `ترشيح ${index}/10` : `Nomination ${index}/10`)}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div
+                              style={{
+                                padding: '0.25rem 0.65rem',
+                                borderRadius: '6px',
+                                background: isDuplicate ? '#fee2e2' : isPrimary ? '#09090b' : '#f8fafc',
+                                color: isDuplicate ? '#dc2626' : isPrimary ? '#ffffff' : '#64748b',
+                                fontSize: '0.75rem',
+                                fontWeight: 700
+                              }}
+                            >
+                              {isPrimary
+                                ? (isRtl ? 'صاحب الطلب (الأساسي)' : 'Submitter')
+                                : (isRtl ? `مرشح موصى به رقم ${index}` : `Recommendation #${index}`)}
+                            </div>
+
+                            {!isPrimary && people.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePerson(index)}
+                                title={isRtl ? 'حذف هذا المرشح' : 'Remove candidate'}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  padding: '0.3rem 0.65rem',
+                                  borderRadius: '6px',
+                                  background: '#fee2e2',
+                                  border: '1px solid #fecaca',
+                                  color: '#dc2626',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#fca5a5';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#fee2e2';
+                                }}
+                              >
+                                <Trash2 size={13} />
+                                <span>{isRtl ? 'حذف المرشح' : 'Remove'}</span>
+                              </button>
+                            )}
                           </div>
                         </div>
 
@@ -1542,6 +1610,40 @@ export default function RecommendationPage() {
                   })}
                 </div>
 
+                {/* Button to Add More Candidate Recommendations */}
+                <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={handleAddPerson}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.85rem 1.75rem',
+                      borderRadius: '12px',
+                      background: '#ffffff',
+                      border: '2px dashed #09090b',
+                      color: '#09090b',
+                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#09090b';
+                      e.currentTarget.style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#ffffff';
+                      e.currentTarget.style.color = '#09090b';
+                    }}
+                  >
+                    <Plus size={18} />
+                    <span>{isRtl ? `+ إضافة مرشح موصى به آخر (المرشح رقم ${people.length})` : `+ Add Another Candidate Recommendation (#${people.length})`}</span>
+                  </button>
+                </div>
+
                 {/* Legal Checkbox & Submit */}
                 <div
                   style={{
@@ -1579,8 +1681,8 @@ export default function RecommendationPage() {
                     />
                     <span>
                       {isRtl
-                        ? 'أقر أنا مقدم الطلب بأن جميع البيانات والترشيحات المسجلة (11 كادراً) صحيحة ومربوطة برقم هاتفي الشخصي، وأتحمل كامل المسؤولية القانونية عن دقة هذه البيانات وأعلم أن أي تلاعب أو أرقام وهمية يعرّضني للمساءلة القانونية والإجراءات الجنائية المباشرة.'
-                        : 'I hereby declare that all 11 submitted profiles are accurate and legally attached to my personal phone number.'}
+                        ? `أقر أنا مقدم الطلب بأن جميع البيانات والترشيحات المسجلة (${people.length} كوادر) صحيحة ومربوطة برقم هاتفي الشخصي، وأتحمل كامل المسؤولية القانونية عن دقة هذه البيانات وأعلم أن أي تلاعب أو أرقام وهمية يعرّضني للمساءلة القانونية والإجراءات الجنائية المباشرة.`
+                        : `I hereby declare that all ${people.length} submitted profiles are accurate and legally attached to my personal phone number.`}
                     </span>
                   </label>
 
@@ -1597,17 +1699,17 @@ export default function RecommendationPage() {
                     }}
                   >
                     <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                      {completedCount === 11 ? (
+                      {completedCount === people.length ? (
                         <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                           <CheckCircle2 size={16} />
-                          {isRtl ? 'اكتملت بيانات الـ 11 كادراً بنجاح' : 'All 11 profiles completed'}
+                          {isRtl ? `اكتملت بيانات الـ ${people.length} كادراً بنجاح` : `All ${people.length} profiles completed`}
                         </span>
                       ) : (
                         <span style={{ color: '#d97706', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                           <AlertTriangle size={16} />
                           {isRtl
-                            ? `يتبقى استكمال بيانات ${11 - completedCount} مرشحاً`
-                            : `${11 - completedCount} profiles remaining`}
+                            ? `يتبقى استكمال بيانات ${people.length - completedCount} مرشحاً`
+                            : `${people.length - completedCount} profiles remaining`}
                         </span>
                       )}
                     </div>
@@ -1647,7 +1749,7 @@ export default function RecommendationPage() {
                       ) : (
                         <>
                           <FileCheck size={18} />
-                          {isRtl ? 'إرسال طلب الترشيحات (11 كادر)' : 'Submit Nominations (11 People)'}
+                          {isRtl ? `إرسال طلب الترشيحات (${people.length} كادر)` : `Submit Nominations (${people.length} People)`}
                         </>
                       )}
                     </button>
@@ -1973,7 +2075,7 @@ export default function RecommendationPage() {
 
                 {/* Candidates List Preview */}
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#09090b', marginBottom: '0.75rem' }}>
-                  {isRtl ? 'الكوادر المدرجة في هذا الطلب (11 كادر):' : 'Submitted Candidates (11 Profiles):'}
+                  {isRtl ? `الكوادر المدرجة في هذا الطلب (${trackResult.people?.length || 0} كادر):` : `Submitted Candidates (${trackResult.people?.length || 0} Profiles):`}
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {trackResult.people?.map((p, idx) => (

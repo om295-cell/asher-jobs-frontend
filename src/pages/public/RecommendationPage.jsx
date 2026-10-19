@@ -2029,6 +2029,60 @@ export default function RecommendationPage() {
                   </div>
                 )}
 
+                {trackResult.status === 'rejected' && (
+                  <div
+                    style={{
+                      background: '#fef2f2',
+                      border: '1.5px solid #ef4444',
+                      borderRadius: '10px',
+                      padding: '1.25rem',
+                      marginBottom: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                      <AlertCircle size={22} style={{ color: '#dc2626', flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.95rem', color: '#991b1b', fontWeight: 800, marginBottom: '0.25rem' }}>
+                          {isRtl ? 'تم رفض هذا الطلب' : 'This request was rejected'}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#7f1d1d', lineHeight: 1.6 }}>
+                          {trackResult.adminNotes
+                            ? (isRtl ? `ملاحظات الإدارة: ${trackResult.adminNotes}` : `Admin note: ${trackResult.adminNotes}`)
+                            : (isRtl
+                              ? 'تم رفض هذا الطلب نظراً لعدم صحة بعض البيانات المدخلة. يمكنك الآن إعادة إدخال وتصحيح البيانات وتقديم طلب ترشيح جديد بكل سهولة.'
+                              : 'This request was rejected due to inaccurate data. You can now re-enter the correct data and submit a new request without issue.')}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+                      <button
+                        onClick={() => {
+                          setActiveTab('form');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        style={{
+                          background: '#dc2626',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0.5rem 1.25rem',
+                          fontSize: '0.875rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        {isRtl ? 'تقديم طلب جديد وتصحيح البيانات' : 'Submit New Corrected Request'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Submitter & Meta Details */}
                 <div
                   style={{

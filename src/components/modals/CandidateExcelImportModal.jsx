@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { adminApi } from '../../api/admin.api';
+import { jobsApi } from '../../api/jobs.api';
+import { recommendationApi } from '../../api/recommendation.api';
 import {
   Upload,
   FileSpreadsheet,
@@ -73,6 +75,24 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     newTitlesCount: 0,
     existingTitlesCount: 0
   });
+
+  // Available system jobs for selection / search
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setJobsLoading(true);
+    jobsApi
+      .getJobs()
+      .then((res) => {
+        if (res.data?.data) {
+          setJobs(res.data.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setJobsLoading(false));
+  }, [isOpen]);
 
   // Step 2 Filters & Search
   const [filterTab, setFilterTab] = useState('all'); // 'all' | 'conflicts' | 'newTitles' | 'valid'
@@ -177,7 +197,15 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
         return;
       }
 
-      setItems(data.items);
+      const initialized = (data.items || []).map((item) => ({
+        ...item,
+        titleMode: item.titleExists ? 'existing' : 'new',
+        jobId: item.matchedJob?.id || '',
+        jobSearch: '',
+        phoneChecking: false
+      }));
+
+      setItems(initialized);
       setSummary({
         totalRows: data.totalRows || 0,
         validRowsCount: data.validRowsCount || 0,
@@ -217,6 +245,146 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
   const handleItemFieldChange = (id, field, value) => {
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Handle phone changes with formatting & validation
+  const handlePhoneChange = (id, rawValue) => {
+    const digits = rawValue.replace(/\D/g, '').slice(0, 11);
+    const isValidEgyptian = /^01[0125][0-9]{8}$/.test(digits);
+
+    setItems((prev) => {
+      const duplicateInBatch = prev.some((other) => other.id !== id && other.phone === digits);
+
+      return prev.map((item) => {
+        if (item.id !== id) return item;
+
+        let phoneError = '';
+        if (!digits) {
+          phoneError = isRtl ? 'رقم الهاتف مطلوب' : 'Phone is required';
+        } else if (digits.length === 11 && !isValidEgyptian) {
+          phoneError = isRtl ? 'يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 وبطول 11 رقماً' : 'Invalid Egyptian mobile';
+        } else if (duplicateInBatch) {
+          phoneError = isRtl ? 'رقم الهاتف مكرر داخل نفس الملف' : 'Duplicate phone in file';
+        }
+
+        const isNowValid = isValidEgyptian && !duplicateInBatch;
+
+        return {
+          ...item,
+          phone: digits,
+          isPhoneValid: isNowValid,
+          phoneError,
+          phoneExists: item.existingCandidate?.phone === digits ? item.phoneExists : false,
+          includeInImport: isNowValid && !!item.name
+        };
+      });
+    });
+  };
+
+  // Handle phone blur to check against database
+  const handlePhoneBlur = async (id) => {
+    const item = items.find((i) => i.id === id);
+    if (!item || !item.phone || item.phone.length !== 11 || !item.isPhoneValid) return;
+
+    try {
+      setItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, phoneChecking: true } : it))
+      );
+      const res = await recommendationApi.checkPhone(item.phone, false, item.name);
+      const data = res.data?.data;
+
+      setItems((prev) =>
+        prev.map((it) => {
+          if (it.id !== id) return it;
+          if (data && !data.isAvailable) {
+            return {
+              ...it,
+              phoneChecking: false,
+              phoneExists: true,
+              existingCandidate: it.existingCandidate || {
+                fullName: data.existingName || (isRtl ? 'مرشح مسجل' : 'Registered Candidate'),
+                phone: item.phone,
+                currentJobTitle: data.existingJob || '',
+                careerLevel: ''
+              }
+            };
+          } else {
+            return {
+              ...it,
+              phoneChecking: false,
+              phoneExists: false
+            };
+          }
+        })
+      );
+    } catch (e) {
+      setItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, phoneChecking: false } : it))
+      );
+    }
+  };
+
+  // Switch job title mode between 'existing' (from system) and 'new' (custom/new title)
+  const handleTitleModeChange = (id, mode) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (mode === 'existing') {
+          let matched = null;
+          if (item.jobId) {
+            matched = jobs.find((j) => String(j._id) === String(item.jobId));
+          }
+          if (!matched && item.jobTitle) {
+            const cleanTitle = item.jobTitle.trim().toLowerCase();
+            matched = jobs.find(
+              (j) =>
+                (j.name && j.name.toLowerCase() === cleanTitle) ||
+                (j.nameAr && j.nameAr.toLowerCase() === cleanTitle)
+            );
+          }
+          if (!matched && jobs.length > 0) {
+            matched = jobs[0];
+          }
+
+          return {
+            ...item,
+            titleMode: 'existing',
+            titleExists: true,
+            approveNewTitle: false,
+            jobId: matched ? matched._id : '',
+            jobTitle: matched ? (matched.nameAr || matched.name) : item.jobTitle,
+            categoryId: matched ? (matched.categoryId?._id || matched.categoryId) : item.categoryId
+          };
+        } else {
+          return {
+            ...item,
+            titleMode: 'new',
+            titleExists: false,
+            approveNewTitle: true,
+            jobId: '',
+            categoryId: item.categoryId || categories[0]?._id || ''
+          };
+        }
+      })
+    );
+  };
+
+  // Handle selecting an existing job from system
+  const handleSelectExistingJob = (id, selectedJob) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          jobId: selectedJob._id,
+          jobTitle: selectedJob.nameAr || selectedJob.name,
+          categoryId: selectedJob.categoryId?._id || selectedJob.categoryId,
+          categoryName: selectedJob.categoryId?.nameAr || selectedJob.categoryId?.name || '',
+          titleExists: true,
+          approveNewTitle: false
+        };
+      })
     );
   };
 
@@ -963,33 +1131,66 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
                           )}
                         </td>
 
-                        {/* Requirement 2: Phone Number & Conflict Warning */}
-                        <td style={{ padding: '0.65rem 0.75rem' }}>
+                        {/* Requirement 2: Editable Phone Number & Conflict Warning */}
+                        <td style={{ padding: '0.65rem 0.75rem', minWidth: 230 }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '0.875rem' }}>{item.phone}</span>
+                              <div style={{ position: 'relative', flex: 1 }}>
+                                <input
+                                  type="text"
+                                  value={item.phone || ''}
+                                  onChange={(e) => handlePhoneChange(item.id, e.target.value)}
+                                  onBlur={() => handlePhoneBlur(item.id)}
+                                  className="form-control"
+                                  placeholder="01xxxxxxxxx"
+                                  maxLength={11}
+                                  dir="ltr"
+                                  style={{
+                                    fontSize: '0.8125rem',
+                                    padding: '0.35rem 0.5rem',
+                                    fontWeight: 700,
+                                    fontFamily: 'monospace',
+                                    width: '100%',
+                                    border: !item.isPhoneValid ? '1.5px solid #ef4444' : item.phoneExists ? '1.5px solid #f87171' : '1px solid #cbd5e1',
+                                    background: '#ffffff'
+                                  }}
+                                />
+                                {item.phoneChecking && (
+                                  <span style={{ position: 'absolute', top: '50%', [isRtl ? 'left' : 'right']: '6px', transform: 'translateY(-50%)', fontSize: '0.68rem', color: '#64748b' }}>
+                                    ...
+                                  </span>
+                                )}
+                              </div>
+
                               {item.phoneExists ? (
-                                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                   <AlertTriangle size={11} />
                                   {isRtl ? 'مسجل مسبقاً' : 'Exists'}
                                 </span>
                               ) : item.isPhoneValid ? (
-                                <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                   <CheckCircle2 size={11} />
-                                  {isRtl ? 'رقم جديد' : 'New Phone'}
+                                  {isRtl ? 'صالح' : 'Valid'}
                                 </span>
                               ) : (
-                                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.1rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800 }}>
-                                  {item.phoneError || (isRtl ? 'رقم غير صحيح' : 'Invalid')}
+                                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, whiteSpace: 'nowrap' }}>
+                                  {isRtl ? 'غير صالح' : 'Invalid'}
                                 </span>
                               )}
                             </div>
+
+                            {item.phoneError && (
+                              <div style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <XCircle size={11} />
+                                <span>{item.phoneError}</span>
+                              </div>
+                            )}
 
                             {/* Warning Box for Phone Conflict */}
                             {item.phoneExists && item.existingCandidate && (
                               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.4rem 0.6rem', fontSize: '0.75rem' }}>
                                 <div style={{ color: '#991b1b', fontWeight: 700, marginBottom: '0.25rem' }}>
-                                  {isRtl ? `⚠️ مسجل مسبقاً باسم: ${item.existingCandidate.fullName} (${item.existingCandidate.currentJobTitle})` : `⚠️ Belongs to: ${item.existingCandidate.fullName}`}
+                                  {isRtl ? `⚠️ مسجل مسبقاً باسم: ${item.existingCandidate.fullName} (${item.existingCandidate.currentJobTitle || 'غير محدد'})` : `⚠️ Belongs to: ${item.existingCandidate.fullName}`}
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: item.replaceChoice === 'replace' ? '#b91c1c' : '#64748b', fontWeight: item.replaceChoice === 'replace' ? 800 : 500 }}>
@@ -1016,50 +1217,155 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
                           </div>
                         </td>
 
-                        {/* Requirement 3: Job Title & Approval Warning */}
-                        <td style={{ padding: '0.65rem 0.75rem' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              <input
-                                type="text"
-                                value={item.jobTitle}
-                                onChange={(e) => handleItemFieldChange(item.id, 'jobTitle', e.target.value)}
-                                className="form-control"
-                                style={{ fontSize: '0.8125rem', padding: '0.35rem 0.5rem', fontWeight: 600, flex: 1 }}
-                              />
+                        {/* Requirement 3: Job Title & Selection from System vs New Title */}
+                        <td style={{ padding: '0.65rem 0.75rem', minWidth: 280 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            {/* Mode Toggle Pills */}
+                            <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: '2px', borderRadius: '6px', width: 'fit-content', border: '1px solid #e2e8f0' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleTitleModeChange(item.id, 'existing')}
+                                style={{
+                                  padding: '0.2rem 0.55rem',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  background: item.titleMode === 'existing' ? '#0f172a' : 'transparent',
+                                  color: item.titleMode === 'existing' ? '#ffffff' : '#64748b',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                {isRtl ? 'اختر من مسميات النظام' : 'Select from System'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleTitleModeChange(item.id, 'new')}
+                                style={{
+                                  padding: '0.2rem 0.55rem',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  background: item.titleMode === 'new' ? '#d97706' : 'transparent',
+                                  color: item.titleMode === 'new' ? '#ffffff' : '#64748b',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                {isRtl ? '+ إضافة مسمى جديد' : '+ Add New Title'}
+                              </button>
                             </div>
 
-                            {item.titleExists ? (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: '#166534' }}>
-                                <CheckCircle2 size={13} color="#16a34a" />
-                                <span>{isRtl ? `مسمى معتمد (${item.matchedJob?.categoryName || 'مصنف'})` : `Approved Title (${item.matchedJob?.categoryName})`}</span>
+                            {item.titleMode === 'existing' ? (
+                              /* Option A: Select or Search from System Jobs */
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                {/* Search filter for system jobs */}
+                                <div style={{ position: 'relative' }}>
+                                  <Search size={12} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [isRtl ? 'right' : 'left']: '6px', color: '#94a3b8' }} />
+                                  <input
+                                    type="text"
+                                    placeholder={isRtl ? 'بحث لتصفية المسميات...' : 'Search jobs...'}
+                                    value={item.jobSearch || ''}
+                                    onChange={(e) => handleItemFieldChange(item.id, 'jobSearch', e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      fontSize: '0.72rem',
+                                      padding: '0.25rem 0.4rem',
+                                      [isRtl ? 'paddingRight' : 'paddingLeft']: '1.5rem',
+                                      borderRadius: '5px',
+                                      border: '1px solid #cbd5e1',
+                                      background: '#f8fafc'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Select Dropdown */}
+                                <select
+                                  value={item.jobId || ''}
+                                  onChange={(e) => {
+                                    const chosenJob = jobs.find((j) => String(j._id) === e.target.value);
+                                    if (chosenJob) {
+                                      handleSelectExistingJob(item.id, chosenJob);
+                                    }
+                                  }}
+                                  className="form-control"
+                                  style={{
+                                    fontSize: '0.78rem',
+                                    padding: '0.35rem 0.5rem',
+                                    fontWeight: 700,
+                                    color: item.jobId ? '#0f172a' : '#64748b',
+                                    border: item.jobId ? '1.5px solid #22c55e' : '1.5px solid #f59e0b',
+                                    background: '#ffffff'
+                                  }}
+                                >
+                                  <option value="">{isRtl ? '-- اختر مسمى وظيفي من النظام --' : '-- Choose job title --'}</option>
+                                  {jobs
+                                    .filter((j) => {
+                                      if (!item.jobSearch?.trim()) return true;
+                                      const q = item.jobSearch.trim().toLowerCase();
+                                      const name = (j.name || '').toLowerCase();
+                                      const nameAr = (j.nameAr || '').toLowerCase();
+                                      const cat = (j.categoryId?.nameAr || j.categoryId?.name || '').toLowerCase();
+                                      return name.includes(q) || nameAr.includes(q) || cat.includes(q);
+                                    })
+                                    .map((j) => (
+                                      <option key={j._id} value={j._id}>
+                                        {isRtl ? j.nameAr || j.name : j.name || j.nameAr} {j.categoryId ? `(${isRtl ? j.categoryId.nameAr || j.categoryId.name : j.categoryId.name})` : ''}
+                                      </option>
+                                    ))}
+                                </select>
+
+                                {item.jobId ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: '#166534', fontWeight: 600 }}>
+                                    <CheckCircle2 size={12} color="#16a34a" />
+                                    <span>{isRtl ? `مسمى معتمد: ${item.jobTitle}` : `Approved: ${item.jobTitle}`}</span>
+                                  </div>
+                                ) : (
+                                  <div style={{ color: '#d97706', fontSize: '0.68rem', fontWeight: 600 }}>
+                                    {isRtl ? '⚠️ يرجى اختيار مسمى وظيفي من القائمة' : '⚠️ Please choose a job title'}
+                                  </div>
+                                )}
                               </div>
                             ) : (
-                              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '0.4rem 0.55rem', fontSize: '0.72rem' }}>
-                                <div style={{ color: '#92400e', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
-                                  <AlertTriangle size={12} />
-                                  {isRtl ? 'مسمى جديد غير موجود في قاعدة المسميات' : 'New Title: Not in Database'}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontWeight: 750, color: item.approveNewTitle ? '#b45309' : '#64748b' }}>
-                                    <input
-                                      type="checkbox"
-                                      checked={item.approveNewTitle}
-                                      onChange={() => handleToggleApproveTitle(item.id)}
-                                    />
-                                    {isRtl ? 'اعتماد وإضافة للمسميات' : 'Approve & Add to Titles'}
-                                  </label>
+                              /* Option B: Enter Custom Job Title & Add as New Title */
+                              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '0.45rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <input
+                                  type="text"
+                                  value={item.jobTitle || ''}
+                                  placeholder={isRtl ? 'اكتب اسم المسمى الوظيفي الجديد...' : 'New job title...'}
+                                  onChange={(e) => handleItemFieldChange(item.id, 'jobTitle', e.target.value)}
+                                  className="form-control"
+                                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.5rem', fontWeight: 700, background: '#ffffff', border: '1px solid #f59e0b' }}
+                                />
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '0.7rem', color: '#92400e', fontWeight: 700 }}>
+                                    {isRtl ? 'التصنيف:' : 'Category:'}
+                                  </span>
                                   <select
                                     className="form-control"
-                                    style={{ fontSize: '0.72rem', padding: '0.15rem 0.4rem', height: 'auto', width: 'auto' }}
-                                    value={item.categoryId}
+                                    style={{ fontSize: '0.72rem', padding: '0.2rem 0.4rem', height: 'auto', flex: 1, minWidth: 120, background: '#ffffff' }}
+                                    value={item.categoryId || ''}
                                     onChange={(e) => handleItemFieldChange(item.id, 'categoryId', e.target.value)}
                                   >
                                     {categories.map((c) => (
-                                      <option key={c._id} value={c._id}>{isRtl ? (c.nameAr || c.name) : (c.name || c.nameAr)}</option>
+                                      <option key={c._id} value={c._id}>
+                                        {isRtl ? (c.nameAr || c.name) : (c.name || c.nameAr)}
+                                      </option>
                                     ))}
                                   </select>
                                 </div>
+
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, color: item.approveNewTitle ? '#b45309' : '#64748b', margin: 0 }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(item.approveNewTitle)}
+                                    onChange={() => handleToggleApproveTitle(item.id)}
+                                  />
+                                  <span>{isRtl ? 'اعتماد وإضافة هذا المسمى لقاعدة بيانات النظام' : 'Approve & add to system'}</span>
+                                </label>
                               </div>
                             )}
                           </div>

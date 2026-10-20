@@ -5,8 +5,18 @@ import { searchApi } from '../../api/search.api'
 import { jobsApi } from '../../api/jobs.api'
 import { companyApi } from '../../api/company.api'
 import { Link } from 'react-router-dom'
-import { Search, SlidersHorizontal, Download, Phone, MessageCircle, Star, X, ShoppingCart, Sparkles, Clock, ChevronDown, Check } from 'lucide-react'
-import CandidateCard from '../../components/ui/CandidateCard'
+import {
+  Search,
+  SlidersHorizontal,
+  Download,
+  Phone,
+  MessageCircle,
+  Eye,
+  X,
+  ChevronDown,
+  Check,
+  FileSpreadsheet
+} from 'lucide-react'
 import CandidateDetailModal from '../../components/modals/CandidateDetailModal'
 import Pagination from '../../components/ui/Pagination'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -235,27 +245,17 @@ export default function CompanySearch() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [showFilters, setShowFilters] = useState(true)
-  const [entitlements, setEntitlements] = useState(null)
   const [filters, setFilters] = useState({
     desiredJobId: '',
     expRange: ''
   })
 
-  const fetchEntitlements = useCallback(async () => {
-    try {
-      const res = await companyApi.getEntitlements()
-      if (res.data?.success) {
-        setEntitlements(res.data.data)
-      }
-    } catch (_) {}
-  }, [])
-
   useEffect(() => {
     jobsApi.getJobs().then(res => setJobs(res.data?.data || [])).catch(() => {})
-    fetchEntitlements()
-  }, [fetchEntitlements])
+  }, [])
 
   const doSearch = useCallback((currentPage = 1) => {
     setLoading(true)
@@ -269,15 +269,21 @@ export default function CompanySearch() {
     searchApi.searchCandidates(params).then(res => {
       setCandidates(res.data?.data || [])
       setTotal(res.data?.total || 0)
-      fetchEntitlements()
     }).catch(() => showToast(isRtl ? 'خطأ في البحث' : 'Search error', 'error'))
       .finally(() => setLoading(false))
-  }, [filters, isRtl, showToast, fetchEntitlements])
+  }, [filters, isRtl, showToast])
 
-  useEffect(() => { doSearch(1); setPage(1) }, [])
+  const handleSearch = (e) => {
+    if (e && e.preventDefault) e.preventDefault()
+    setHasSearched(true)
+    setPage(1)
+    doSearch(1)
+  }
 
-  const handleSearch = (e) => { e.preventDefault(); setPage(1); doSearch(1) }
-  const handlePageChange = (p) => { setPage(p); doSearch(p) }
+  const handlePageChange = (p) => {
+    setPage(p)
+    doSearch(p)
+  }
 
   const handleContact = async (candidateId, type) => {
     try {
@@ -289,24 +295,26 @@ export default function CompanySearch() {
     }
   }
 
-  const handleExport = async () => {
+  const handleExport = async (format = 'xlsx') => {
     try {
-      const params = {}
+      const params = { format }
       if (filters.desiredJobId) params.desiredJobId = filters.desiredJobId
       if (filters.governorate) params.governorate = filters.governorate
       const res = await companyApi.exportCandidates(params)
-      fetchEntitlements()
-      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' })
+      const mime = format === 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'text/csv;charset=utf-8;'
+      const blob = new Blob([res.data], { type: mime })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `candidates-${Date.now()}.csv`
+      a.download = `candidates-${Date.now()}.${format}`
       a.click()
       URL.revokeObjectURL(url)
       showToast(
         isRtl
-          ? 'تم تصدير أول 10 مرشحين بنجاح (الحد الأقصى للملف الواحد)'
-          : 'Export successful (limited to 10 candidates per file)',
+          ? 'تم تصدير أول 10 مرشحين بنجاح كملف إكسيل'
+          : 'Export successful (first 10 candidates)',
         'success'
       )
     } catch (err) {
@@ -327,139 +335,73 @@ export default function CompanySearch() {
   return (
     <div style={{ padding: '2rem 0', background: 'var(--bg-page)', minHeight: '80vh' }}>
       <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {/* Page Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+            <h1 style={{ fontSize: '1.65rem', fontWeight: 900, color: 'var(--slate-900)', margin: '0 0 0.35rem' }}>
               {isRtl ? 'البحث عن مرشحين' : 'Search Candidates'}
             </h1>
-            <p style={{ color: 'var(--slate-500)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              {isRtl ? `${total} مرشح متاح في قاعدة البيانات (التصدير بحد أقصى 10 مرشحين في الملف)` : `${total} candidates available (export limited to max 10 candidates per file)`}
+            <p style={{ color: 'var(--slate-500)', fontSize: '0.9rem', margin: 0 }}>
+              {isRtl
+                ? 'ابحث بالمهنة وسنوات الخبرة واستعرض المرشحين في جدول منسق مع إمكانية تحميل شيت إكسيل'
+                : 'Search by profession and experience, view in Excel-style table, and export.'}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button onClick={() => setShowFilters(!showFilters)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
-              <SlidersHorizontal size={16} />
-              {isRtl ? 'فلاتر' : 'Filters'}
-            </button>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
-              onClick={handleExport}
-              title={isRtl ? 'تصدير أول 10 مرشحين كملف CSV' : 'Export top 10 candidates as CSV'}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: 'var(--emerald)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.6rem 1rem',
+                background: '#fff',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                color: 'var(--slate-700)'
+              }}
             >
-              <Download size={16} />
-              {isRtl ? 'تصدير CSV (أول 10)' : 'Export CSV (Max 10)'}
+              <SlidersHorizontal size={16} />
+              {isRtl ? (showFilters ? 'إخفاء الفلاتر' : 'إظهار الفلاتر') : (showFilters ? 'Hide Filters' : 'Show Filters')}
             </button>
+            {hasSearched && candidates.length > 0 && (
+              <button
+                onClick={() => handleExport('xlsx')}
+                title={isRtl ? 'تصدير أول 10 مرشحين كملف إكسيل Excel' : 'Export top 10 candidates as Excel (.xlsx)'}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.65rem 1.25rem',
+                  background: '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+                }}
+              >
+                <FileSpreadsheet size={16} />
+                <span>{isRtl ? 'تصدير إكسيل (أول 10)' : 'Export Excel (Top 10)'}</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Cairo Daily Quota & Subscription Status Banner */}
-        {entitlements && (
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid var(--border)',
-              borderRadius: '16px',
-              padding: '1.25rem',
-              marginBottom: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1rem'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '999px',
-                  fontWeight: 800,
-                  fontSize: '0.8125rem',
-                  background: entitlements.plan === 'Platinum' ? '#e0e7ff' : entitlements.plan === 'Gold' ? '#fef3c7' : '#e2e8f0',
-                  color: entitlements.plan === 'Platinum' ? '#3730a3' : entitlements.plan === 'Gold' ? '#92400e' : '#334155',
-                  border: '1px solid currentColor'
-                }}
-              >
-                باقة: {entitlements.plan}
-              </span>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
-                <span>عمليات البحث اليومية المتبقية:</span>
-                <strong style={{ color: 'var(--primary)', fontWeight: 800 }}>
-                  {entitlements.remainingDailySearches} / {entitlements.limits?.dailySearchLimit}
-                </strong>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--slate-700)' }}>
-                <span>تاريخ اليوم (القاهرة):</span>
-                <span style={{ fontWeight: 600 }}>{entitlements.cairoDate}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {entitlements.limits?.cartEnabled && (
-                <Link
-                  to="/company/cart"
-                  className="btn"
-                  style={{
-                    background: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1px solid #bfdbfe',
-                    padding: '0.45rem 0.85rem',
-                    borderRadius: '10px',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    textDecoration: 'none'
-                  }}
-                >
-                  <ShoppingCart size={15} />
-                  <span>سلة المرشحين (تصدير مجمع)</span>
-                </Link>
-              )}
-
-              {entitlements.limits?.platinumBrowseEnabled && (
-                <Link
-                  to="/company/browse"
-                  className="btn"
-                  style={{
-                    background: 'linear-gradient(135deg, #4338ca, #6366f1)',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '0.45rem 0.85rem',
-                    borderRadius: '10px',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    textDecoration: 'none',
-                    boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)'
-                  }}
-                >
-                  <Sparkles size={15} />
-                  <span>بوابة التصفح الحصرية (VIP)</span>
-                </Link>
-              )}
-
-              <span style={{ fontSize: '0.75rem', color: 'var(--slate-500)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <Clock size={12} />
-                <span>تتجدد الحصص 00:00 بتوقيت القاهرة</span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Filters */}
+        {/* Filters Box */}
         {showFilters && (
-          <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
+          <div className="card card-responsive" style={{ marginBottom: '1.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
             <form onSubmit={handleSearch}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">{isRtl ? 'المهنة' : 'Job Title'}</label>
+                  <label className="form-label" style={{ fontWeight: 700, marginBottom: '0.4rem' }}>
+                    {isRtl ? 'المهنة المطلوبة' : 'Required Profession'}
+                  </label>
                   <SearchableJobFilter
                     jobs={jobs}
                     selectedJobId={filters.desiredJobId}
@@ -468,47 +410,351 @@ export default function CompanySearch() {
                   />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">{isRtl ? 'سنوات الخبرة' : 'Experience Range'}</label>
-                  <select className="form-control" value={filters.expRange} onChange={e => setFilters(p => ({ ...p, expRange: e.target.value }))}>
+                  <label className="form-label" style={{ fontWeight: 700, marginBottom: '0.4rem' }}>
+                    {isRtl ? 'سنوات الخبرة' : 'Experience Range'}
+                  </label>
+                  <select
+                    className="form-control"
+                    value={filters.expRange}
+                    onChange={e => setFilters(p => ({ ...p, expRange: e.target.value }))}
+                    style={{ borderColor: '#000000', minHeight: '42px', fontWeight: 600 }}
+                  >
                     {EXP_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                   </select>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: isRtl ? 'flex-start' : 'flex-end', gap: '0.75rem' }}>
-                <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.65rem 2rem',
+                    fontWeight: 800,
+                    fontSize: '0.95rem'
+                  }}
+                >
                   <Search size={18} />
-                  {isRtl ? 'بحث' : 'Search'}
+                  <span>{isRtl ? 'بحث' : 'Search'}</span>
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Results */}
-        {loading ? <LoadingSpinner /> : candidates.length === 0 ? (
+        {/* Results Area (ONLY displays after search) */}
+        {!hasSearched ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '4rem 1.5rem',
+              background: '#ffffff',
+              borderRadius: '16px',
+              border: '1.5px dashed #cbd5e1',
+              margin: '1.5rem 0'
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: '#f1f5f9',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem',
+                color: '#0f172a'
+              }}
+            >
+              <Search size={30} />
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem' }}>
+              {isRtl ? 'ابحث عن الكوادر المطلوبة' : 'Search for Required Candidates'}
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '0.95rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
+              {isRtl
+                ? 'اختر المهنة المطلوبة والخبرة من الفلاتر أعلاه ثم اضغط على زر "بحث" لعرض جدول المرشحين بصيغة إكسيل وتحميل الشيت مباشرة.'
+                : 'Select the required job title and experience from the filters above, then click "Search" to view the Excel-style table and download the sheet directly.'}
+            </p>
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="btn btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.75rem', fontWeight: 700 }}
+            >
+              <Search size={18} />
+              <span>{isRtl ? 'عرض الكوادر المتاحة حالياً' : 'Show Currently Available Candidates'}</span>
+            </button>
+          </div>
+        ) : loading ? (
+          <div style={{ padding: '4rem 0', textAlign: 'center' }}>
+            <LoadingSpinner />
+          </div>
+        ) : candidates.length === 0 ? (
           <EmptyState
-            title={isRtl ? 'لا توجد نتائج' : 'No Results Found'}
-            description={isRtl ? 'جرّب تغيير معايير البحث' : 'Try adjusting your search filters'}
+            title={isRtl ? 'لا توجد نتائج مطابقة' : 'No Results Found'}
+            description={isRtl ? 'جرّب اختيار مسمى وظيفي آخر أو إزالة فلتر سنوات الخبرة' : 'Try selecting another job title or clearing experience filter'}
           />
         ) : (
-          <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              {candidates.map(candidate => (
-                <CandidateCard
-                  key={candidate._id || candidate.id}
-                  candidate={candidate}
-                  onViewDetails={() => setSelectedCandidate(candidate)}
-                  onClick={() => setSelectedCandidate(candidate)}
-                  onContact={handleContact}
-                />
-              ))}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '14px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+              overflow: 'hidden',
+              marginBottom: '2rem'
+            }}
+          >
+            {/* Prominent Action Bar with Download Button */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1.1rem 1.5rem',
+                borderBottom: '2px solid #e2e8f0',
+                background: '#f8fafc',
+                flexWrap: 'wrap',
+                gap: '1rem'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '1.1rem' }}>
+                  {isRtl ? `نتائج البحث (${total} مرشح متاح)` : `Search Results (${total} Available)`}
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    padding: '0.2rem 0.55rem',
+                    borderRadius: '6px',
+                    background: '#e2e8f0',
+                    color: '#334155'
+                  }}
+                >
+                  {isRtl ? 'جدول بنظام الإكسيل' : 'Excel Row View'}
+                </span>
+              </div>
+
+              {/* VERY PROMINENT EXCEL DOWNLOAD BUTTON */}
+              <button
+                onClick={() => handleExport('xlsx')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.75rem 1.5rem',
+                  background: '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 900,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 3px 8px rgba(5, 150, 105, 0.35)',
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#047857')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#059669')}
+                title={isRtl ? 'تحميل أول 10 مرشحين كشيت إكسيل منسق (.xlsx)' : 'Download top 10 candidates as Excel (.xlsx)'}
+              >
+                <Download size={20} />
+                <span>{isRtl ? 'تحميل شيت إكسيل (أول 10 مرشحين)' : 'Download Excel Sheet (Top 10)'}</span>
+              </button>
             </div>
-            <Pagination
-              currentPage={page}
-              totalPages={Math.ceil(total / 12)}
-              onPageChange={handlePageChange}
-            />
-          </>
+
+            {/* Excel-Style Table View */}
+            <div style={{ overflowX: 'auto' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  textAlign: isRtl ? 'right' : 'left',
+                  fontSize: '0.875rem'
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      borderBottom: '2px solid #cbd5e1',
+                      fontSize: '0.825rem',
+                      fontWeight: 800
+                    }}
+                  >
+                    <th style={{ padding: '0.85rem 1rem', width: '45px', textAlign: 'center' }}>#</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'اسم المرشح' : 'Candidate Name'}</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'رقم الهاتف والتواصل' : 'Phone & Contact'}</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'المسمى الأساسي' : 'Primary Job'}</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'مستوى الخبرة' : 'Career Level'}</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'مسمى إضافي 2' : 'Secondary Job'}</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>{isRtl ? 'مسمى إضافي 3' : 'Tertiary Job'}</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'center', width: '90px' }}>{isRtl ? 'عرض' : 'View'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {candidates.map((c, idx) => {
+                    const rowNumber = (page - 1) * 12 + idx + 1
+                    const primaryJobTitle = c.desiredJobId
+                      ? (isRtl ? c.desiredJobId.nameAr || c.desiredJobId.name : c.desiredJobId.name || c.desiredJobId.nameAr)
+                      : (isRtl ? 'غير محدد' : 'N/A')
+                    const secondJobTitle = c.secondJobId
+                      ? (isRtl ? c.secondJobId.nameAr || c.secondJobId.name : c.secondJobId.name || c.secondJobId.nameAr)
+                      : '—'
+                    const thirdJobTitle = c.thirdJobId
+                      ? (isRtl ? c.thirdJobId.nameAr || c.thirdJobId.name : c.thirdJobId.name || c.thirdJobId.nameAr)
+                      : '—'
+
+                    return (
+                      <tr
+                        key={c._id || c.id || idx}
+                        style={{
+                          borderBottom: '1px solid #e2e8f0',
+                          background: idx % 2 === 0 ? '#ffffff' : '#fcfcfd',
+                          transition: 'background 0.12s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? '#ffffff' : '#fcfcfd')}
+                      >
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'center', color: '#64748b', fontWeight: 700 }}>
+                          {rowNumber}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div
+                            onClick={() => setSelectedCandidate(c)}
+                            style={{ fontWeight: 800, color: '#0f172a', cursor: 'pointer' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                          >
+                            {c.fullName}
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontWeight: 700, color: '#09090b', direction: 'ltr', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                              {c.phone}
+                            </span>
+                            <div style={{ display: 'inline-flex', gap: '0.3rem' }}>
+                              <a
+                                href={`tel:${c.phone}`}
+                                onClick={() => handleContact(c._id, 'Phone')}
+                                title={isRtl ? 'اتصال هاتف' : 'Call'}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '6px',
+                                  background: '#eff6ff',
+                                  color: '#2563eb',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <Phone size={14} />
+                              </a>
+                              <a
+                                href={`https://wa.me/20${(c.phone || '').replace(/^0/, '')}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => handleContact(c._id, 'WhatsApp')}
+                                title={isRtl ? 'مراسلة واتساب' : 'WhatsApp'}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '6px',
+                                  background: '#ecfdf5',
+                                  color: '#059669',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <MessageCircle size={14} />
+                              </a>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 700, color: '#1e293b' }}>
+                              {primaryJobTitle}
+                            </span>
+                            {c.matchPriority && (
+                              <span
+                                style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 800,
+                                  padding: '0.1rem 0.4rem',
+                                  borderRadius: '4px',
+                                  background: c.matchPriority === 1 ? '#dcfce7' : c.matchPriority === 2 ? '#dbeafe' : '#fef3c7',
+                                  color: c.matchPriority === 1 ? '#15803d' : c.matchPriority === 2 ? '#1d4ed8' : '#b45309'
+                                }}
+                              >
+                                {isRtl ? `أولوية ${c.matchPriority}` : `Priority ${c.matchPriority}`}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', color: '#334155', fontWeight: 600 }}>
+                          {c.careerLevel || '—'}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>
+                          <div>{secondJobTitle}</div>
+                          {c.secondCareerLevel && (
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{c.secondCareerLevel}</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>
+                          <div>{thirdJobTitle}</div>
+                          {c.thirdCareerLevel && (
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{c.thirdCareerLevel}</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                          <button
+                            onClick={() => setSelectedCandidate(c)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.4rem 0.75rem',
+                              borderRadius: '6px',
+                              background: '#f1f5f9',
+                              border: '1px solid #cbd5e1',
+                              color: '#1e293b',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title={isRtl ? 'عرض تفاصيل المرشح' : 'View Profile'}
+                          >
+                            <Eye size={14} />
+                            <span>{isRtl ? 'عرض' : 'View'}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Pagination Footer */}
+            <div style={{ padding: '1rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'center' }}>
+              <Pagination
+                currentPage={page}
+                totalPages={Math.ceil(total / 12)}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          </div>
         )}
       </div>
 

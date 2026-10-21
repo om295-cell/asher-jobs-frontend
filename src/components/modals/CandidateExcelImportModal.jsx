@@ -97,10 +97,13 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
   // Step 2 Filters & Search
   const [filterTab, setFilterTab] = useState('all'); // 'all' | 'conflicts' | 'newTitles' | 'valid'
   const [tableSearch, setTableSearch] = useState('');
+  const [tablePage, setTablePage] = useState(1);
+  const [tablePageSize, setTablePageSize] = useState(50); // 25 | 50 | 100 | 'all'
 
   // Step 3: Processing & Results
   const [processing, setProcessing] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, percentage: 0 });
 
   // Quick candidate search for main candidate
   useEffect(() => {
@@ -118,6 +121,11 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
 
     return () => clearTimeout(timer);
   }, [mainSearch, mainMode, isOpen]);
+
+  // Reset table page when search or tab filters change
+  useEffect(() => {
+    setTablePage(1);
+  }, [filterTab, tableSearch]);
 
   // Filtered Items for Display in Step 2 Table (Hook called unconditionally)
   const filteredItems = useMemo(() => {
@@ -140,6 +148,15 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     });
   }, [items, filterTab, tableSearch]);
 
+  const totalTablePages = Math.max(1, Math.ceil(filteredItems.length / (tablePageSize === 'all' ? filteredItems.length || 1 : Number(tablePageSize))));
+
+  const paginatedItems = useMemo(() => {
+    if (tablePageSize === 'all') return filteredItems;
+    const size = Number(tablePageSize);
+    const start = (tablePage - 1) * size;
+    return filteredItems.slice(start, start + size);
+  }, [filteredItems, tablePage, tablePageSize]);
+
   const handleReset = () => {
     setStep(1);
     setFile(null);
@@ -148,6 +165,8 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     setProcessing(false);
     setSelectedMainCandidate(null);
     setMainSearch('');
+    setTablePage(1);
+    setImportProgress({ current: 0, total: 0, percentage: 0 });
   };
 
   const handleClose = () => {
@@ -250,7 +269,11 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
 
   // Handle phone changes with formatting & validation
   const handlePhoneChange = (id, rawValue) => {
-    const digits = rawValue.replace(/\D/g, '').slice(0, 11);
+    let digits = rawValue.replace(/\D/g, '');
+    if (digits.length === 10 && /^1[0125]/.test(digits)) {
+      digits = '0' + digits;
+    }
+    digits = digits.slice(0, 11);
     const isValidEgyptian = /^01[0125][0-9]{8}$/.test(digits);
 
     setItems((prev) => {
@@ -428,19 +451,63 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
     try {
       setProcessing(true);
       setStep(3);
+      setImportProgress({ current: 0, total: includedItems.length, percentage: 0 });
 
-      const payload = {
-        items: includedItems,
-        mainCandidate:
-          mainMode === 'existing'
-            ? { mode: 'existing', candidateId: selectedMainCandidate.id }
-            : { mode: 'new', ...newMainForm }
+      const CHUNK_SIZE = 50;
+      let aggregatedResult = {
+        mainCandidate: null,
+        totalProcessed: 0,
+        createdCount: 0,
+        replacedCount: 0,
+        skippedCount: 0,
+        newJobsCreatedCount: 0,
+        errors: []
       };
 
-      const res = await adminApi.executeCandidateImport(payload);
-      const data = res.data?.data;
-      setImportResult(data);
-      showToast(isRtl ? 'تم استيراد قاعدة بيانات المرشحين واعتماد المسميات بنجاح!' : 'Candidates imported successfully!', 'success');
+      let currentMain =
+        mainMode === 'existing'
+          ? { mode: 'existing', candidateId: selectedMainCandidate.id }
+          : { mode: 'new', ...newMainForm };
+
+      for (let i = 0; i < includedItems.length; i += CHUNK_SIZE) {
+        const chunk = includedItems.slice(i, i + CHUNK_SIZE);
+        const payload = {
+          items: chunk,
+          mainCandidate: currentMain
+        };
+
+        const res = await adminApi.executeCandidateImport(payload);
+        const data = res.data?.data;
+
+        if (data) {
+          aggregatedResult.mainCandidate = data.mainCandidate || aggregatedResult.mainCandidate;
+          aggregatedResult.totalProcessed += data.totalProcessed || chunk.length;
+          aggregatedResult.createdCount += data.createdCount || 0;
+          aggregatedResult.replacedCount += data.replacedCount || 0;
+          aggregatedResult.skippedCount += data.skippedCount || 0;
+          aggregatedResult.newJobsCreatedCount += data.newJobsCreatedCount || 0;
+          if (Array.isArray(data.errors)) {
+            aggregatedResult.errors.push(...data.errors);
+          }
+
+          // If main candidate was newly created in first chunk, use its resolved ID for remaining chunks
+          if (data.mainCandidate?.id) {
+            currentMain = { mode: 'existing', candidateId: data.mainCandidate.id };
+          }
+        }
+
+        const processedSoFar = Math.min(i + CHUNK_SIZE, includedItems.length);
+        const pct = Math.round((processedSoFar / includedItems.length) * 100);
+        setImportProgress({ current: processedSoFar, total: includedItems.length, percentage: pct });
+      }
+
+      setImportResult(aggregatedResult);
+      showToast(
+        isRtl
+          ? `تم استيراد ${aggregatedResult.createdCount} مرشح جديد وتحديث ${aggregatedResult.replacedCount} بنجاح!`
+          : `Imported ${aggregatedResult.createdCount} candidates and updated ${aggregatedResult.replacedCount} successfully!`,
+        'success'
+      );
       if (onFinished) onFinished();
     } catch (err) {
       showToast(err.response?.data?.message || (isRtl ? 'حدث خطأ أثناء تنفيذ الاستيراد' : 'Import failed'), 'error');
@@ -1087,7 +1154,7 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredItems.map((item, idx) => (
+                    {paginatedItems.map((item, idx) => (
                       <tr
                         key={item.id}
                         style={{
@@ -1401,6 +1468,63 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
                   </tbody>
                 </table>
               </div>
+
+              {/* Table Pagination Controls */}
+              {filteredItems.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', padding: '0.5rem 0.25rem' }}>
+                  <div style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 600 }}>
+                    {isRtl
+                      ? `عرض ${(tablePage - 1) * (tablePageSize === 'all' ? 1 : Number(tablePageSize)) + 1} - ${Math.min(tablePage * (tablePageSize === 'all' ? filteredItems.length : Number(tablePageSize)), filteredItems.length)} من إجمالي ${filteredItems.length} مرشح`
+                      : `Showing ${(tablePage - 1) * (tablePageSize === 'all' ? 1 : Number(tablePageSize)) + 1} - ${Math.min(tablePage * (tablePageSize === 'all' ? filteredItems.length : Number(tablePageSize)), filteredItems.length)} of ${filteredItems.length} candidates`}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: '#64748b' }}>
+                      <span>{isRtl ? 'لكل صفحة:' : 'Per page:'}</span>
+                      <select
+                        value={tablePageSize}
+                        onChange={(e) => {
+                          setTablePageSize(e.target.value === 'all' ? 'all' : Number(e.target.value));
+                          setTablePage(1);
+                        }}
+                        className="form-control"
+                        style={{ fontSize: '0.75rem', padding: '0.2rem 0.4rem', height: 'auto', width: 'auto' }}
+                      >
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value="all">{isRtl ? 'الكل' : 'All'}</option>
+                      </select>
+                    </div>
+
+                    {tablePageSize !== 'all' && totalTablePages > 1 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <button
+                          type="button"
+                          disabled={tablePage <= 1}
+                          onClick={() => setTablePage((p) => Math.max(1, p - 1))}
+                          className="btn btn-outline-secondary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                        >
+                          {isRtl ? 'السابق' : 'Prev'}
+                        </button>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0 0.35rem', color: '#0f172a' }}>
+                          {tablePage} / {totalTablePages}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={tablePage >= totalTablePages}
+                          onClick={() => setTablePage((p) => Math.min(totalTablePages, p + 1))}
+                          className="btn btn-outline-secondary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                        >
+                          {isRtl ? 'التالي' : 'Next'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1420,6 +1544,19 @@ export default function CandidateExcelImportModal({ isOpen, onClose, categories 
                       ? 'يتم الآن إضافة المسميات الجديدة المعتمدة، تحديث أو إنشاء المرشحين، وربطهم كتوصيات تحت المرشح الرئيسي...'
                       : 'Creating approved titles, updating/creating candidates, and linking recommendations...'}
                   </p>
+
+                  {/* Real-time Progress Bar */}
+                  {importProgress.total > 0 && (
+                    <div style={{ marginTop: '1.25rem', maxWidth: 420, margin: '1.25rem auto 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', fontWeight: 700, color: '#334155', marginBottom: '0.45rem' }}>
+                        <span>{isRtl ? `تم استيراد ${importProgress.current} من ${importProgress.total}` : `Imported ${importProgress.current} of ${importProgress.total}`}</span>
+                        <span>{importProgress.percentage}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: 8, background: '#e2e8f0', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${importProgress.percentage}%`, height: '100%', background: '#2563eb', transition: 'width 0.3s ease' }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : importResult ? (
                 <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>

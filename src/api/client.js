@@ -8,7 +8,7 @@ import {
 
 const api = axios.create({
   withCredentials: true,
-  timeout: 15000,
+  timeout: 45000,
   headers: {
     'Content-Type': 'application/json'
   }

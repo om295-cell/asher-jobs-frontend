@@ -30,6 +30,108 @@ function getCategoryIcon(catNameAr, catName) {
   return Briefcase
 }
 
+function getJobsForCategory(cat, allJobs) {
+  if (!allJobs || allJobs.length === 0) return []
+  const catText = `${cat.nameAr || ''} ${cat.name || ''}`.toLowerCase()
+  const isAccounting = catText.includes('حساب') || catText.includes('مالي') || catText.includes('account')
+  const isWarehousing = catText.includes('مخزن') || catText.includes('مخازن') || catText.includes('wareh') || catText.includes('لوجست')
+  const isHR = catText.includes('بشر') || catText.includes('موارد') || catText.includes('hr') || catText.includes('إدار')
+  const isEngineering = catText.includes('هندس') || catText.includes('engineer')
+  const isQuality = catText.includes('جود') || catText.includes('فحص') || catText.includes('qual')
+  const isMaintenance = catText.includes('صيان') || catText.includes('فني') || catText.includes('maint')
+  const isProduction = catText.includes('إنتاج') || catText.includes('تصنيع') || catText.includes('product')
+  const isSales = catText.includes('بيع') || catText.includes('تسويق') || catText.includes('sale') || catText.includes('market')
+  const isDrivers = catText.includes('سائق') || catText.includes('driv')
+
+  const inferCategory = (job) => {
+    const title = `${job.name || ''} ${job.nameAr || ''}`.toLowerCase()
+    if (/مخازن|مشتريات|توريد|تصدير|استيراد|جمرك|شحن|مستودع|warehouse|storekeeper|procurement|purchas|shipping|logistics|customs|import|export/.test(title)) {
+      return 'warehousing'
+    }
+    if (/مهندس|مطور|مبرمج|شبكات|\bit\b|software|hardware|developer|programmer|engineer|flutter|bim|autocad|civil|mechanical|electrical/.test(title)) {
+      return 'engineering'
+    }
+    if (/\bhr\b|موارد بشرية|شؤون عاملين|شئون عاملين|شؤن|موظف إداري|استقبال|سكرتارية|personnel|recruitment|admin|reception/.test(title)) {
+      return 'hr'
+    }
+    if (/مبيعات|تسويق|سلاسل|sales|marketing|telemarketing|telesales|retail|b2b/.test(title) && !/محاسب|حسابات|accounting|accountant/.test(title)) {
+      return 'sales'
+    }
+    if (/سائق|كلارك|ريتش تراك|driver|forklift/.test(title)) {
+      return 'drivers'
+    }
+    if (/فني|صيانة|كهربا|تبريد|تكييف|سباك|لحام|technician|maintenance|mechanic/.test(title) && !/مهندس/.test(title)) {
+      return 'maintenance'
+    }
+    if (/جودة|معمل|كيميائي|quality|lab|chemist/.test(title) && !/مهندس/.test(title)) {
+      return 'quality'
+    }
+    if (/إنتاج|عمال|تصنيع|نظافة|بوفيه|security|production|worker/.test(title) && !/مهندس|محاسب/.test(title)) {
+      return 'production'
+    }
+    if (/محاسب|حسابات|مالي|تكاليف|مراجع|خزينة|كاشير|صراف|مدفوعات|accountant|accounting|auditor|cashier|finance|financial|treasury|payroll|tax|cpa/.test(title)) {
+      return 'accounting'
+    }
+    return null
+  }
+
+  const matching = allJobs.filter((job) => {
+    const rawCatId = String(job.categoryId?._id || job.categoryId)
+    const matchesId = rawCatId === String(cat._id)
+    const inferred = inferCategory(job)
+
+    if (isAccounting) {
+      if (inferred && inferred !== 'accounting') return false
+      return matchesId || inferred === 'accounting'
+    }
+    if (isWarehousing) {
+      if (inferred === 'warehousing') return true
+      return matchesId && inferred !== 'accounting' && inferred !== 'engineering'
+    }
+    if (isHR) {
+      if (inferred === 'hr') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isEngineering) {
+      if (inferred === 'engineering') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isSales) {
+      if (inferred === 'sales') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isDrivers) {
+      if (inferred === 'drivers') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isMaintenance) {
+      if (inferred === 'maintenance') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isQuality) {
+      if (inferred === 'quality') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    if (isProduction) {
+      if (inferred === 'production') return true
+      return matchesId && inferred !== 'accounting'
+    }
+    return matchesId
+  })
+
+  // Deduplicate within the category
+  const seen = new Set()
+  const deduped = []
+  for (const job of matching) {
+    const key = (job.nameAr || job.name || '').trim().toLowerCase().replace(/[\s\-_()]/g, '')
+    if (seen.has(key)) continue
+    seen.add(key)
+    deduped.push(job)
+  }
+
+  return deduped.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+}
+
 export default function HomePage() {
   const { t, isRtl } = useLanguage()
   const { isAuthenticated, role } = useAuth()
@@ -451,8 +553,7 @@ export default function HomePage() {
             }}>
               {categories.map((cat) => {
                 const CatIcon = getCategoryIcon(cat.nameAr, cat.name)
-                const catJobs = jobs.filter(j => String(j.categoryId?._id || j.categoryId) === String(cat._id))
-                const sortedJobs = [...catJobs].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                const sortedJobs = getJobsForCategory(cat, jobs)
                 const isExpanded = !!expandedCategories[cat._id]
                 const INITIAL_LIMIT = 8
                 const displayedJobs = isExpanded ? sortedJobs : sortedJobs.slice(0, INITIAL_LIMIT)

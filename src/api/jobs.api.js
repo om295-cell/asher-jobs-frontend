@@ -1,6 +1,7 @@
 import api from './client';
 
 export const jobsApi = {
-  getJobs: () => api.get('/jobs'),
-  getCategories: () => api.get('/jobs/categories')
+  getJobs: (params) => api.get('/jobs', { params }),
+  getCategories: () => api.get('/jobs/categories'),
+  syncCatalog: () => api.get('/jobs/sync-catalog')
 };

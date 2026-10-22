@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Users, Building2, ShieldCheck,
   ArrowLeft, ArrowRight, MapPin, TrendingUp, Eye, Mail, MessageCircle, X,
-  Calculator, Truck, Zap, Wrench, Cpu, Factory, Package, Sparkles, Search, Briefcase, CheckCircle2
+  Calculator, Truck, Zap, Wrench, Cpu, Factory, Package, Sparkles, Search, Briefcase, CheckCircle2,
+  ChevronDown, ChevronUp
 } from 'lucide-react'
 import { statsApi } from '../../api/stats.api'
 import { jobsApi } from '../../api/jobs.api'
@@ -64,6 +65,14 @@ export default function HomePage() {
   const [categories, setCategories] = useState([])
   const [jobs, setJobs] = useState([])
   const [sectorsLoading, setSectorsLoading] = useState(true)
+  const [expandedCategories, setExpandedCategories] = useState({})
+
+  const toggleExpandCategory = (catId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [catId]: !prev[catId]
+    }))
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -436,13 +445,18 @@ export default function HomePage() {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
-              gap: '1rem'
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+              gap: '1.25rem',
+              alignItems: 'start'
             }}>
               {categories.map((cat) => {
                 const CatIcon = getCategoryIcon(cat.nameAr, cat.name)
                 const catJobs = jobs.filter(j => String(j.categoryId?._id || j.categoryId) === String(cat._id))
                 const sortedJobs = [...catJobs].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                const isExpanded = !!expandedCategories[cat._id]
+                const INITIAL_LIMIT = 8
+                const displayedJobs = isExpanded ? sortedJobs : sortedJobs.slice(0, INITIAL_LIMIT)
+                const hasMore = sortedJobs.length > INITIAL_LIMIT
 
                 return (
                   <div
@@ -450,58 +464,119 @@ export default function HomePage() {
                     style={{
                       background: '#ffffff',
                       border: '1.5px solid #e4e4e7',
-                      borderRadius: '12px',
-                      padding: '1.1rem 1.25rem',
+                      borderRadius: '16px',
+                      padding: '1.25rem 1.4rem',
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'center',
-                      gap: '0.75rem',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                      justifyContent: 'flex-start',
+                      gap: '0.85rem',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                      height: 'fit-content'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '10px',
-                        background: '#09090b',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
-                        <CatIcon size={20} />
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '0.75rem',
+                      paddingBottom: '0.6rem',
+                      borderBottom: '1px solid #f4f4f5'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '10px',
+                          background: '#09090b',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <CatIcon size={20} />
+                        </div>
+                        <h3 style={{
+                          fontSize: '1.05rem',
+                          fontWeight: 700,
+                          color: '#09090b',
+                          margin: 0,
+                          lineHeight: 1.3
+                        }}>
+                          {isRtl ? cat.nameAr : cat.name}
+                        </h3>
                       </div>
-                      <h3 style={{
-                        fontSize: '1.05rem',
+                      <span style={{
+                        fontSize: '0.75rem',
                         fontWeight: 700,
-                        color: '#09090b',
-                        margin: 0,
-                        lineHeight: 1.3
+                        color: '#71717a',
+                        background: '#f4f4f5',
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: '999px',
+                        whiteSpace: 'nowrap'
                       }}>
-                        {isRtl ? cat.nameAr : cat.name}
-                      </h3>
+                        {sortedJobs.length} {isRtl ? 'مهنة' : 'jobs'}
+                      </span>
                     </div>
 
-                    {sortedJobs.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                        {sortedJobs.map((job) => (
+                    {sortedJobs.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                        {displayedJobs.map((job) => (
                           <span
                             key={job._id}
                             style={{
-                              padding: '0.35rem 0.75rem',
-                              borderRadius: '6px',
+                              padding: '0.35rem 0.7rem',
+                              borderRadius: '8px',
                               background: '#f4f4f5',
                               color: '#18181b',
                               fontWeight: 600,
-                              fontSize: '0.825rem'
+                              fontSize: '0.825rem',
+                              border: '1px solid #e4e4e7'
                             }}
                           >
                             {isRtl ? job.nameAr : job.name}
                           </span>
                         ))}
                       </div>
+                    ) : (
+                      <p style={{ fontSize: '0.85rem', color: '#a1a1aa', margin: 0 }}>
+                        {isRtl ? 'لا توجد مهن مسجلة حالياً' : 'No jobs currently listed'}
+                      </p>
+                    )}
+
+                    {hasMore && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandCategory(cat._id)}
+                        style={{
+                          alignSelf: 'flex-start',
+                          background: 'transparent',
+                          border: 'none',
+                          padding: '0.3rem 0',
+                          color: '#2563eb',
+                          fontSize: '0.825rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          marginTop: '0.2rem'
+                        }}
+                      >
+                        {isExpanded ? (
+                          <>
+                            {isRtl ? 'عرض أقل' : 'Show less'}
+                            <ChevronUp size={15} />
+                          </>
+                        ) : (
+                          <>
+                            {isRtl
+                              ? `+ عرض باقي المهن (${sortedJobs.length - INITIAL_LIMIT})`
+                              : `+ Show more (${sortedJobs.length - INITIAL_LIMIT})`}
+                            <ChevronDown size={15} />
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 )

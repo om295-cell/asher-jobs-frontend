@@ -7,6 +7,8 @@ import { Save } from 'lucide-react'
 import StatusBadge from '../../components/ui/StatusBadge'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
+
 export default function CompanyProfile() {
   const { profile: authProfile } = useAuth()
   const { isRtl } = useLanguage()
@@ -15,6 +17,7 @@ export default function CompanyProfile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ address: '', website: '', contactPerson: '', contactPersonPhone: '' })
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 })
 
   useEffect(() => {
     companyApi.getMyProfile().then(res => {
@@ -26,11 +29,17 @@ export default function CompanyProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     try {
       setSaving(true)
       await companyApi.updateMyProfile(form)
+      recordSuccess()
       showToast(isRtl ? 'تم حفظ بيانات الشركة' : 'Company profile saved', 'success')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || 'Error', 'error')
     } finally {
       setSaving(false)
@@ -91,9 +100,9 @@ export default function CompanyProfile() {
                 <input type="tel" className="form-control" value={form.contactPersonPhone} onChange={e => setForm(p => ({ ...p, contactPersonPhone: e.target.value }))} dir="ltr" />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button type="submit" className="btn btn-primary" disabled={saving || isLockedOut} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Save size={18} />
-              {saving ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التغييرات' : 'Save Changes')}
+              {isLockedOut ? (isRtl ? `انتظر ${countdown} ثانية` : `Wait ${countdown}s`) : saving ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التغييرات' : 'Save Changes')}
             </button>
           </form>
         </div>

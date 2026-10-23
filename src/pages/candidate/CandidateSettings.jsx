@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { authApi } from '../../api/auth.api'
 import { Lock, Trash2 } from 'lucide-react'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 export default function CandidateSettings() {
   const { user, logout } = useAuth()
@@ -12,11 +13,16 @@ export default function CandidateSettings() {
 
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
   const [saving, setSaving] = useState(false)
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 })
 
   const handleChange = (e) => setPwForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     if (pwForm.newPassword !== pwForm.confirmPassword) {
       showToast(isRtl ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match', 'warning')
       return
@@ -24,9 +30,11 @@ export default function CandidateSettings() {
     try {
       setSaving(true)
       await authApi.changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword })
+      recordSuccess()
       showToast(isRtl ? 'تم تغيير كلمة المرور بنجاح' : 'Password changed successfully', 'success')
       setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || (isRtl ? 'خطأ في تغيير كلمة المرور' : 'Error changing password'), 'error')
     } finally {
       setSaving(false)

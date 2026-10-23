@@ -28,6 +28,7 @@ import { useAuth } from '../../context/AuthContext';
 import { jobsApi } from '../../api/jobs.api';
 import { recommendationApi } from '../../api/recommendation.api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle';
 
 const CAREER_LEVELS = [
   'مبتدئ (1-3 سنوات)',
@@ -277,6 +278,10 @@ export default function RecommendationPage() {
   const [trackLoading, setTrackLoading] = useState(false);
   const [trackResult, setTrackResult] = useState(null);
   const [trackError, setTrackError] = useState('');
+
+  // Submit throttling / DDoS protection
+  const submitThrottle = useSubmitThrottle({ maxAttempts: 5, baseSecs: 60 });
+  const trackThrottle = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 });
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -607,6 +612,11 @@ export default function RecommendationPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (submitThrottle.isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. يرجى الانتظار ${submitThrottle.countdown} ثانية.` : `Too many attempts. Wait ${submitThrottle.countdown}s.`, 'error');
+      return;
+    }
+
     if (!legalAccepted) {
       showToast('يجب الموافقة والإقرار بالمسؤولية القانونية لتقديم الطلب', 'error');
       return;
@@ -716,6 +726,7 @@ export default function RecommendationPage() {
       };
 
       const res = await recommendationApi.submitRecommendation(payload);
+      submitThrottle.recordSuccess();
       setSubmittedData(res.data?.data);
       if (res.data?.data?.isPendingConflict || res.data?.data?.status === 'phone_duplicate_pending') {
         showToast('تم تسجيل طلبك برقم مرجعي. الطلب قيد التدقيق الإداري (متابعة بعد 24 ساعة).', 'warning');
@@ -723,6 +734,7 @@ export default function RecommendationPage() {
         showToast('تم إرسال الطلب بنجاح وهو الآن قيد المراجعة والتدقيق', 'success');
       }
     } catch (err) {
+      submitThrottle.recordFailure();
       const errData = err.response?.data;
       if (errData?.code === 'DUPLICATE_PHONE') {
         const dupIndices = errData.duplicateIndices || [];
@@ -769,6 +781,10 @@ export default function RecommendationPage() {
   // Handle Track Status Query
   const handleTrackSubmit = async (e) => {
     e.preventDefault();
+    if (trackThrottle.isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. يرجى الانتظار ${trackThrottle.countdown} ثانية.` : `Too many attempts. Wait ${trackThrottle.countdown}s.`, 'error');
+      return;
+    }
     if (!trackReqNumber.trim()) {
       showToast('يرجى إدخال رقم الطلب للاستعلام', 'error');
       return;
@@ -780,8 +796,10 @@ export default function RecommendationPage() {
 
     try {
       const res = await recommendationApi.trackStatus(trackReqNumber.trim(), trackPhone.trim());
+      trackThrottle.recordSuccess();
       setTrackResult(res.data?.data);
     } catch (err) {
+      trackThrottle.recordFailure();
       const msg = err.response?.data?.message || 'لم يتم العثور على طلب بهذا الرقم. تأكد من صحة رقم الطلب.';
       setTrackError(msg);
       showToast(msg, 'error');
@@ -1716,23 +1734,28 @@ export default function RecommendationPage() {
 
                     <button
                       type="submit"
-                      disabled={!isFormValid || submitting}
+                      disabled={!isFormValid || submitting || submitThrottle.isLockedOut}
                       style={{
                         padding: '0.875rem 2.5rem',
                         borderRadius: '10px',
-                        background: isFormValid ? '#09090b' : '#94a3b8',
+                        background: (isFormValid && !submitThrottle.isLockedOut) ? '#09090b' : '#94a3b8',
                         color: '#ffffff',
                         fontWeight: 800,
                         fontSize: '1rem',
                         border: 'none',
-                        cursor: isFormValid ? 'pointer' : 'not-allowed',
+                        cursor: (isFormValid && !submitThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
                         transition: 'all 0.15s',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.5rem'
                       }}
                     >
-                      {submitting ? (
+                      {submitThrottle.isLockedOut ? (
+                        <>
+                          <Clock size={18} />
+                          {isRtl ? `انتظر ${submitThrottle.countdown} ثانية` : `Wait ${submitThrottle.countdown}s`}
+                        </>
+                      ) : submitting ? (
                         <>
                           <div
                             style={{
@@ -1835,21 +1858,26 @@ export default function RecommendationPage() {
 
                 <button
                   type="submit"
-                  disabled={trackLoading || !trackReqNumber.trim()}
+                  disabled={trackLoading || !trackReqNumber.trim() || trackThrottle.isLockedOut}
                   style={{
                     padding: '0.75rem 2rem',
                     borderRadius: '8px',
-                    background: '#09090b',
+                    background: (!trackThrottle.isLockedOut && trackReqNumber.trim()) ? '#09090b' : '#94a3b8',
                     color: '#ffffff',
                     fontWeight: 700,
                     border: 'none',
-                    cursor: trackReqNumber.trim() ? 'pointer' : 'not-allowed',
+                    cursor: (trackReqNumber.trim() && !trackThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem'
                   }}
                 >
-                  {trackLoading ? (
+                  {trackThrottle.isLockedOut ? (
+                    <>
+                      <Clock size={16} />
+                      {isRtl ? `انتظر ${trackThrottle.countdown} ثانية` : `Wait ${trackThrottle.countdown}s`}
+                    </>
+                  ) : trackLoading ? (
                     <>
                       <div
                         style={{

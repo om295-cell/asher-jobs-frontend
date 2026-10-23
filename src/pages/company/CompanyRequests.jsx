@@ -7,6 +7,7 @@ import { Plus, FileText, Clock, CheckCircle, XCircle } from 'lucide-react'
 import StatusBadge from '../../components/ui/StatusBadge'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 export default function CompanyRequests() {
   const { isRtl } = useLanguage()
@@ -16,6 +17,7 @@ export default function CompanyRequests() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ jobTitle: '', count: 1, notes: '' })
   const [submitting, setSubmitting] = useState(false)
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 })
 
   useEffect(() => {
     companyApi.getRequests().then(res => setRequests(res.data?.data || [])).catch(() => {}).finally(() => setLoading(false))
@@ -23,14 +25,20 @@ export default function CompanyRequests() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     try {
       setSubmitting(true)
       const res = await companyApi.createRequest(form)
       setRequests(prev => [res.data?.data, ...prev])
       setShowForm(false)
       setForm({ jobTitle: '', count: 1, notes: '' })
+      recordSuccess()
       showToast(isRtl ? 'تم إرسال الطلب بنجاح' : 'Request submitted successfully', 'success')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || 'Error', 'error')
     } finally {
       setSubmitting(false)

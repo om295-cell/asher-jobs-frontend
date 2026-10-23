@@ -14,6 +14,7 @@ import {
   Database
 } from 'lucide-react'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 export default function AdminSettings() {
   const { isRtl } = useLanguage()
@@ -21,6 +22,7 @@ export default function AdminSettings() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 })
   const [settings, setSettings] = useState({
     supportPhone: '01012345678',
     supportEmail: 'support@asherjobs.com',
@@ -53,14 +55,20 @@ export default function AdminSettings() {
 
   const handleSave = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     try {
       setSaving(true)
       const promises = Object.entries(settings).map(([k, v]) =>
         adminApi.updateSetting(k, v, `Setting for ${k}`)
       )
       await Promise.all(promises)
+      recordSuccess()
       showToast(isRtl ? 'تم حفظ إعدادات النظام بنجاح' : 'System settings saved', 'success')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || 'Save failed', 'error')
     } finally {
       setSaving(false)
@@ -201,12 +209,12 @@ export default function AdminSettings() {
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || isLockedOut}
               className="btn btn-primary"
               style={{ padding: '0.75rem 2rem', fontWeight: 700, fontSize: '0.9375rem' }}
             >
               <Save size={18} />
-              {isRtl ? (saving ? 'جاري الحفظ...' : 'حفظ الإعدادات') : (saving ? 'Saving...' : 'Save Settings')}
+              {isLockedOut ? (isRtl ? `انتظر ${countdown} ثانية` : `Wait ${countdown}s`) : isRtl ? (saving ? 'جاري الحفظ...' : 'حفظ الإعدادات') : (saving ? 'Saving...' : 'Save Settings')}
             </button>
           </div>
         </form>

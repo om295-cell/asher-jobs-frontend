@@ -6,6 +6,7 @@ import { candidateApi } from '../../api/candidate.api'
 import { jobsApi } from '../../api/jobs.api'
 import { Save } from 'lucide-react'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 const GOVERNORATES = ['الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط', 'سوهاج', 'المنيا', 'بني سويف', 'الفيوم', 'قنا', 'الأقصر', 'أسوان', 'دمياط', 'بور سعيد', 'الإسماعيلية', 'السويس']
 const QUALIFICATIONS = ['دبلوم فني صناعي (وسط صناعي)', 'معهد تقني متوسط', 'مؤهل عالي (بكالوريوس)', 'دراسات عليا (ماجستير/دكتوراه)', 'ثانوية عامة', 'دون ثانوية']
@@ -24,6 +25,7 @@ export default function CandidateEditProfile() {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 30 })
 
   const [form, setForm] = useState({
     fullName: '',
@@ -74,6 +76,10 @@ export default function CandidateEditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     if (!form.desiredJobId) {
       showToast(isRtl ? 'يرجى اختيار المهنة من القائمة' : 'Please select a job title from the list', 'warning')
       return
@@ -86,9 +92,11 @@ export default function CandidateEditProfile() {
         yearsOfExperience: Number(form.yearsOfExperience)
       }
       await candidateApi.updateMyProfile(payload)
+      recordSuccess()
       showToast(isRtl ? 'تم حفظ الملف بنجاح' : 'Profile updated successfully', 'success')
       navigate('/candidate/profile')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || (isRtl ? 'خطأ في حفظ البيانات' : 'Error saving profile'), 'error')
     } finally {
       setSaving(false)
@@ -243,9 +251,9 @@ export default function CandidateEditProfile() {
               </div>
             </label>
 
-            <button type="submit" className="btn btn-accent" disabled={saving} style={{ width: '100%', padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <button type="submit" className="btn btn-accent" disabled={saving || isLockedOut} style={{ width: '100%', padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               <Save size={18} />
-              {saving ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التغييرات' : 'Save Changes')}
+              {isLockedOut ? (isRtl ? `انتظر ${countdown} ثانية` : `Wait ${countdown}s`) : saving ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ التغييرات' : 'Save Changes')}
             </button>
           </form>
         </div>

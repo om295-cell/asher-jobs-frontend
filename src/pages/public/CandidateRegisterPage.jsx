@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { UserPlus, CheckCircle } from 'lucide-react'
+import { UserPlus, CheckCircle, ShieldAlert, Clock } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { jobsApi } from '../../api/jobs.api'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 const GOVERNORATES = ['الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط', 'سوهاج', 'المنيا', 'بني سويف', 'الفيوم', 'قنا', 'الأقصر', 'أسوان', 'دمياط', 'بور سعيد', 'الإسماعيلية', 'السويس']
 const QUALIFICATIONS = ['دبلوم فني صناعي (وسط صناعي)', 'معهد تقني متوسط', 'مؤهل عالي (بكالوريوس)', 'دراسات عليا (ماجستير/دكتوراه)', 'ثانوية عامة', 'دون ثانوية']
@@ -28,6 +29,8 @@ export default function CandidateRegisterPage() {
   const [filteredJobs, setFilteredJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1)
+
+  const { isLockedOut, countdown, attemptsLeft, failCount, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 60 })
 
   const [form, setForm] = useState({
     fullName: '',
@@ -76,6 +79,10 @@ export default function CandidateRegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     if (!form.consentGiven) {
       showToast('يجب الموافقة على شروط استخدام البيانات لإتمام التسجيل', 'warning')
       return
@@ -94,9 +101,11 @@ export default function CandidateRegisterPage() {
         ...form,
         yearsOfExperience: Number(form.yearsOfExperience)
       })
+      recordSuccess()
       showToast('تم التسجيل بنجاح! مرحباً بك في عاشر جوبز', 'success')
       navigate('/candidate/dashboard')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || err.message || 'حدث خطأ أثناء التسجيل', 'error')
     } finally {
       setLoading(false)

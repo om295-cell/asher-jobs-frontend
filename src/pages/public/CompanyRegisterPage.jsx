@@ -4,6 +4,7 @@ import { Building2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useLanguage } from '../../context/LanguageContext'
+import { useSubmitThrottle } from '../../hooks/useSubmitThrottle'
 
 const GOVERNORATES = ['الشرقية', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الغربية', 'المنوفية', 'القليوبية', 'الدقهلية', 'كفر الشيخ', 'البحيرة', 'أسيوط', 'سوهاج', 'المنيا', 'بني سويف']
 const INDUSTRIES = ['تصنيع وهندسة صناعية', 'نسيج وملابس', 'غذاء ومشروبات', 'كيماويات وبلاستيك', 'مواد بناء', 'تعبئة وتغليف', 'لوجستيات وتوزيع', 'خدمات ومقاولات', 'تكنولوجيا ومعلومات', 'رعاية صحية', 'أخرى']
@@ -29,21 +30,28 @@ export default function CompanyRegisterPage() {
     contactPersonPhone: ''
   })
   const [loading, setLoading] = useState(false)
+  const { isLockedOut, countdown, recordFailure, recordSuccess } = useSubmitThrottle({ maxAttempts: 5, baseSecs: 60 })
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (isLockedOut) {
+      showToast(isRtl ? `محاولات كثيرة. انتظر ${countdown} ثانية.` : `Too many attempts. Wait ${countdown}s.`, 'error')
+      return
+    }
     if (form.password !== form.passwordConfirm) {
       showToast('كلمتا المرور غير متطابقتين', 'warning')
       return
     }
     try {
       setLoading(true)
-      const data = await registerCompany(form)
+      await registerCompany(form)
+      recordSuccess()
       showToast('تم إنشاء حساب شركتك بنجاح. في انتظار موافقة الإدارة.', 'success')
       navigate('/company/pending')
     } catch (err) {
+      recordFailure()
       showToast(err.response?.data?.message || err.message || 'حدث خطأ أثناء التسجيل', 'error')
     } finally {
       setLoading(false)

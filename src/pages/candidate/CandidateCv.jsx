@@ -4,6 +4,16 @@ import { candidateApi } from '../../api/candidate.api'
 import { Printer, Download } from 'lucide-react'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export default function CandidateCv() {
   const { isRtl } = useLanguage()
   const [profile, setProfile] = useState(null)
@@ -15,12 +25,19 @@ export default function CandidateCv() {
   }, [])
 
   const handlePrint = () => {
-    const content = printRef.current?.innerHTML
+    const content = printRef.current?.innerHTML || ''
+    const safeTitle = escapeHtml(profile?.fullName || 'Candidate')
     const win = window.open('', '_blank')
+    if (!win) {
+      window.print()
+      return
+    }
+    win.document.open()
     win.document.write(`
+      <!DOCTYPE html>
       <html dir="${isRtl ? 'rtl' : 'ltr'}" lang="${isRtl ? 'ar' : 'en'}">
         <head>
-          <title>CV — ${profile?.fullName}</title>
+          <title>CV — ${safeTitle}</title>
           <meta charset="UTF-8">
           <style>
             body { font-family: Arial, sans-serif; margin: 40px; color: #000000; }
@@ -40,7 +57,10 @@ export default function CandidateCv() {
       </html>
     `)
     win.document.close()
-    win.print()
+    win.focus()
+    setTimeout(() => {
+      win.print()
+    }, 250)
   }
 
   if (loading) return <LoadingSpinner />

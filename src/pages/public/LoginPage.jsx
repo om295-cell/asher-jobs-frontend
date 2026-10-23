@@ -71,7 +71,7 @@ export default function LoginPage() {
                 type="text"
                 name="credential"
                 className="form-control"
-                placeholder={isRtl ? 'مثال: 01012345678 أو admin@asherjobs.com' : 'e.g. 01012345678 or email@example.com'}
+                placeholder={isRtl ? 'مثال: 01012345678 أو user@example.com' : 'e.g. 01012345678 or email@example.com'}
                 value={form.credential}
                 onChange={handleChange}
                 autoComplete="username"

@@ -6,28 +6,28 @@ import ForcedPasswordChangeModal from '../components/common/ForcedPasswordChange
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Read cached session synchronously from cookie for 0ms instant hydration
+  // Read cached session synchronously from cookie for 0ms instant hydration (only role/flags, no PII)
   const cachedSession = typeof window !== 'undefined' ? cookieHelper.get('asher_session') : null;
-  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('token') || cookieHelper.get('asher_logged_in'));
+  const hasToken = typeof window !== 'undefined' && Boolean(cookieHelper.get('asher_logged_in'));
 
-  const [user, setUser] = useState(() => cachedSession?.user || null);
-  const [profile, setProfile] = useState(() => cachedSession?.profile || null);
-  // If guest (no token/cookie), loading is immediately false (0ms!).
+  const [user, setUser] = useState(() => (cachedSession?.role ? { role: cachedSession.role, mustChangePassword: Boolean(cachedSession.mustChangePassword) } : null));
+  const [profile, setProfile] = useState(null);
+  // If guest (no cookie), loading is immediately false (0ms!).
   // If cached session exists, loading is immediately false (instant render!).
   // Only show loading spinner if user claims to have token but we don't have cached data yet.
   const [loading, setLoading] = useState(() => Boolean(hasToken && !cachedSession));
 
   const fetchCurrentUser = useCallback(async (isSilent = false) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const isLoggedInCookie = typeof window !== 'undefined' ? cookieHelper.get('asher_logged_in') : null;
 
     // Fast exit for guests: don't make blocking network calls
-    if (!token && !isLoggedInCookie) {
+    if (!isLoggedInCookie) {
       setUser(null);
       setProfile(null);
       setLoading(false);
       cookieHelper.remove('asher_session');
       cookieHelper.remove('asher_logged_in');
+      try { localStorage.removeItem('token'); } catch {}
       return;
     }
 
@@ -42,19 +42,20 @@ export function AuthProvider({ children }) {
         const freshProfile = res.data.data.profile;
         setUser(freshUser);
         setProfile(freshProfile);
-        // Save smart cookie (7 days) for instant subsequent loads
-        cookieHelper.set('asher_session', { user: freshUser, profile: freshProfile }, 7);
+        // Save minimal non-sensitive session data (7 days) for instant subsequent loads
+        cookieHelper.set('asher_session', { role: freshUser.role, mustChangePassword: Boolean(freshUser.mustChangePassword) }, 7);
         cookieHelper.set('asher_logged_in', '1', 7);
       } else {
         setUser(null);
         setProfile(null);
         cookieHelper.remove('asher_session');
         cookieHelper.remove('asher_logged_in');
+        try { localStorage.removeItem('token'); } catch {}
       }
     } catch (err) {
       // If server explicitly rejects (401/403), invalidate cached session
       if (err.response?.status === 401 || err.response?.status === 403) {
-        localStorage.removeItem('token');
+        try { localStorage.removeItem('token'); } catch {}
         cookieHelper.remove('asher_session');
         cookieHelper.remove('asher_logged_in');
         setUser(null);
@@ -74,16 +75,14 @@ export function AuthProvider({ children }) {
   const login = async (credential, password) => {
     const res = await authApi.login(credential, password);
     if (res.data?.success) {
-      const token = res.data.data?.token;
-      if (token) {
-        localStorage.setItem('token', token);
-      }
+      // Clean up any legacy localStorage token
+      try { localStorage.removeItem('token'); } catch {}
       const loggedUser = res.data.data.user;
       const loggedProfile = res.data.data.profile;
       setUser(loggedUser);
       setProfile(loggedProfile);
-      // Persist in smart cookie for instant load on refresh
-      cookieHelper.set('asher_session', { user: loggedUser, profile: loggedProfile }, 7);
+      // Persist minimal role/flags in cookie for instant load on refresh
+      cookieHelper.set('asher_session', { role: loggedUser.role, mustChangePassword: Boolean(loggedUser.mustChangePassword) }, 7);
       cookieHelper.set('asher_logged_in', '1', 7);
       return res.data.data;
     }
@@ -93,15 +92,12 @@ export function AuthProvider({ children }) {
   const registerCandidate = async (formData) => {
     const res = await authApi.registerCandidate(formData);
     if (res.data?.success) {
-      const token = res.data.data?.token;
-      if (token) {
-        localStorage.setItem('token', token);
-      }
+      try { localStorage.removeItem('token'); } catch {}
       const newUser = res.data.data.user;
       const newProfile = res.data.data.candidate;
       setUser(newUser);
       setProfile(newProfile);
-      cookieHelper.set('asher_session', { user: newUser, profile: newProfile }, 7);
+      cookieHelper.set('asher_session', { role: newUser.role, mustChangePassword: Boolean(newUser.mustChangePassword) }, 7);
       cookieHelper.set('asher_logged_in', '1', 7);
       return res.data.data;
     }
@@ -111,15 +107,12 @@ export function AuthProvider({ children }) {
   const registerCompany = async (formData) => {
     const res = await authApi.registerCompany(formData);
     if (res.data?.success) {
-      const token = res.data.data?.token;
-      if (token) {
-        localStorage.setItem('token', token);
-      }
+      try { localStorage.removeItem('token'); } catch {}
       const newUser = res.data.data.user;
       const newProfile = res.data.data.company;
       setUser(newUser);
       setProfile(newProfile);
-      cookieHelper.set('asher_session', { user: newUser, profile: newProfile }, 7);
+      cookieHelper.set('asher_session', { role: newUser.role, mustChangePassword: Boolean(newUser.mustChangePassword) }, 7);
       cookieHelper.set('asher_logged_in', '1', 7);
       return res.data.data;
     }
@@ -132,7 +125,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.warn('Logout error:', e);
     } finally {
-      localStorage.removeItem('token');
+      try { localStorage.removeItem('token'); } catch {}
       cookieHelper.remove('asher_session');
       cookieHelper.remove('asher_logged_in');
       setUser(null);

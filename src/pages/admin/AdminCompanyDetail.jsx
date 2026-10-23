@@ -162,9 +162,9 @@ export default function AdminCompanyDetail() {
       open: true,
       title: isRtl ? 'إعادة تعيين كلمة المرور' : 'Reset Password',
       message: isRtl
-        ? `هل أنت متأكد من إعادة تعيين كلمة المرور لحساب "${company.companyName}" إلى (Temp@1234)؟ سيُلزم المستخدم بتغييرها فور تسجيل الدخول.`
-        : `Reset password for "${company.companyName}" to Temp@1234?`,
-      confirmText: isRtl ? 'تأكيد (Temp@1234)' : 'Reset to Temp@1234',
+        ? `هل أنت متأكد من إعادة تعيين كلمة المرور لحساب "${company.companyName}" وتوليد كلمة مرور مؤقتة؟ سيُلزم المستخدم بتغييرها فور تسجيل الدخول.`
+        : `Reset password for "${company.companyName}" to a new temporary password?`,
+      confirmText: isRtl ? 'تأكيد إعادة التعيين' : 'Reset Password',
       danger: true,
       action: async () => {
         try {
@@ -439,7 +439,7 @@ export default function AdminCompanyDetail() {
                 style={{ width: '100%', fontSize: '0.84rem', fontWeight: 700 }}
               >
                 <KeyRound size={16} />
-                {isRtl ? 'إعادة تعيين كلمة المرور إلى (Temp@1234)' : 'Reset Password to Temp@1234'}
+                {isRtl ? 'إعادة تعيين كلمة المرور (توليد كلمة مؤقتة)' : 'Reset Password (Generate Temp)'}
               </button>
             </div>
           </div>

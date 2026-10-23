@@ -272,7 +272,7 @@ export default function AdminCompanies() {
 
       const res = await adminApi.createEmployerAccount(payload);
       if (res.data?.success) {
-        showToast('تم إنشاء الحساب بنجاح بكلمة مرور مؤقتة (Temp@1234)!', 'success');
+        showToast(res.data?.message || (res.data?.data?.tempPassword ? `تم إنشاء الحساب بكلمة مرور مؤقتة: (${res.data.data.tempPassword})` : 'تم إنشاء الحساب بنجاح بكلمة مرور مؤقتة!'), 'success');
         setCreateModalOpen(false);
         setCreateFormData({
           category: 'A',
@@ -298,13 +298,13 @@ export default function AdminCompanies() {
     }
   };
 
-  // Reset Password Handler (Temp@1234)
+  // Reset Password Handler
   const handleResetPassword = (comp) => {
     setConfirmModal({
       open: true,
       title: 'إعادة تعيين كلمة المرور',
-      message: `هل أنت متأكد من إعادة تعيين كلمة المرور لحساب "${comp.companyName}" إلى كلمة المرور المؤقتة (Temp@1234)؟ سيُلزم المستخدم بتغييرها فور تسجيل الدخول.`,
-      confirmText: 'تأكيد إعادة التعيين إلى Temp@1234',
+      message: `هل أنت متأكد من إعادة تعيين كلمة المرور لحساب "${comp.companyName}" وتوليد كلمة مرور مؤقتة جديدة؟ سيُلزم المستخدم بتغييرها فور تسجيل الدخول.`,
+      confirmText: 'تأكيد إعادة التعيين',
       danger: true,
       action: async () => {
         try {
@@ -777,7 +777,7 @@ export default function AdminCompanies() {
                                 onClick={() => handleResetPassword(comp)}
                                 className="btn btn-outline btn-sm"
                                 style={{ padding: '0.35rem', color: '#000000' }}
-                                title="إعادة تعيين كلمة المرور إلى Temp@1234"
+                                title="إعادة تعيين كلمة المرور وتوليد كلمة مؤقتة"
                               >
                                 <KeyRound size={15} />
                               </button>
@@ -1492,7 +1492,7 @@ export default function AdminCompanies() {
                 <div className="card" style={{ padding: '0.875rem', marginBottom: '1.25rem', fontSize: '0.8125rem', lineHeight: 1.5, background: 'var(--slate-50)' }}>
                   <div style={{ fontWeight: 800, marginBottom: '0.2rem' }}>🔒 الأمان وكلمات المرور:</div>
                   <div>
-                    سيتم إنشاء الحساب بكلمة مرور مؤقتة موحدة: <code style={{ fontWeight: 800, background: '#fff', border: '1px solid #000', padding: '0.1rem 0.35rem', borderRadius: 4 }}>Temp@1234</code>.
+                    سيتم إنشاء الحساب بكلمة مرور مؤقتة آمنة عشوائية، وسيتم عرضها لك فور الإنشاء.
                   </div>
                   <div>
                     سيُلزم صاحب الحساب بتعيين كلمة مرور شخصية جديدة فور تسجيل الدخول الأول قبل التمكن من استخدام أي خاصية.

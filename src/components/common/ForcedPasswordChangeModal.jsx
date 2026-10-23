@@ -24,8 +24,8 @@ export default function ForcedPasswordChangeModal() {
       return;
     }
 
-    if (newPassword === 'Temp@1234') {
-      setError('لا يمكن استخدام كلمة المرور المؤقتة (Temp@1234) ككلمة مرور دائمة.');
+    if (newPassword === 'Temp@1234' || newPassword.toLowerCase().includes('temp')) {
+      setError('لا يمكن استخدام كلمة مرور مؤقتة ككلمة مرور دائمة.');
       return;
     }
 

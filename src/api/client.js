@@ -14,17 +14,12 @@ const api = axios.create({
   }
 });
 
-// Request interceptor: Dynamic Round-Robin Load Balancing & Auth Token
+// Request interceptor: Dynamic Round-Robin Load Balancing
 api.interceptors.request.use(
   (config) => {
     // If baseURL is not yet assigned for this request, pick next healthy backend
     if (!config.baseURL || config._useLoadBalancer !== false) {
       config.baseURL = getNextBackendUrl();
-    }
-    // Attach authorization bearer token if present
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },

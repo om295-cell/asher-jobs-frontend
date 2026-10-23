@@ -90,6 +90,13 @@ export default function Footer() {
           </div>
         </div>
 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem 1.25rem', marginBottom: '2rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.8125rem' }}>
+          <Link to="/contact" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'تواصل معنا' : 'Contact Us'}</Link>
+          <Link to="/about" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'من نحن' : 'About Us'}</Link>
+          <Link to="/privacy-policy" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link>
+          <Link to="/refund-policy" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'سياسة الاسترداد والإلغاء' : 'Refund & Cancellation Policy'}</Link>
+        </div>
+
         {/* Bottom Bar */}
         <div
           style={{

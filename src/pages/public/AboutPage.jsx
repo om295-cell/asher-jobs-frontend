@@ -1,68 +1,84 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useLanguage } from '../../context/LanguageContext'
-import { MapPin, Phone, Mail, Target } from 'lucide-react'
+import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
+import { BadgeCheck, Building2, Target } from 'lucide-react';
+
+const copy = {
+  en: {
+    title: 'About Asher Jobs',
+    intro: 'A recruitment platform built for the people and businesses powering Egypt’s industrial communities.',
+    missionTitle: 'Our mission',
+    mission: 'Asher Jobs helps job seekers present their experience clearly and helps verified employers find relevant talent. We focus on practical recruitment needs across 10th of Ramadan City and nearby industrial areas.',
+    platformTitle: 'How the platform works',
+    platform: 'Candidates can create and maintain a professional profile. Companies apply for access and are reviewed before they can view candidate contact details. Employers can search by standardized job titles and relevant experience, then contact candidates for recruitment opportunities.',
+    trustTitle: 'Trust and responsible access',
+    trust: 'Candidate information is shared with approved employers for recruitment purposes. We use account controls and review procedures to help protect the platform and its members.',
+    operator: 'Platform operator',
+    operatorName: 'Asher Media for Electronic Services',
+    registry: 'Commercial Register No. 11615',
+    location: '10th of Ramadan City, Sharqia Governorate, Egypt'
+  },
+  ar: {
+    title: 'عن عاشر جوبز',
+    intro: 'منصة توظيف تخدم الأفراد والشركات التي تدعم المجتمعات الصناعية في مصر.',
+    missionTitle: 'مهمتنا',
+    mission: 'تساعد عاشر جوبز الباحثين عن عمل على عرض خبراتهم بوضوح، وتساعد الشركات المعتمدة على الوصول إلى الكفاءات المناسبة. نركز على احتياجات التوظيف العملية في مدينة العاشر من رمضان والمناطق الصناعية المجاورة.',
+    platformTitle: 'كيف تعمل المنصة',
+    platform: 'يمكن للباحثين عن عمل إنشاء ملف مهني وتحديثه. وتتقدم الشركات بطلب للوصول إلى المنصة وتخضع للمراجعة قبل السماح لها بالاطلاع على بيانات التواصل للمرشحين. ويمكن للشركات البحث حسب المسميات الوظيفية والخبرات المناسبة والتواصل مع المرشحين بشأن فرص العمل.',
+    trustTitle: 'الثقة والاستخدام المسؤول',
+    trust: 'تُشارك بيانات المرشحين مع الشركات المعتمدة لأغراض التوظيف. ونستخدم ضوابط الحسابات وإجراءات المراجعة للمساعدة في حماية المنصة وأعضائها.',
+    operator: 'مشغّل المنصة',
+    operatorName: 'عاشر ميديا للخدمات الإلكترونية',
+    registry: 'السجل التجاري رقم 11615',
+    location: 'مدينة العاشر من رمضان، محافظة الشرقية، مصر'
+  }
+};
 
 export default function AboutPage() {
-  const { isRtl } = useLanguage()
+  const { isRtl } = useLanguage();
+  const text = isRtl ? copy.ar : copy.en;
+
   return (
-    <div style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', background: 'var(--bg-page)' }}>
-      <div className="container" style={{ maxWidth: 760 }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.25rem)', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.75rem' }}>
-            {isRtl ? 'من نحن — عاشر جوبز' : 'About Us — Asher Jobs'}
-          </h1>
-          <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.0625rem)', color: 'var(--slate-500)' }}>
-            {isRtl ? 'قصة المنصة ومهمتها' : 'Platform Story & Mission'}
-          </p>
-        </div>
+    <main dir={isRtl ? 'rtl' : 'ltr'} style={{ padding: 'clamp(2rem, 5vw, 4rem) 0', background: 'var(--bg-page)' }}>
+      <div className="container" style={{ maxWidth: 860 }}>
+        <header style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p style={{ color: 'var(--accent)', fontWeight: 700, marginBottom: '0.5rem' }}>{text.operatorName}</p>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)', fontWeight: 850, color: 'var(--slate-900)', margin: '0 0 0.75rem' }}>{text.title}</h1>
+          <p style={{ maxWidth: 680, margin: '0 auto', color: 'var(--slate-600)', lineHeight: 1.8 }}>{text.intro}</p>
+        </header>
 
-        <div className="card card-responsive" style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-            <Target size={28} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.2rem' }} />
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <section className="card card-responsive" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <Target size={25} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 3 }} />
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--slate-800)', marginBottom: '0.75rem' }}>
-                {isRtl ? 'المشكلة التي تحلّها عاشر جوبز' : 'The Problem Asher Jobs Solves'}
-              </h2>
-              <p style={{ fontSize: '0.9375rem', color: 'var(--slate-600)', lineHeight: 1.8 }}>
-                {isRtl
-                  ? 'المصانع والشركات في العاشر من رمضان والمناطق الصناعية المجاورة تحتاج باستمرار إلى فنيين وعمال ومهندسين ومحاسبين وسائقين. في نفس الوقت، آلاف الباحثين عن عمل يرسلون سيرهم الذاتية بشكل عشوائي عبر واتساب وفيسبوك والإيميل — دون تنظيم أو هيكلة. النتيجة: وقت ضائع وفرص ضائعة لكلا الطرفين.'
-                  : 'Factories and companies in 10th of Ramadan and surrounding industrial zones continuously need technicians, workers, engineers, accountants, and drivers. At the same time, thousands of job seekers send CVs randomly through WhatsApp, Facebook, and email — unstructured and hard to find. The result: lost time and missed opportunities for both sides.'}
-              </p>
+              <h2 style={{ fontSize: '1.2rem', margin: '0 0 0.65rem', color: 'var(--slate-900)' }}>{text.missionTitle}</h2>
+              <p style={{ margin: 0, color: 'var(--slate-600)', lineHeight: 1.85 }}>{text.mission}</p>
             </div>
-          </div>
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--slate-800)', marginBottom: '0.75rem' }}>
-              {isRtl ? 'حلّنا: قاعدة بيانات موحّدة ومنظّمة' : 'Our Solution: One Unified Database'}
-            </h2>
-            <p style={{ fontSize: '0.9375rem', color: 'var(--slate-600)', lineHeight: 1.8 }}>
-              {isRtl
-                ? 'منصة عاشر جوبز تبني قاعدة بيانات واحدة، منظّمة، قابلة للبحث — تجمع كل باحثي العمل وكل الشركات في منطقة صناعية واحدة. كل مرشح يسجّل مرة واحدة، وكل شركة معتمدة تجد ما تحتاجه في ثوانٍ.'
-                : 'Asher Jobs builds one unified, searchable database — bringing together all job seekers and companies in the industrial zone. Every candidate registers once, and every approved company finds what they need in seconds.'}
-            </p>
-          </div>
-        </div>
+          </section>
 
-        <div className="card card-responsive">
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--slate-800)', marginBottom: '1.25rem' }}>
-            {isRtl ? 'للتواصل معنا' : 'Contact Us'}
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.9375rem', color: 'var(--slate-600)' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <MapPin size={18} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-              <span>{isRtl ? 'العاشر من رمضان — محافظة الشرقية — مصر' : '10th of Ramadan, Sharqia Governorate, Egypt'}</span>
+          <section className="card card-responsive" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <Building2 size={25} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 3 }} />
+            <div>
+              <h2 style={{ fontSize: '1.2rem', margin: '0 0 0.65rem', color: 'var(--slate-900)' }}>{text.platformTitle}</h2>
+              <p style={{ margin: 0, color: 'var(--slate-600)', lineHeight: 1.85 }}>{text.platform}</p>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Phone size={18} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-              <span dir="ltr">+20 100 000 0000</span>
+          </section>
+
+          <section className="card card-responsive" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <BadgeCheck size={25} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 3 }} />
+            <div>
+              <h2 style={{ fontSize: '1.2rem', margin: '0 0 0.65rem', color: 'var(--slate-900)' }}>{text.trustTitle}</h2>
+              <p style={{ margin: 0, color: 'var(--slate-600)', lineHeight: 1.85 }}>{text.trust}</p>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Mail size={18} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-              <span dir="ltr">info@asherjobs.com</span>
-            </div>
-          </div>
+          </section>
+
+          <section className="card card-responsive" aria-label={text.operator}>
+            <h2 style={{ fontSize: '1.1rem', margin: '0 0 0.6rem', color: 'var(--slate-900)' }}>{text.operator}</h2>
+            <p style={{ margin: 0, color: 'var(--slate-700)', fontWeight: 700 }}>{text.operatorName}</p>
+            <p style={{ margin: '0.35rem 0 0', color: 'var(--slate-600)' }}>{text.registry}</p>
+            <p style={{ margin: '0.35rem 0 0', color: 'var(--slate-600)' }}>{text.location}</p>
+          </section>
         </div>
       </div>
-    </div>
-  )
+    </main>
+  );
 }

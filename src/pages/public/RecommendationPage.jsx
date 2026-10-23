@@ -786,7 +786,11 @@ export default function RecommendationPage() {
       return;
     }
     if (!trackReqNumber.trim()) {
-      showToast('يرجى إدخال رقم الطلب للاستعلام', 'error');
+      showToast(isRtl ? 'يرجى إدخال رقم الطلب أو رمز التتبع للاستعلام' : 'Please enter the request number or tracking code', 'error');
+      return;
+    }
+    if (!trackPhone.trim()) {
+      showToast(isRtl ? 'يرجى إدخال رقم هاتف مقدم الطلب للتحقق من الهوية' : 'Please enter the submitter phone number to verify identity', 'error');
       return;
     }
 
@@ -1835,10 +1839,11 @@ export default function RecommendationPage() {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.35rem' }}>
-                      {isRtl ? 'رقم هاتف مقدم الطلب (اختياري للتحقق)' : 'Submitter Phone (Optional verification)'}
+                      {isRtl ? 'رقم هاتف مقدم الطلب (مطلوب للتحقق من الهوية)' : 'Submitter Phone (Required for verification)'} *
                     </label>
                     <input
                       type="tel"
+                      required
                       value={trackPhone}
                       onChange={(e) => setTrackPhone(e.target.value)}
                       placeholder="01012345678"
@@ -1858,15 +1863,15 @@ export default function RecommendationPage() {
 
                 <button
                   type="submit"
-                  disabled={trackLoading || !trackReqNumber.trim() || trackThrottle.isLockedOut}
+                  disabled={trackLoading || !trackReqNumber.trim() || !trackPhone.trim() || trackThrottle.isLockedOut}
                   style={{
                     padding: '0.75rem 2rem',
                     borderRadius: '8px',
-                    background: (!trackThrottle.isLockedOut && trackReqNumber.trim()) ? '#09090b' : '#94a3b8',
+                    background: (!trackThrottle.isLockedOut && trackReqNumber.trim() && trackPhone.trim()) ? '#09090b' : '#94a3b8',
                     color: '#ffffff',
                     fontWeight: 700,
                     border: 'none',
-                    cursor: (trackReqNumber.trim() && !trackThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
+                    cursor: (trackReqNumber.trim() && trackPhone.trim() && !trackThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem'

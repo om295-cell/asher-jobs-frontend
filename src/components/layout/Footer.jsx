@@ -95,6 +95,7 @@ export default function Footer() {
           <Link to="/about" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'من نحن' : 'About Us'}</Link>
           <Link to="/privacy-policy" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'سياسة الخصوصية' : 'Privacy Policy'}</Link>
           <Link to="/refund-policy" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'سياسة الاسترداد والإلغاء' : 'Refund & Cancellation Policy'}</Link>
+          <Link to="/delivery-policy" style={{ color: 'var(--slate-300)' }}>{isRtl ? 'سياسة التسليم والشحن' : 'Delivery & Shipping Policy'}</Link>
         </div>
 
         {/* Bottom Bar */}

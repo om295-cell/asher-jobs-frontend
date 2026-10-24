@@ -2,27 +2,26 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { companyApi } from '../../api/company.api';
 import {
   ShoppingCart,
   FileSpreadsheet,
   Trash2,
   Download,
-  AlertCircle,
-  Building,
-  User,
   Phone,
-  Mail,
   MapPin,
   Briefcase,
-  Layers,
   ArrowRight,
   Crown,
-  Sparkles
+  Sparkles,
+  Search,
+  CheckCircle2,
+  Calendar,
+  Layers,
+  Award
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import EmptyState from '../../components/ui/EmptyState';
-import { useAuth } from '../../context/AuthContext';
 
 export default function CompanyCart() {
   const { isRtl } = useLanguage();
@@ -73,7 +72,7 @@ export default function CompanyCart() {
   };
 
   const handleClearCart = async () => {
-    if (!window.confirm('هل أنت متأكد من تفريغ سلة المرشحين بالكامل؟')) return;
+    if (!window.confirm(isRtl ? 'هل أنت متأكد من تفريغ سلة المرشحين بالكامل؟' : 'Are you sure you want to clear the entire cart?')) return;
     try {
       await companyApi.clearCart();
       showToast('تم تفريغ السلة بنجاح', 'success');
@@ -98,10 +97,10 @@ export default function CompanyCart() {
       a.download = `candidate_cart_${exportFormat}_${Date.now()}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('تم تصدير ملف الإكسيل بنجاح!', 'success');
+      showToast(isRtl ? 'تم تصدير ملف الإكسيل بنجاح!' : 'Excel export downloaded successfully!', 'success');
       fetchData();
     } catch (err) {
-      let errMsg = 'فشل تصدير السلة';
+      let errMsg = isRtl ? 'فشل تصدير السلة' : 'Cart export failed';
       if (err.response?.data instanceof Blob) {
         try {
           const text = await err.response.data.text();
@@ -119,7 +118,7 @@ export default function CompanyCart() {
 
   if (loading) {
     return (
-      <div className="py-20 flex justify-center">
+      <div style={{ padding: '6rem 0', display: 'flex', justifyContent: 'center' }}>
         <LoadingSpinner />
       </div>
     );
@@ -133,6 +132,7 @@ export default function CompanyCart() {
   const cartList = Array.isArray(cart) ? cart : [];
   const totalCandidatesCount = cartList.reduce((acc, item) => acc + (item.candidates?.length || item.quantity || 0), 0);
 
+  // Locked State for Basic Subscribers
   if (!isCartEligible) {
     return (
       <div
@@ -159,7 +159,6 @@ export default function CompanyCart() {
               overflow: 'hidden'
             }}
           >
-            {/* Top Black Accent Bar */}
             <div
               style={{
                 position: 'absolute',
@@ -171,7 +170,6 @@ export default function CompanyCart() {
               }}
             />
 
-            {/* Black Icon Container */}
             <div
               style={{
                 width: 72,
@@ -189,7 +187,6 @@ export default function CompanyCart() {
               <ShoppingCart size={32} />
             </div>
 
-            {/* Plan Badge */}
             <div style={{ marginBottom: '1.25rem' }}>
               <span
                 style={{
@@ -210,7 +207,6 @@ export default function CompanyCart() {
               </span>
             </div>
 
-            {/* Title */}
             <h1
               style={{
                 fontSize: 'clamp(1.35rem, 3vw, 1.75rem)',
@@ -223,7 +219,6 @@ export default function CompanyCart() {
               {isRtl ? 'سلة المرشحين متعددة المسميات الوظيفية' : 'Multi-Title Candidate Cart'}
             </h1>
 
-            {/* Description */}
             <p
               style={{
                 color: '#3f3f46',
@@ -250,7 +245,6 @@ export default function CompanyCart() {
               )}
             </p>
 
-            {/* Highlights Grid */}
             <div
               style={{
                 display: 'grid',
@@ -318,7 +312,6 @@ export default function CompanyCart() {
               </div>
             </div>
 
-            {/* Buttons */}
             <div
               style={{
                 display: 'flex',
@@ -375,247 +368,606 @@ export default function CompanyCart() {
     );
   }
 
+  const planName = entitlements?.plan || entitlements?.company?.subscriptionPlan || profile?.subscriptionPlan || 'Platinum';
+  const cairoDate = entitlements?.cairoDate || entitlements?.quota?.cairoDate || '2026-10-24';
+  const dailyDownloadLimit = entitlements?.limits?.dailyDownloadLimitPerTitle || entitlements?.planLimits?.dailyDownloadLimitPerTitle || 6;
+
   return (
-    <div className="py-8 bg-slate-50 min-h-[85vh]" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div
+      style={{
+        padding: 'clamp(1.5rem, 3vw, 2.5rem) 0 4rem',
+        background: 'var(--bg-page)',
+        minHeight: '85vh'
+      }}
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
+      <div className="container">
+        {/* Header Bar */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}
+        >
           <div>
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 text-blue-700 rounded-xl">
-                <ShoppingCart className="w-6 h-6" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: '8px',
+                  background: '#000000',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <ShoppingCart size={20} />
               </div>
-              <h1 className="text-2xl font-bold text-slate-900">
-                سلة المرشحين (تصدير مجمع متعدد المسميات)
+              <h1 style={{ fontSize: 'clamp(1.35rem, 3vw, 1.75rem)', fontWeight: 850, margin: 0, color: 'var(--slate-900)' }}>
+                {isRtl ? 'سلة المرشحين (تصدير مجمع متعدد المسميات)' : 'Candidate Cart (Bulk Export)'}
               </h1>
             </div>
-            <p className="text-sm text-slate-500 mt-1">
-              إجمالي {cartList.length} مسمى وظيفي • {totalCandidatesCount} مرشح مختار (بحد أقصى 10 لكل مسمى)
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--slate-600)', lineHeight: 1.5 }}>
+              {isRtl
+                ? `إجمالي ${cartList.length} مسمى وظيفي • ${totalCandidatesCount} مرشح مختار (بحد أقصى 10 لكل مسمى)`
+                : `Total ${cartList.length} titles • ${totalCandidatesCount} selected candidates (max 10 per title)`}
             </p>
           </div>
 
-          {cartList.length > 0 && (
-            <button
-              onClick={handleClearCart}
-              className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors flex items-center gap-1.5"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>تفريغ السلة</span>
-            </button>
-          )}
-        </div>
-
-        {/* Quota & Reset Banner */}
-        {entitlements && (
-          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
-                باقة: {entitlements.plan}
-              </span>
-              <span className="text-sm text-slate-600">
-                تاريخ القاهرة: <span className="font-semibold text-slate-800">{entitlements.cairoDate}</span>
-              </span>
-              <span className="text-sm text-slate-600">
-                مرات التحميل اليومية لكل مسمى: <span className="font-semibold text-blue-600">{entitlements.limits?.dailyDownloadLimitPerTitle}</span>
-              </span>
-            </div>
-            <div className="text-xs text-slate-500">
-              ⚡ تتجدد الحصص اليومية تلقائياً الساعة 00:00 بتوقيت القاهرة
-            </div>
-          </div>
-        )}
-
-        {cartList.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-            <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-800 mb-2">سلة المرشحين فارغة حالياً</h3>
-            <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
-              يمكنك إضافة المرشحين حسب المسمى الوظيفي مباشرة من صفحة البحث لتجميعهم وتصديرهم في ملف إكسيل موحد أو متعدد الصفحات.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
             <Link
               to="/company/search"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                padding: '0.5rem 0.9rem',
+                borderRadius: '8px'
+              }}
             >
-              <span>الانتقال لصفحة البحث</span>
-              <ArrowRight className="w-4 h-4" />
+              <Search size={16} />
+              <span>{isRtl ? 'البحث عن المرشحين' : 'Search Candidates'}</span>
+            </Link>
+
+            <Link
+              to="/company/browse"
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                padding: '0.5rem 0.9rem',
+                borderRadius: '8px'
+              }}
+            >
+              <Sparkles size={16} />
+              <span>{isRtl ? 'بوابة التصفح VIP' : 'VIP Browse'}</span>
+            </Link>
+
+            {cartList.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearCart}
+                className="btn btn-outline"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '8px',
+                  color: '#dc2626',
+                  borderColor: '#fca5a5'
+                }}
+              >
+                <Trash2 size={16} />
+                <span>{isRtl ? 'تفريغ السلة' : 'Clear Cart'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Cairo Quota & Info Banner */}
+        <div
+          style={{
+            background: '#000000',
+            color: '#ffffff',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.75rem',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: 'var(--shadow-md)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                background: '#ffffff',
+                color: '#000000',
+                padding: '0.2rem 0.65rem',
+                borderRadius: '999px'
+              }}
+            >
+              <Crown size={13} />
+              <span>{isRtl ? `باقة: ${planName}` : `Plan: ${planName}`}</span>
+            </span>
+
+            <span
+              style={{
+                fontSize: '0.8125rem',
+                color: '#d4d4d8',
+                background: 'rgba(255,255,255,0.1)',
+                padding: '0.2rem 0.65rem',
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.15)'
+              }}
+            >
+              {isRtl ? 'تاريخ القاهرة: ' : 'Cairo Date: '}
+              <strong style={{ color: '#ffffff' }}>{cairoDate}</strong>
+            </span>
+
+            <span
+              style={{
+                fontSize: '0.8125rem',
+                color: '#d4d4d8',
+                background: 'rgba(255,255,255,0.1)',
+                padding: '0.2rem 0.65rem',
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.15)'
+              }}
+            >
+              {isRtl ? 'مرات التحميل اليومية لكل مسمى: ' : 'Daily downloads per title: '}
+              <strong style={{ color: '#ffffff' }}>{dailyDownloadLimit}</strong>
+            </span>
+          </div>
+
+          <div style={{ fontSize: '0.78rem', color: '#a1a1aa' }}>
+            {isRtl
+              ? '⚡ تتجدد الحصص اليومية تلقائياً الساعة 00:00 بتوقيت القاهرة'
+              : '⚡ Quotas reset automatically at 00:00 Cairo time'}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {cartList.length === 0 ? (
+          <div
+            className="card"
+            style={{
+              padding: '4rem 1.5rem',
+              borderRadius: '16px',
+              border: '1px solid var(--border)',
+              textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div
+              style={{
+                width: 68,
+                height: 68,
+                borderRadius: '50%',
+                background: 'var(--slate-100)',
+                color: 'var(--slate-400)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem'
+              }}
+            >
+              <ShoppingCart size={34} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 850, color: 'var(--slate-900)', margin: '0 0 0.5rem' }}>
+              {isRtl ? 'سلة المرشحين فارغة حالياً' : 'Your Candidate Cart is Empty'}
+            </h3>
+
+            <p style={{ margin: '0 auto 1.75rem', fontSize: '0.9375rem', color: 'var(--slate-600)', maxWidth: 500, lineHeight: 1.6 }}>
+              {isRtl
+                ? 'يمكنك إضافة المرشحين حسب المسمى الوظيفي مباشرة من صفحة البحث لتجميعهم وتصديرهم في ملف إكسيل موحد أو متعدد الصفحات.'
+                : 'You can add candidates by job title directly from the search page to compile and export them in a unified or multi-sheet Excel file.'}
+            </p>
+
+            <Link
+              to="/company/search"
+              className="btn btn-primary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.925rem',
+                fontWeight: 700,
+                padding: '0.75rem 1.75rem',
+                borderRadius: '8px'
+              }}
+            >
+              <span>{isRtl ? 'الانتقال لصفحة البحث' : 'Go to Search Page'}</span>
+              <ArrowRight size={16} style={{ transform: isRtl ? 'rotate(180deg)' : 'none' }} />
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Cart Items List (2 cols) */}
-            <div className="lg:col-span-2 space-y-6">
-              {cartList.map((item) => (
-                <div
-                  key={item._id || item.jobId?._id || item.jobId}
-                  className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
-                >
-                  <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <Briefcase className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-bold text-slate-800 text-base">
-                        {item.jobId?.nameAr || item.jobId?.name || item.jobId?.title || 'مسمى وظيفي'}
-                      </h3>
-                      <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {item.candidates?.length ? `${item.candidates.length} / 10 مرشحين` : `${item.quantity || 1} مرشح مطلوب (متاح: ${item.availableCandidatesCount ?? 0})`}
-                      </span>
-                    </div>
+          /* Populated Cart Grid */
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+              gap: '1.75rem',
+              alignItems: 'start'
+            }}
+          >
+            {/* Left 2-col area: Job Title Buckets */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', gridColumn: 'span 2' }}>
+              {cartList.map((item) => {
+                const titleText = item.jobId?.nameAr || item.jobId?.name || item.jobId?.title || (isRtl ? 'مسمى وظيفي' : 'Job Title');
+                const candCount = item.candidates?.length || 0;
 
-                    <button
-                      onClick={() => handleRemoveItem(item.jobId?._id || item.jobId)}
-                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors"
-                      title="حذف هذا المسمى من السلة"
+                return (
+                  <div
+                    key={item._id || item.jobId?._id || item.jobId}
+                    className="card"
+                    style={{
+                      padding: 0,
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                      overflow: 'hidden',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}
+                  >
+                    {/* Header Row */}
+                    <div
+                      style={{
+                        padding: '1rem 1.25rem',
+                        background: 'var(--slate-50)',
+                        borderBottom: '1px solid var(--border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem'
+                      }}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="p-4 divide-y divide-slate-100">
-                    {item.candidates && item.candidates.length > 0 ? (
-                      item.candidates.map((candidate) => (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         <div
-                          key={candidate._id}
-                          className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: '#000000',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">
-                              {candidate.fullName?.charAt(0) || 'م'}
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900">{candidate.fullName}</h4>
-                              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-0.5">
-                                {candidate.phone && (
-                                  <span className="flex items-center gap-1">
-                                    <Phone className="w-3 h-3 text-emerald-600" />
-                                    <span dir="ltr">{candidate.phone}</span>
-                                  </span>
-                                )}
-                                {candidate.governorate && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3 text-slate-400" />
-                                    <span>{candidate.governorate}</span>
-                                  </span>
-                                )}
-                                {candidate.yearsOfExperience !== undefined && (
-                                  <span>خبرة: {candidate.yearsOfExperience} سنوات</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <span className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-md border border-emerald-200">
-                            جاهز للتصدير
-                          </span>
+                          <Briefcase size={16} />
                         </div>
-                      ))
-                    ) : (
-                      <div className="py-2 text-sm text-slate-600 flex items-center justify-between">
                         <div>
-                          <span>الكمية المطلوبة: </span>
-                          <span className="font-bold text-slate-900">{item.quantity || 1}</span>
-                          {item.notes && <span className="text-xs text-slate-400 mr-2">({item.notes})</span>}
+                          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+                            {titleText}
+                          </h3>
                         </div>
-                        <span className={`text-xs px-2.5 py-1 rounded-md font-semibold ${item.isSufficient !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                          {item.isSufficient !== false ? 'متوفر في قاعدة البيانات' : 'أقل من المطلوب'}
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            padding: '0.2rem 0.6rem',
+                            borderRadius: '999px',
+                            background: '#000000',
+                            color: '#ffffff'
+                          }}
+                        >
+                          {candCount ? `${candCount} / 10 ${isRtl ? 'مرشحين' : 'candidates'}` : `${item.quantity || 1} ${isRtl ? 'مطلوب' : 'requested'}`}
                         </span>
                       </div>
-                    )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.jobId?._id || item.jobId)}
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          color: '#dc2626',
+                          borderColor: '#fca5a5',
+                          padding: '0.35rem 0.65rem',
+                          fontSize: '0.75rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                        title={isRtl ? 'حذف هذا المسمى من السلة' : 'Remove title from cart'}
+                      >
+                        <Trash2 size={14} />
+                        <span>{isRtl ? 'حذف' : 'Remove'}</span>
+                      </button>
+                    </div>
+
+                    {/* Candidates in Bucket */}
+                    <div style={{ padding: '0.75rem 1.25rem' }}>
+                      {item.candidates && item.candidates.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {item.candidates.map((cand, idx) => (
+                            <div
+                              key={cand._id || idx}
+                              style={{
+                                padding: '0.75rem 0',
+                                borderBottom: idx < item.candidates.length - 1 ? '1px solid var(--border)' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                flexWrap: 'wrap',
+                                gap: '0.75rem'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div
+                                  style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: '50%',
+                                    background: 'var(--slate-100)',
+                                    color: '#000000',
+                                    fontWeight: 800,
+                                    fontSize: '0.9rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}
+                                >
+                                  {(cand.fullName || 'م').trim().charAt(0)}
+                                </div>
+                                <div>
+                                  <h4 style={{ margin: 0, fontSize: '0.925rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+                                    {cand.fullName}
+                                  </h4>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--slate-500)', marginTop: '0.2rem' }}>
+                                    {cand.phone && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600, color: 'var(--slate-800)' }} dir="ltr">
+                                        <Phone size={12} />
+                                        <span>{cand.phone}</span>
+                                      </span>
+                                    )}
+                                    {cand.governorate && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <MapPin size={12} />
+                                        <span>{cand.governorate}</span>
+                                      </span>
+                                    )}
+                                    {cand.yearsOfExperience !== undefined && (
+                                      <span>
+                                        {isRtl ? 'خبرة: ' : 'Exp: '}
+                                        <strong>{cand.yearsOfExperience} {isRtl ? 'سنوات' : 'yrs'}</strong>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  background: 'var(--slate-100)',
+                                  color: '#000000',
+                                  padding: '0.25rem 0.6rem',
+                                  borderRadius: '6px',
+                                  border: '1px solid var(--border)'
+                                }}
+                              >
+                                <CheckCircle2 size={13} />
+                                <span>{isRtl ? 'جاهز للتصدير' : 'Ready'}</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '0.75rem 0', fontSize: '0.875rem', color: 'var(--slate-600)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <span>{isRtl ? 'الكمية المطلوبة: ' : 'Quantity: '}</span>
+                            <strong style={{ color: '#000000' }}>{item.quantity || 1}</strong>
+                            {item.notes && <span style={{ color: 'var(--slate-400)', marginInlineStart: '0.5rem' }}>({item.notes})</span>}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.2rem 0.6rem',
+                              borderRadius: '4px',
+                              background: item.isSufficient !== false ? '#ecfdf5' : '#fffbeb',
+                              color: item.isSufficient !== false ? '#065f46' : '#92400e',
+                              border: `1px solid ${item.isSufficient !== false ? '#a7f3d0' : '#fde68a'}`
+                            }}
+                          >
+                            {item.isSufficient !== false ? (isRtl ? 'متوفر في قاعدة البيانات' : 'Available') : (isRtl ? 'أقل من المطلوب' : 'Partially Available')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Export Configuration Card (1 col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-24">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                  <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-                  <h3 className="font-bold text-slate-900 text-base">خيارات تصدير ملف الإكسيل</h3>
+            {/* Right 1-col area: Export Configuration Sidebar */}
+            <div>
+              <div
+                className="card"
+                style={{
+                  position: 'sticky',
+                  top: '2rem',
+                  padding: '1.5rem',
+                  borderRadius: '16px',
+                  border: '1.5px solid #000000',
+                  boxShadow: 'var(--shadow-md)',
+                  background: '#ffffff'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)', marginBottom: '1.25rem' }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '8px',
+                      background: '#000000',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <FileSpreadsheet size={20} />
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--slate-900)' }}>
+                    {isRtl ? 'خيارات تصدير ملف الإكسيل' : 'Excel Export Options'}
+                  </h3>
                 </div>
 
-                <div className="space-y-3 mb-6">
+                {/* Format Radio Options */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
                   <label
-                    className={`block p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      exportFormat === 'multi_sheet'
-                        ? 'border-blue-600 bg-blue-50/50'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
+                    onClick={() => setExportFormat('multi_sheet')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.75rem',
+                      padding: '0.85rem',
+                      borderRadius: '10px',
+                      border: exportFormat === 'multi_sheet' ? '2px solid #000000' : '1px solid var(--border)',
+                      background: exportFormat === 'multi_sheet' ? 'var(--slate-100)' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="exportFormat"
-                        value="multi_sheet"
-                        checked={exportFormat === 'multi_sheet'}
-                        onChange={() => setExportFormat('multi_sheet')}
-                        className="mt-1"
-                      />
-                      <div>
-                        <div className="font-bold text-sm text-slate-800">
-                          ملف متعدد الصفحات (Multi-Sheet)
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          ورقة عمل (Sheet) منفصلة ومستقلة لكل مسمى وظيفي داخل نفس الملف.
-                        </div>
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      value="multi_sheet"
+                      checked={exportFormat === 'multi_sheet'}
+                      onChange={() => setExportFormat('multi_sheet')}
+                      style={{ marginTop: '0.2rem', accentColor: '#000000' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#000000' }}>
+                        {isRtl ? 'ملف متعدد الصفحات (Multi-Sheet)' : 'Multi-Sheet File'}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-600)', marginTop: '0.2rem', lineHeight: 1.4 }}>
+                        {isRtl
+                          ? 'ورقة عمل (Sheet) منفصلة ومستقلة لكل مسمى وظيفي داخل نفس الملف.'
+                          : 'Separate independent sheet per job title inside one Excel workbook.'}
                       </div>
                     </div>
                   </label>
 
                   <label
-                    className={`block p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      exportFormat === 'single_sheet_categorized'
-                        ? 'border-blue-600 bg-blue-50/50'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
+                    onClick={() => setExportFormat('single_sheet_categorized')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.75rem',
+                      padding: '0.85rem',
+                      borderRadius: '10px',
+                      border: exportFormat === 'single_sheet_categorized' ? '2px solid #000000' : '1px solid var(--border)',
+                      background: exportFormat === 'single_sheet_categorized' ? 'var(--slate-100)' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="exportFormat"
-                        value="single_sheet_categorized"
-                        checked={exportFormat === 'single_sheet_categorized'}
-                        onChange={() => setExportFormat('single_sheet_categorized')}
-                        className="mt-1"
-                      />
-                      <div>
-                        <div className="font-bold text-sm text-slate-800">
-                          ملف موحد ومصنف (Single-Sheet)
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          صفحة واحدة مجمعة تحتوي كافة المرشحين مصنفين ومفرزين حسب التخصص.
-                        </div>
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      value="single_sheet_categorized"
+                      checked={exportFormat === 'single_sheet_categorized'}
+                      onChange={() => setExportFormat('single_sheet_categorized')}
+                      style={{ marginTop: '0.2rem', accentColor: '#000000' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#000000' }}>
+                        {isRtl ? 'ملف موحد ومصنف (Single-Sheet)' : 'Single Combined Sheet'}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-600)', marginTop: '0.2rem', lineHeight: 1.4 }}>
+                        {isRtl
+                          ? 'صفحة واحدة مجمعة تحتوي كافة المرشحين مصنفين ومفرزين حسب التخصص.'
+                          : 'Single sheet listing all candidates grouped by specialization.'}
                       </div>
                     </div>
                   </label>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-3.5 text-xs text-slate-600 mb-6 space-y-1.5 border border-slate-100">
-                  <div className="flex justify-between">
-                    <span>عدد التخصصات:</span>
-                    <span className="font-bold text-slate-800">{cart.length}</span>
+                {/* Summary Box */}
+                <div
+                  style={{
+                    padding: '0.85rem 1rem',
+                    background: 'var(--slate-100)',
+                    borderRadius: '8px',
+                    fontSize: '0.8125rem',
+                    color: 'var(--slate-700)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.45rem',
+                    marginBottom: '1.25rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{isRtl ? 'عدد التخصصات:' : 'Job Titles:'}</span>
+                    <strong style={{ color: '#000000' }}>{cartList.length}</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span>إجمالي المرشحين:</span>
-                    <span className="font-bold text-slate-800">{totalCandidatesCount}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{isRtl ? 'إجمالي المرشحين:' : 'Total Candidates:'}</span>
+                    <strong style={{ color: '#000000' }}>{totalCandidatesCount}</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span>صيغة الملف:</span>
-                    <span className="font-bold text-emerald-700">Microsoft Excel (.xlsx)</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{isRtl ? 'صيغة الملف:' : 'File Format:'}</span>
+                    <strong style={{ color: '#000000' }}>Microsoft Excel (.xlsx)</strong>
                   </div>
                 </div>
 
+                {/* Download Button */}
                 <button
+                  type="button"
                   onClick={handleExport}
-                  disabled={exporting || cart.length === 0}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={exporting || cartList.length === 0}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.925rem',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    cursor: exporting || cartList.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: exporting || cartList.length === 0 ? 0.6 : 1
+                  }}
                 >
                   {exporting ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <Download className="w-4 h-4" />
-                      <span>تصدير ملف الإكسيل الآن</span>
+                      <Download size={18} />
+                      <span>{isRtl ? 'تصدير ملف الإكسيل الآن' : 'Export Excel File Now'}</span>
                     </>
                   )}
                 </button>

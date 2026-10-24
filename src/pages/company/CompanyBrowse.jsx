@@ -2,13 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { companyApi } from '../../api/company.api';
 import { jobsApi } from '../../api/jobs.api';
-import { useAuth } from '../../context/AuthContext';
 import {
   Sparkles,
   Search,
-  SlidersHorizontal,
   Download,
   Eye,
   MapPin,
@@ -16,12 +15,13 @@ import {
   Calendar,
   Phone,
   Mail,
-  FileText,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
+  FileSpreadsheet,
+  RotateCcw,
+  ShoppingCart,
+  Award,
   ShieldCheck,
-  Award
+  X,
+  FileText
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Pagination from '../../components/ui/Pagination';
@@ -177,6 +177,7 @@ export default function CompanyBrowse() {
     }
   };
 
+  // Locked Banner for non-Platinum users
   if (!isPlatinum && !loading) {
     return (
       <div
@@ -203,7 +204,6 @@ export default function CompanyBrowse() {
               overflow: 'hidden'
             }}
           >
-            {/* Top Black Accent Bar */}
             <div
               style={{
                 position: 'absolute',
@@ -215,7 +215,6 @@ export default function CompanyBrowse() {
               }}
             />
 
-            {/* Black Icon Container */}
             <div
               style={{
                 width: 72,
@@ -233,7 +232,6 @@ export default function CompanyBrowse() {
               <Sparkles size={34} color="#ffffff" />
             </div>
 
-            {/* VIP Tier Badge */}
             <div style={{ marginBottom: '1.25rem' }}>
               <span
                 style={{
@@ -254,7 +252,6 @@ export default function CompanyBrowse() {
               </span>
             </div>
 
-            {/* Title */}
             <h1
               style={{
                 fontSize: 'clamp(1.35rem, 3vw, 1.85rem)',
@@ -267,7 +264,6 @@ export default function CompanyBrowse() {
               {isRtl ? 'بوابة تصفح قاعدة البيانات المباشرة (Platinum Portal)' : 'Direct Database Browse Portal (Platinum Portal)'}
             </h1>
 
-            {/* Description */}
             <p
               style={{
                 color: '#3f3f46',
@@ -292,7 +288,6 @@ export default function CompanyBrowse() {
               )}
             </p>
 
-            {/* VIP Highlights Grid */}
             <div
               style={{
                 display: 'grid',
@@ -360,7 +355,6 @@ export default function CompanyBrowse() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div
               style={{
                 display: 'flex',
@@ -418,103 +412,222 @@ export default function CompanyBrowse() {
   }
 
   return (
-    <div className="py-8 bg-slate-50 min-h-[85vh]" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div
+      style={{
+        padding: 'clamp(1.5rem, 3vw, 2.5rem) 0 4rem',
+        background: 'var(--bg-page)',
+        minHeight: '85vh'
+      }}
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
+      <div className="container">
+        {/* Page Top Header */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}
+        >
           <div>
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white rounded-xl shadow-sm">
-                <Sparkles className="w-6 h-6" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '8px',
+                  background: '#000000',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Sparkles size={20} />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-black text-slate-900">
-                    بوابة التصفح الحصرية لقاعدة بيانات المرشحين
-                  </h1>
-                  <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                    Platinum VIP
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  تصفح شامل ومباشر لجميع الكفاءات • استعراض وتحميل فردي مباشر (Strictly 1 candidate at a time)
-                </p>
-              </div>
+              <h1 style={{ fontSize: 'clamp(1.35rem, 3vw, 1.75rem)', fontWeight: 850, margin: 0, color: 'var(--slate-900)' }}>
+                {isRtl ? 'بوابة التصفح الحصرية لقاعدة بيانات المرشحين' : 'Exclusive Candidate Database Browsing'}
+              </h1>
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '999px',
+                  background: '#000000',
+                  color: '#ffffff'
+                }}
+              >
+                Platinum VIP
+              </span>
             </div>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--slate-600)', lineHeight: 1.5 }}>
+              {isRtl
+                ? 'تصفح شامل ومباشر لجميع الكفاءات • استعراض وتحميل فردي مباشر (Strictly 1 candidate at a time)'
+                : 'Direct pool exploration • 1-by-1 detailed inspection & single Excel download'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Quick Links Header */}
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <Link
               to="/company/cart"
-              className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                padding: '0.5rem 0.9rem',
+                borderRadius: '8px'
+              }}
             >
-              سلة المرشحين
+              <ShoppingCart size={16} />
+              <span>{isRtl ? 'سلة المرشحين' : 'Candidate Cart'}</span>
             </Link>
             <Link
               to="/company/search"
-              className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                padding: '0.5rem 0.9rem',
+                borderRadius: '8px'
+              }}
             >
-              البحث العادي
+              <Search size={16} />
+              <span>{isRtl ? 'البحث العادي' : 'Standard Search'}</span>
             </Link>
           </div>
         </div>
 
         {/* Cairo Entitlements Bar */}
         {entitlements && (
-          <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white rounded-2xl p-4 sm:p-5 mb-8 shadow-md flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-indigo-300">
-                <Award className="w-6 h-6" />
+          <div
+            style={{
+              background: '#000000',
+              color: '#ffffff',
+              borderRadius: '12px',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+              boxShadow: 'var(--shadow-md)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff'
+                }}
+              >
+                <Award size={22} />
               </div>
               <div>
-                <div className="text-xs text-indigo-200 font-medium">الباقة المفعلة الحالية</div>
-                <div className="text-base font-bold text-white">
-                  الباقة البلاتينية • تصفح غير محدود لقاعدة البيانات
+                <div style={{ fontSize: '0.72rem', color: '#a1a1aa', fontWeight: 600 }}>
+                  {isRtl ? 'الباقة المفعلة الحالية' : 'Active Subscription'}
+                </div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#ffffff' }}>
+                  {isRtl
+                    ? 'الباقة البلاتينية • تصفح غير محدود لقاعدة البيانات'
+                    : 'Platinum Tier • Unlimited Database Browsing'}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-xs sm:text-sm">
-              <div className="bg-white/10 px-3.5 py-1.5 rounded-lg">
-                <span className="text-indigo-200">توقيت القاهرة: </span>
-                <span className="font-bold text-white">{entitlements.cairoDate || entitlements.quota?.cairoDate}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.8125rem' }}>
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  fontWeight: 600
+                }}
+              >
+                <span style={{ color: '#d4d4d8' }}>{isRtl ? 'توقيت القاهرة: ' : 'Cairo Time: '}</span>
+                <span style={{ color: '#ffffff', fontWeight: 800 }}>
+                  {entitlements.cairoDate || entitlements.quota?.cairoDate || '2026-10-24'}
+                </span>
               </div>
-              <div className="text-indigo-200">
-                ⚡ تتجدد الحصص اليومية تلقائياً 00:00 بتوقيت القاهرة
+              <div style={{ color: '#d4d4d8', fontSize: '0.78rem' }}>
+                {isRtl
+                  ? '⚡ تتجدد الحصص اليومية تلقائياً 00:00 بتوقيت القاهرة'
+                  : '⚡ Quotas renew automatically at 00:00 Cairo time'}
               </div>
             </div>
           </div>
         )}
 
-        {/* Filter Toolbar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6 shadow-sm">
-          <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                التخصص / المسمى الوظيفي
+        {/* Filter Toolbar Card */}
+        <div
+          className="card"
+          style={{
+            padding: '1.25rem',
+            borderRadius: '12px',
+            marginBottom: '1.75rem',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <form
+            onSubmit={handleFilterSubmit}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+              gap: '1rem',
+              alignItems: 'flex-end'
+            }}
+          >
+            {/* Job Title Dropdown */}
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label" style={{ fontSize: '0.8125rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                {isRtl ? 'التخصص / المسمى الوظيفي' : 'Job Title / Specialization'}
               </label>
               <select
+                className="form-control"
                 value={desiredJobId}
                 onChange={(e) => setDesiredJobId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                style={{ fontSize: '0.875rem' }}
               >
-                <option value="">جميع التخصصات والمسميات</option>
+                <option value="">{isRtl ? 'جميع التخصصات والمسميات' : 'All Job Titles'}</option>
                 {jobs.map((j) => (
                   <option key={j._id} value={j._id}>
-                    {j.title}
+                    {j.title || (isRtl ? j.nameAr || j.name : j.name || j.nameAr)}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">المحافظة</label>
+            {/* Governorate Dropdown */}
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label" style={{ fontSize: '0.8125rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                {isRtl ? 'المحافظة' : 'Governorate'}
+              </label>
               <select
+                className="form-control"
                 value={governorate}
                 onChange={(e) => setGovernorate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                style={{ fontSize: '0.875rem' }}
               >
-                <option value="">جميع المحافظات</option>
+                <option value="">{isRtl ? 'جميع المحافظات' : 'All Governorates'}</option>
                 {GOVERNORATES.filter(Boolean).map((gov) => (
                   <option key={gov} value={gov}>
                     {gov}
@@ -523,12 +636,16 @@ export default function CompanyBrowse() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">سنوات الخبرة</label>
+            {/* Experience Dropdown */}
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label" style={{ fontSize: '0.8125rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                {isRtl ? 'سنوات الخبرة' : 'Years of Experience'}
+              </label>
               <select
+                className="form-control"
                 value={expRange}
                 onChange={(e) => setExpRange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                style={{ fontSize: '0.875rem' }}
               >
                 {EXP_RANGES.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -538,13 +655,24 @@ export default function CompanyBrowse() {
               </select>
             </div>
 
-            <div className="flex items-end gap-2">
+            {/* Submit & Reset Buttons */}
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
               <button
                 type="submit"
-                className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.45rem',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  padding: '0.625rem 1rem'
+                }}
               >
-                <Search className="w-4 h-4" />
-                <span>تصفية النتائج</span>
+                <Search size={16} />
+                <span>{isRtl ? 'تصفية النتائج' : 'Filter'}</span>
               </button>
               <button
                 type="button"
@@ -554,9 +682,19 @@ export default function CompanyBrowse() {
                   setExpRange('');
                   setKeyword('');
                 }}
-                className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+                className="btn btn-outline"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.625rem 0.85rem',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600
+                }}
+                title={isRtl ? 'إعادة ضبط الخيارات' : 'Reset filters'}
               >
-                إعادة ضبط
+                <RotateCcw size={15} />
+                <span style={{ marginInlineStart: '0.25rem' }}>{isRtl ? 'إعادة ضبط' : 'Reset'}</span>
               </button>
             </div>
           </form>
@@ -564,94 +702,236 @@ export default function CompanyBrowse() {
 
         {/* Candidate Cards Grid */}
         {loading ? (
-          <div className="py-20 flex justify-center">
+          <div style={{ padding: '5rem 0', display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner />
           </div>
         ) : candidates.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">لا توجد نتائج مطابقة</h3>
-            <p className="text-sm text-slate-500">جرب تغيير خيارات التصفية للوصول لمرشحين أكثر.</p>
+          <div
+            className="card"
+            style={{
+              padding: '3.5rem 1.5rem',
+              textAlign: 'center',
+              borderRadius: '12px',
+              border: '1px solid var(--border)'
+            }}
+          >
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '0.5rem' }}>
+              {isRtl ? 'لا توجد نتائج مطابقة' : 'No Candidates Found'}
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--slate-500)' }}>
+              {isRtl
+                ? 'جرب تعديل خيارات التصفية للوصول لمرشحين أكثر في قاعدة البيانات.'
+                : 'Try adjusting your filters to find more candidates.'}
+            </p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {candidates.map((c) => (
-                <div
-                  key={c._id}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
-                >
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-100 text-indigo-700 font-bold text-base flex items-center justify-center">
-                          {c.fullName?.charAt(0) || 'م'}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 330px), 1fr))',
+                gap: '1.25rem',
+                marginBottom: '2rem'
+              }}
+            >
+              {candidates.map((c) => {
+                const initial = (c.fullName || 'م').trim().charAt(0);
+                const jobTitleText =
+                  c.primaryJobTitle?.title ||
+                  c.desiredJobs?.[0]?.jobId?.title ||
+                  (isRtl ? 'مرشح' : 'Candidate');
+
+                return (
+                  <div
+                    key={c._id}
+                    className="card"
+                    style={{
+                      padding: 0,
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      overflow: 'hidden',
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                    }}
+                  >
+                    {/* Card Body */}
+                    <div style={{ padding: '1.25rem' }}>
+                      {/* Avatar & Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
+                        <div
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '50%',
+                            background: '#000000',
+                            color: '#ffffff',
+                            fontWeight: 800,
+                            fontSize: '1.15rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}
+                        >
+                          {initial}
                         </div>
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-base">{c.fullName}</h3>
-                          <div className="text-xs text-indigo-600 font-semibold flex items-center gap-1">
-                            <Briefcase className="w-3.5 h-3.5" />
-                            <span>
-                              {c.primaryJobTitle?.title ||
-                                c.desiredJobs?.[0]?.jobId?.title ||
-                                'مرشح'}
-                            </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3
+                            style={{
+                              margin: '0 0 0.25rem',
+                              fontSize: '1rem',
+                              fontWeight: 800,
+                              color: 'var(--slate-900)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                          >
+                            {c.fullName}
+                          </h3>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              background: 'var(--slate-100)',
+                              color: '#000000',
+                              padding: '0.15rem 0.55rem',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              maxWidth: '100%',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            <Briefcase size={12} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{jobTitleText}</span>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1.5 text-xs text-slate-600 mb-4 pt-2 border-t border-slate-100">
-                      {c.governorate && (
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{c.governorate} {c.area ? `• ${c.area}` : ''}</span>
+                      {/* Candidate Meta Info */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.45rem',
+                          fontSize: '0.8125rem',
+                          color: 'var(--slate-700)',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid var(--border)'
+                        }}
+                      >
+                        {(c.governorate || c.area) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <MapPin size={14} style={{ color: 'var(--slate-400)', flexShrink: 0 }} />
+                            <span>
+                              {c.governorate || 'الشرقية'} {c.area ? `• ${c.area}` : ''}
+                            </span>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Calendar size={14} style={{ color: 'var(--slate-400)', flexShrink: 0 }} />
+                          <span>
+                            {isRtl ? 'سنوات الخبرة: ' : 'Experience: '}
+                            <strong style={{ color: '#000000' }}>
+                              {c.yearsOfExperience || 0} {isRtl ? 'سنوات' : 'years'}
+                            </strong>
+                          </span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>سنوات الخبرة: {c.yearsOfExperience || 0} سنوات</span>
+                        {c.careerLevel && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Award size={14} style={{ color: 'var(--slate-400)', flexShrink: 0 }} />
+                            <span>
+                              {isRtl ? 'المستوى المهني: ' : 'Career Level: '}
+                              <strong>{c.careerLevel}</strong>
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {c.careerLevel && (
-                        <div className="flex items-center gap-1.5">
-                          <Award className="w-3.5 h-3.5 text-slate-400" />
-                          <span>المستوى المهني: {c.careerLevel}</span>
-                        </div>
-                      )}
+                    </div>
+
+                    {/* Card Actions Footer */}
+                    <div
+                      style={{
+                        padding: '0.85rem 1.25rem',
+                        background: 'var(--slate-50)',
+                        borderTop: '1px solid var(--border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.65rem'
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleViewCandidate(c._id)}
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          flex: 1,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          fontWeight: 700,
+                          fontSize: '0.8125rem',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '6px'
+                        }}
+                      >
+                        <Eye size={15} />
+                        <span>{isRtl ? 'عرض التفاصيل' : 'View Details'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadSingleCandidate(c._id, c.fullName)}
+                        disabled={downloadingId === c._id}
+                        className="btn btn-primary btn-sm"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          fontWeight: 700,
+                          fontSize: '0.8125rem',
+                          padding: '0.5rem 0.85rem',
+                          borderRadius: '6px'
+                        }}
+                        title={isRtl ? 'تحميل ملف Excel فردي لهذا المرشح' : 'Download single candidate Excel'}
+                      >
+                        {downloadingId === c._id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <FileSpreadsheet size={15} />
+                            <span>{isRtl ? 'تحميل Excel' : 'Excel'}</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
-
-                  {/* Strictly 1 Candidate Action Buttons */}
-                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-2">
-                    <button
-                      onClick={() => handleViewCandidate(c._id)}
-                      className="flex-1 py-2 px-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-800 hover:text-indigo-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>عرض التفاصيل</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleDownloadSingleCandidate(c._id, c.fullName)}
-                      disabled={downloadingId === c._id}
-                      className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-                      title="تحميل ملف إكسيل فردي لهذا المرشح"
-                    >
-                      {downloadingId === c._id ? (
-                        <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <Download className="w-3.5 h-3.5" />
-                          <span>تحميل Excel</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginTop: '1.5rem',
+                  padding: '1rem',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)'
+                }}
+              >
                 <Pagination
                   currentPage={page}
                   totalPages={totalPages}
@@ -664,76 +944,186 @@ export default function CompanyBrowse() {
 
         {/* Single Candidate Detail Modal */}
         {detailModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden" dir="rtl">
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.65)',
+              backdropFilter: 'blur(3px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}
+            onClick={() => setDetailModal({ open: false, candidate: null, loading: false })}
+          >
+            <div
+              style={{
+                width: '100%',
+                maxWidth: 640,
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1.5px solid #000000',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+                overflow: 'hidden',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+              dir={isRtl ? 'rtl' : 'ltr'}
+              onClick={(e) => e.stopPropagation()}
+            >
               {detailModal.loading ? (
-                <div className="p-16 flex justify-center">
+                <div style={{ padding: '4rem 0', display: 'flex', justifyContent: 'center' }}>
                   <LoadingSpinner />
                 </div>
               ) : detailModal.candidate ? (
                 <>
-                  <div className="p-6 bg-gradient-to-r from-indigo-700 to-purple-800 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg">
+                  {/* Modal Header */}
+                  <div
+                    style={{
+                      padding: '1.25rem 1.5rem',
+                      background: '#000000',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottom: '1px solid #000000'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: '50%',
+                          background: '#ffffff',
+                          color: '#000000',
+                          fontWeight: 900,
+                          fontSize: '1.2rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
                         {detailModal.candidate.fullName?.charAt(0) || 'م'}
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold">{detailModal.candidate.fullName}</h2>
-                        <p className="text-xs text-indigo-200">
-                          {detailModal.candidate.primaryJobTitle?.title || 'مرشح'}
-                        </p>
+                        <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>
+                          {detailModal.candidate.fullName}
+                        </h2>
+                        <div style={{ fontSize: '0.78rem', color: '#a1a1aa', marginTop: '0.15rem' }}>
+                          {detailModal.candidate.primaryJobTitle?.title || (isRtl ? 'مرشح معتمد' : 'Verified Candidate')}
+                        </div>
                       </div>
                     </div>
+
                     <button
+                      type="button"
                       onClick={() => setDetailModal({ open: false, candidate: null, loading: false })}
-                      className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        padding: '0.35rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
                     >
-                      ✕
+                      <X size={20} />
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                    {/* Contacts */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-emerald-600" />
-                        <span className="font-semibold" dir="ltr">
-                          {detailModal.candidate.phone || 'غير محدد'}
+                  {/* Modal Body */}
+                  <div
+                    style={{
+                      padding: '1.5rem',
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.25rem'
+                    }}
+                  >
+                    {/* Contact & Meta Grid */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: '0.85rem',
+                        padding: '1rem',
+                        background: 'var(--slate-100)',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border)',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <Phone size={16} style={{ color: '#000000' }} />
+                        <span style={{ fontWeight: 700 }} dir="ltr">
+                          {detailModal.candidate.phone || '—'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                        <span>{detailModal.candidate.email || 'غير محدد'}</span>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <Mail size={16} style={{ color: '#000000' }} />
+                        <span style={{ wordBreak: 'break-all' }}>
+                          {detailModal.candidate.email || '—'}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-slate-400" />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <MapPin size={16} style={{ color: '#000000' }} />
                         <span>
-                          {detailModal.candidate.governorate} • {detailModal.candidate.area || 'غير محدد'}
+                          {detailModal.candidate.governorate || 'الشرقية'} • {detailModal.candidate.area || 'العاشر من رمضان'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-400" />
-                        <span>الخبرة: {detailModal.candidate.yearsOfExperience || 0} سنوات</span>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <Calendar size={16} style={{ color: '#000000' }} />
+                        <span>
+                          {isRtl ? 'سنوات الخبرة: ' : 'Experience: '}
+                          <strong>{detailModal.candidate.yearsOfExperience || 0} {isRtl ? 'سنوات' : 'years'}</strong>
+                        </span>
                       </div>
                     </div>
 
                     {/* Desired Titles */}
                     {detailModal.candidate.desiredJobs?.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">
-                          المسميات الوظيفية والمستويات
+                        <h4 style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--slate-800)', marginBottom: '0.5rem' }}>
+                          {isRtl ? 'المسميات الوظيفية والمستويات المهنية' : 'Desired Job Titles & Levels'}
                         </h4>
-                        <div className="space-y-2">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                           {detailModal.candidate.desiredJobs.map((dj, idx) => (
                             <div
                               key={idx}
-                              className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs"
+                              style={{
+                                padding: '0.65rem 0.85rem',
+                                background: '#ffffff',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontSize: '0.8125rem'
+                              }}
                             >
-                              <span className="font-bold text-slate-800">
-                                #{idx + 1} {dj.jobId?.title || dj.customTitle || 'مسمى وظيفي'}
+                              <span style={{ fontWeight: 700, color: 'var(--slate-900)' }}>
+                                #{idx + 1} {dj.jobId?.title || dj.customTitle || (isRtl ? 'مسمى وظيفي' : 'Job Title')}
                               </span>
-                              <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-medium">
-                                {dj.careerLevel || 'غير محدد'}
+                              <span
+                                style={{
+                                  padding: '0.15rem 0.5rem',
+                                  background: 'var(--slate-100)',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}
+                              >
+                                {dj.careerLevel || '—'}
                               </span>
                             </div>
                           ))}
@@ -741,35 +1131,69 @@ export default function CompanyBrowse() {
                       </div>
                     )}
 
-                    {/* Notes / Bio */}
+                    {/* Bio / Summary */}
                     {detailModal.candidate.bio && (
                       <div>
-                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-1">نبذة عن المرشح</h4>
-                        <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <h4 style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--slate-800)', marginBottom: '0.35rem' }}>
+                          {isRtl ? 'نبذة عن المرشح' : 'Bio / Summary'}
+                        </h4>
+                        <p
+                          style={{
+                            margin: 0,
+                            padding: '0.85rem',
+                            background: 'var(--slate-100)',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem',
+                            color: 'var(--slate-700)',
+                            lineHeight: 1.6
+                          }}
+                        >
                           {detailModal.candidate.bio}
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                  {/* Modal Footer */}
+                  <div
+                    style={{
+                      padding: '1rem 1.5rem',
+                      background: 'var(--slate-50)',
+                      borderTop: '1px solid var(--border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: '0.75rem'
+                    }}
+                  >
                     <button
+                      type="button"
                       onClick={() => setDetailModal({ open: false, candidate: null, loading: false })}
-                      className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-100"
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.85rem', fontWeight: 700, padding: '0.5rem 1rem' }}
                     >
-                      إغلاق
+                      {isRtl ? 'إغلاق' : 'Close'}
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         handleDownloadSingleCandidate(
                           detailModal.candidate._id,
                           detailModal.candidate.fullName
                         )
                       }
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
+                      className="btn btn-primary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        padding: '0.5rem 1.25rem'
+                      }}
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>تحميل Excel فردي</span>
+                      <FileSpreadsheet size={16} />
+                      <span>{isRtl ? 'تحميل Excel فردي' : 'Download Excel'}</span>
                     </button>
                   </div>
                 </>

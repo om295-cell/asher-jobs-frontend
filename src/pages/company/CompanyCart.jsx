@@ -22,10 +22,12 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CompanyCart() {
   const { isRtl } = useLanguage();
   const { showToast } = useToast();
+  const { profile } = useAuth();
 
   const [cart, setCart] = useState([]);
   const [entitlements, setEntitlements] = useState(null);
@@ -123,7 +125,11 @@ export default function CompanyCart() {
     );
   }
 
-  const isCartEligible = entitlements?.limits?.cartEnabled;
+  const isCartEligible = Boolean(
+    entitlements?.planLimits?.cartEnabled ||
+    entitlements?.limits?.cartEnabled ||
+    ['Gold', 'Platinum'].includes(entitlements?.company?.subscriptionPlan || entitlements?.plan || profile?.subscriptionPlan)
+  );
   const cartList = Array.isArray(cart) ? cart : [];
   const totalCandidatesCount = cartList.reduce((acc, item) => acc + (item.candidates?.length || item.quantity || 0), 0);
 

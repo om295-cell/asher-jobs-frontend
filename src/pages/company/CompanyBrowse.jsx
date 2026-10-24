@@ -4,6 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { companyApi } from '../../api/company.api';
 import { jobsApi } from '../../api/jobs.api';
+import { useAuth } from '../../context/AuthContext';
 import {
   Sparkles,
   Search,
@@ -37,6 +38,7 @@ const EXP_RANGES = [
 export default function CompanyBrowse() {
   const { isRtl } = useLanguage();
   const { showToast } = useToast();
+  const { profile } = useAuth();
 
   const [jobs, setJobs] = useState([]);
   const [candidates, setCandidates] = useState([]);
@@ -45,7 +47,7 @@ export default function CompanyBrowse() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [entitlements, setEntitlements] = useState(null);
-  const [isPlatinum, setIsPlatinum] = useState(false);
+  const [isPlatinum, setIsPlatinum] = useState(() => profile?.subscriptionPlan === 'Platinum');
 
   // Single candidate detail modal state
   const [detailModal, setDetailModal] = useState({ open: false, candidate: null, loading: false });
@@ -57,18 +59,33 @@ export default function CompanyBrowse() {
   const [expRange, setExpRange] = useState('');
   const [keyword, setKeyword] = useState('');
 
+  const isPlatinumEligible = (ent, prof) => {
+    return Boolean(
+      prof?.subscriptionPlan === 'Platinum' ||
+      ent?.planLimits?.platinumBrowseEnabled ||
+      ent?.limits?.platinumBrowseEnabled ||
+      ent?.company?.subscriptionPlan === 'Platinum' ||
+      ent?.plan === 'Platinum'
+    );
+  };
+
   // Initial load
   useEffect(() => {
+    if (profile?.subscriptionPlan === 'Platinum') {
+      setIsPlatinum(true);
+    }
     jobsApi.getJobs().then((res) => setJobs(res.data?.data || [])).catch(() => {});
     companyApi
       .getEntitlements()
       .then((res) => {
         const ent = res.data?.data;
         setEntitlements(ent);
-        setIsPlatinum(ent?.limits?.platinumBrowseEnabled || ent?.plan === 'Platinum');
+        if (isPlatinumEligible(ent, profile)) {
+          setIsPlatinum(true);
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [profile]);
 
   const fetchBrowseResults = useCallback(
     async (currentPage = 1) => {
@@ -93,8 +110,9 @@ export default function CompanyBrowse() {
         setTotal(res.data?.pagination?.total || 0);
         setTotalPages(res.data?.pagination?.totalPages || 1);
         setPage(currentPage);
+        setIsPlatinum(true);
       } catch (err) {
-        if (err.response?.status === 403) {
+        if (err.response?.status === 403 && err.response?.data?.code === 'PLATINUM_REQUIRED') {
           setIsPlatinum(false);
         } else {
           showToast(err.response?.data?.message || 'فشل تحميل بيانات التصفح', 'error');
@@ -459,7 +477,7 @@ export default function CompanyBrowse() {
             <div className="flex items-center gap-4 text-xs sm:text-sm">
               <div className="bg-white/10 px-3.5 py-1.5 rounded-lg">
                 <span className="text-indigo-200">توقيت القاهرة: </span>
-                <span className="font-bold text-white">{entitlements.cairoDate}</span>
+                <span className="font-bold text-white">{entitlements.cairoDate || entitlements.quota?.cairoDate}</span>
               </div>
               <div className="text-indigo-200">
                 ⚡ تتجدد الحصص اليومية تلقائياً 00:00 بتوقيت القاهرة

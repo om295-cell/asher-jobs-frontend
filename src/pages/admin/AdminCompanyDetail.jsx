@@ -142,8 +142,8 @@ export default function AdminCompanyDetail() {
     try {
       setSavingSub(true)
       await adminApi.updateEmployerSubscription(company._id, {
-        subscriptionPlan: subForm.plan,
-        subscriptionPriceEgp: Number(subForm.priceEgp)
+        plan: subForm.plan,
+        priceEgp: Number(subForm.priceEgp)
       })
       if (subForm.status && subForm.status !== company.accountStatus) {
         await adminApi.updateEmployerStatus(company._id, subForm.status, 'Admin updated status in detail view')

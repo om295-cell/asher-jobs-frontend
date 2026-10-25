@@ -781,7 +781,7 @@ export default function HomePage() {
               </a>
 
               <a
-                href="mailto:asherjobs@outlook.com?subject=%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D8%B4%D8%B1%D9%83%D8%A9&body=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D8%B4%D8%B1%D9%83%D8%A9"
+                href="mailto:omarhassan@asher-jobs.com?subject=%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D8%B4%D8%B1%D9%83%D8%A9&body=%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D8%B4%D8%B1%D9%83%D8%A9"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '1rem',
                   padding: '1rem 1.25rem', borderRadius: '12px',
@@ -795,7 +795,7 @@ export default function HomePage() {
                 <Mail size={22} style={{ flexShrink: 0 }} />
                 <span>
                   <span style={{ display: 'block' }}>{isRtl ? 'تواصل عبر البريد الإلكتروني' : 'Contact via Email'}</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 400, opacity: 0.65 }}>asherjobs@outlook.com</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, opacity: 0.65 }}>omarhassan@asher-jobs.com</span>
                 </span>
               </a>
             </div>

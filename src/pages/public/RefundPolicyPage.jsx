@@ -26,7 +26,7 @@ const sections = {
     ],
     [
       'How to Submit a Refund Request',
-      'To request a refund, please send an official written request from your registered company email to asherjobs@outlook.com or contact us by phone at +20 155 645 4666 with the following information:\n1. Company Name and registered account email/phone.\n2. Paymob Transaction ID / Order Reference number.\n3. Transaction date and exact amount charged in EGP.\n4. Reason for the cancellation or refund request.\n\nFor your security, never include your full 16-digit card number, CVV code, or banking passwords in any email communication. Our finance team will review your order and confirm the resolution within 48 business hours.'
+      'To request a refund, please send an official written request from your registered company email to omarhassan@asher-jobs.com or contact us by phone at +20 155 645 4666 with the following information:\n1. Company Name and registered account email/phone.\n2. Paymob Transaction ID / Order Reference number.\n3. Transaction date and exact amount charged in EGP.\n4. Reason for the cancellation or refund request.\n\nFor your security, never include your full 16-digit card number, CVV code, or banking passwords in any email communication. Our finance team will review your order and confirm the resolution within 48 business hours.'
     ],
     [
       'Corporate Details & Consumer Rights',
@@ -56,7 +56,7 @@ const sections = {
     ],
     [
       'خطوات تقديم طلب الاسترداد',
-      'لطلب استرداد المبلغ، يرجى إرسال بريد إلكتروني رسمي من البريد المسجل للشركة إلى asherjobs@outlook.com أو الاتصال هاتفياً على الرقم 4666 645 155 20+، متضمناً البيانات التالية:\n1. اسم الشركة ورقم الهاتف أو البريد الإلكتروني المسجل للحساب.\n2. رقم المعاملة لدى Paymob (Transaction / Order ID).\n3. تاريخ المعاملة والمبلغ الدقيق بالجنيه المصري.\n4. سبب طلب الاسترداد أو الإلغاء.\n\nتنبيه أمني: لا ترسل نهائياً رقم البطاقة البنكية كاملاً أو كود الأمان CVV أو كلمات المرور عبر البريد. وسيقوم القسم المالي بالرد عليك وتأكيد الإجراء خلال 48 ساعة عمل.'
+      'لطلب استرداد المبلغ، يرجى إرسال بريد إلكتروني رسمي من البريد المسجل للشركة إلى omarhassan@asher-jobs.com أو الاتصال هاتفياً على الرقم 4666 645 155 20+، متضمناً البيانات التالية:\n1. اسم الشركة ورقم الهاتف أو البريد الإلكتروني المسجل للحساب.\n2. رقم المعاملة لدى Paymob (Transaction / Order ID).\n3. تاريخ المعاملة والمبلغ الدقيق بالجنيه المصري.\n4. سبب طلب الاسترداد أو الإلغاء.\n\nتنبيه أمني: لا ترسل نهائياً رقم البطاقة البنكية كاملاً أو كود الأمان CVV أو كلمات المرور عبر البريد. وسيقوم القسم المالي بالرد عليك وتأكيد الإجراء خلال 48 ساعة عمل.'
     ],
     [
       'البيانات القانونية وحقوق المستهلك',

@@ -38,11 +38,11 @@ const sections = {
     ],
     [
       'Your Rights & Data Requests',
-      'Under applicable privacy principles and Egyptian Law No. 151 of 2020, you have the right to request access to the personal data we hold about you, request corrections to inaccurate details, request deletion of your account and personal records, or object to specific processing activities. To exercise any of these rights, please contact our Data Protection and Compliance team at asherjobs@outlook.com.'
+      'Under applicable privacy principles and Egyptian Law No. 151 of 2020, you have the right to request access to the personal data we hold about you, request corrections to inaccurate details, request deletion of your account and personal records, or object to specific processing activities. To exercise any of these rights, please contact our Data Protection and Compliance team at omarhassan@asher-jobs.com.'
     ],
     [
       'Updates & Contact Details',
-      'We may update this Privacy Policy from time to time to reflect operational enhancements, new platform features, or evolving regulatory and payment gateway requirements. The most recent version will always be published on this page with immediate effect.\n\nFor questions, privacy inquiries, or payment security details, contact us:\n• Entity: Asher Media for Electronic Services (CR 11615)\n• Email: asherjobs@outlook.com\n• Phone: +20 155 645 4666\n• Headquarters: 10th of Ramadan City, Sharqia Governorate, Egypt.'
+      'We may update this Privacy Policy from time to time to reflect operational enhancements, new platform features, or evolving regulatory and payment gateway requirements. The most recent version will always be published on this page with immediate effect.\n\nFor questions, privacy inquiries, or payment security details, contact us:\n• Entity: Asher Media for Electronic Services (CR 11615)\n• Email: omarhassan@asher-jobs.com\n• Phone: +20 155 645 4666\n• Headquarters: 10th of Ramadan City, Sharqia Governorate, Egypt.'
     ]
   ],
   ar: [
@@ -80,11 +80,11 @@ const sections = {
     ],
     [
       'حقوق المستخدمين والطلبات المتعلقة بالبيانات',
-      'وفقاً لأحكام القانون رقم 151 لسنة 2020، يحق لك طلب الاطلاع على بياناتك الشخصية المسجلة، أو طلب تصحيحها وتحديثها، أو طلب حذف الحساب والبيانات المرتبطة به. لتقديم أي طلب متعلق بحقوق الخصوصية، يمكنك مراسلة فريق حماية البيانات عبر البريد: asherjobs@outlook.com.'
+      'وفقاً لأحكام القانون رقم 151 لسنة 2020، يحق لك طلب الاطلاع على بياناتك الشخصية المسجلة، أو طلب تصحيحها وتحديثها، أو طلب حذف الحساب والبيانات المرتبطة به. لتقديم أي طلب متعلق بحقوق الخصوصية، يمكنك مراسلة فريق حماية البيانات عبر البريد: omarhassan@asher-jobs.com.'
     ],
     [
       'التعديلات وبيانات الاتصال الرسمية',
-      'يجوز لنا تحديث سياسة الخصوصية هذه من حين لآخر لتلائم التطورات التقنية أو متطلبات بوابة الدفع Paymob أو التشريعات القانونية، وتُعد أي تعديلات سارية فور نشرها على هذه الصفحة.\n\nللاستفسارات والطلبات المتعلقة بالخصوصية وأمان المعاملات، يرجى التواصل معنا:\n• المنشأة: عاشر ميديا للخدمات الإلكترونية (سجل تجاري 11615)\n• البريد الإلكتروني: asherjobs@outlook.com\n• الهاتف: 4666 645 155 20+\n• المقر الرئيسي: مدينة العاشر من رمضان، محافظة الشرقية، جمهورية مصر العربية.'
+      'يجوز لنا تحديث سياسة الخصوصية هذه من حين لآخر لتلائم التطورات التقنية أو متطلبات بوابة الدفع Paymob أو التشريعات القانونية، وتُعد أي تعديلات سارية فور نشرها على هذه الصفحة.\n\nللاستفسارات والطلبات المتعلقة بالخصوصية وأمان المعاملات، يرجى التواصل معنا:\n• المنشأة: عاشر ميديا للخدمات الإلكترونية (سجل تجاري 11615)\n• البريد الإلكتروني: omarhassan@asher-jobs.com\n• الهاتف: 4666 645 155 20+\n• المقر الرئيسي: مدينة العاشر من رمضان، محافظة الشرقية، جمهورية مصر العربية.'
     ]
   ]
 };

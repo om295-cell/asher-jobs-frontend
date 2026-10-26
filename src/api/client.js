@@ -14,13 +14,20 @@ const api = axios.create({
   }
 });
 
-// Request interceptor: Dynamic Round-Robin Load Balancing
+// Request interceptor: Dynamic Round-Robin Load Balancing + Auth token injection
 api.interceptors.request.use(
   (config) => {
     // If baseURL is not yet assigned for this request, pick next healthy backend
     if (!config.baseURL || config._useLoadBalancer !== false) {
       config.baseURL = getNextBackendUrl();
     }
+    // Inject JWT from localStorage as Bearer token to bypass cross-site cookie blocking
+    try {
+      const token = localStorage.getItem('asher_token');
+      if (token && !config.headers['Authorization']) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (_) {}
     return config;
   },
   (error) => Promise.reject(error)

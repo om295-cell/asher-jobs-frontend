@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       cookieHelper.remove('asher_session');
       cookieHelper.remove('asher_logged_in');
-      try { localStorage.removeItem('token'); } catch {}
+      try { localStorage.removeItem('asher_token'); } catch {}
       return;
     }
 
@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       // If server explicitly rejects (401/403), invalidate cached session
       if (err.response?.status === 401 || err.response?.status === 403) {
-        try { localStorage.removeItem('token'); } catch {}
+        try { localStorage.removeItem('asher_token'); } catch {}
         cookieHelper.remove('asher_session');
         cookieHelper.remove('asher_logged_in');
         setUser(null);
@@ -75,10 +75,11 @@ export function AuthProvider({ children }) {
   const login = async (credential, password) => {
     const res = await authApi.login(credential, password);
     if (res.data?.success) {
-      // Clean up any legacy localStorage token
-      try { localStorage.removeItem('token'); } catch {}
       const loggedUser = res.data.data.user;
       const loggedProfile = res.data.data.profile;
+      const token = res.data.data.token;
+      // Persist JWT in localStorage for Authorization header injection (bypasses cross-site cookie blocking)
+      try { if (token) localStorage.setItem('asher_token', token); } catch {}
       setUser(loggedUser);
       setProfile(loggedProfile);
       // Persist minimal role/flags in cookie for instant load on refresh
@@ -92,9 +93,10 @@ export function AuthProvider({ children }) {
   const registerCandidate = async (formData) => {
     const res = await authApi.registerCandidate(formData);
     if (res.data?.success) {
-      try { localStorage.removeItem('token'); } catch {}
       const newUser = res.data.data.user;
       const newProfile = res.data.data.candidate;
+      const token = res.data.data.token;
+      try { if (token) localStorage.setItem('asher_token', token); } catch {}
       setUser(newUser);
       setProfile(newProfile);
       cookieHelper.set('asher_session', { role: newUser.role, mustChangePassword: Boolean(newUser.mustChangePassword) }, 7);
@@ -107,9 +109,10 @@ export function AuthProvider({ children }) {
   const registerCompany = async (formData) => {
     const res = await authApi.registerCompany(formData);
     if (res.data?.success) {
-      try { localStorage.removeItem('token'); } catch {}
       const newUser = res.data.data.user;
       const newProfile = res.data.data.company;
+      const token = res.data.data.token;
+      try { if (token) localStorage.setItem('asher_token', token); } catch {}
       setUser(newUser);
       setProfile(newProfile);
       cookieHelper.set('asher_session', { role: newUser.role, mustChangePassword: Boolean(newUser.mustChangePassword) }, 7);
@@ -125,7 +128,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.warn('Logout error:', e);
     } finally {
-      try { localStorage.removeItem('token'); } catch {}
+      try { localStorage.removeItem('asher_token'); } catch {}
       cookieHelper.remove('asher_session');
       cookieHelper.remove('asher_logged_in');
       setUser(null);

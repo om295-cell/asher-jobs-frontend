@@ -27,11 +27,14 @@ export const companyApi = {
 
   // Multi-Title Candidate Cart (Gold & Platinum)
   getCart: () => api.get('/companies/cart'),
-  addOrUpdateCart: (jobId, candidateIds) => api.post('/companies/cart', { jobId, candidateIds }),
+  addOrUpdateCart: (payload) =>
+    api.post('/companies/cart', typeof payload === 'object' ? payload : { jobId: payload }),
+  bulkUpdateCart: (items, replace = true) =>
+    api.post('/companies/cart', { items, replace }),
   removeCartItem: (jobId) => api.delete(`/companies/cart/${jobId}`),
   clearCart: () => api.delete('/companies/cart'),
   exportCart: (exportFormat = 'multi_sheet') =>
-    api.post('/companies/cart/export', { exportFormat }, { responseType: 'blob' }),
+    api.post('/companies/cart/export', { exportFormat, format: exportFormat }, { responseType: 'blob' }),
 
   // Platinum Dedicated Browsing
   browsePlatinumCandidates: (params) => api.get('/candidates/platinum/browse', { params }),

@@ -477,19 +477,28 @@ export default function RecommendationPage() {
     });
   };
 
-  // Helper to scroll page directly to candidate with an issue and focus their name
-  const scrollToPerson = (index) => {
+  // Helper to scroll page directly to candidate with an issue and focus their problematic field
+  const scrollToPerson = (index, field = null) => {
     setTimeout(() => {
       const cardEl = document.getElementById(`person-card-${index}`);
-      const nameInput = document.getElementById(`person-name-input-${index}`);
-      const phoneInput = document.getElementById(`person-phone-input-${index}`);
       if (cardEl) {
         cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      if (nameInput) {
-        nameInput.focus();
-      } else if (phoneInput) {
-        phoneInput.focus();
+      if (field === 'phone') {
+        const phoneInput = document.getElementById(`person-phone-input-${index}`);
+        if (phoneInput) phoneInput.focus();
+      } else if (field === 'name') {
+        const nameInput = document.getElementById(`person-name-input-${index}`);
+        if (nameInput) nameInput.focus();
+      } else {
+        const person = people[index];
+        if (person?.nameError || !person?.fullName?.trim()) {
+          const nameInput = document.getElementById(`person-name-input-${index}`);
+          if (nameInput) nameInput.focus();
+        } else if (person?.phoneError || person?.phoneExists || !person?.phone?.trim()) {
+          const phoneInput = document.getElementById(`person-phone-input-${index}`);
+          if (phoneInput) phoneInput.focus();
+        }
       }
     }, 120);
   };
@@ -502,7 +511,7 @@ export default function RecommendationPage() {
     if (!phone) {
       setPeople((prev) => {
         const u = [...prev];
-        u[index] = { ...u[index], phoneError: 'رقم الهاتف مطلوب', phoneExists: false };
+        u[index] = { ...u[index], phoneError: isRtl ? 'رقم الهاتف مطلوب' : 'Phone number is required', phoneExists: false };
         return u;
       });
       return;
@@ -513,7 +522,9 @@ export default function RecommendationPage() {
         const u = [...prev];
         u[index] = {
           ...u[index],
-          phoneError: 'رقم الهاتف يجب أن يتكون من 11 رقماً ويبدأ بـ (010 أو 011 أو 012 أو 015)',
+          phoneError: isRtl
+            ? 'رقم الهاتف يجب أن يتكون من 11 رقماً ويبدأ بـ (010 أو 011 أو 012 أو 015)'
+            : 'Phone must be 11 digits starting with 010, 011, 012, or 015',
           phoneExists: false
         };
         return u;
@@ -521,27 +532,33 @@ export default function RecommendationPage() {
       return;
     }
 
-    const duplicateMessage = isRtl
-      ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
-      : 'This person is already added, please enter someone else';
-
     // 1. Check intra-form duplicates
-    const duplicateInForm = people.some(
+    const duplicateInFormIdx = people.findIndex(
       (p, i) => i !== index && p.phone && p.phone.trim() === phone
     );
 
-    if (duplicateInForm) {
+    if (duplicateInFormIdx !== -1) {
+      const otherPerson = people[duplicateInFormIdx];
+      const otherLabel = duplicateInFormIdx === 0
+        ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+        : (isRtl ? `المرشح رقم ${duplicateInFormIdx}` : `Candidate #${duplicateInFormIdx}`);
+      const otherName = otherPerson?.fullName?.trim() ? ` (${otherPerson.fullName.trim()})` : '';
+
+      const detailedErrMsg = isRtl
+        ? `رقم الهاتف مكرر: هذا الرقم مسجل بالفعل لـ ${otherLabel}${otherName}`
+        : `Duplicate phone: already entered for ${otherLabel}${otherName}`;
+
       setPeople((prev) => {
         const u = [...prev];
         u[index] = {
           ...u[index],
-          phoneError: duplicateMessage,
+          phoneError: detailedErrMsg,
           phoneExists: true
         };
         return u;
       });
-      showToast(duplicateMessage, 'error');
-      scrollToPerson(index);
+      showToast(detailedErrMsg, 'error');
+      scrollToPerson(index, 'phone');
       return;
     }
 
@@ -556,7 +573,13 @@ export default function RecommendationPage() {
       const res = await recommendationApi.checkPhone(phone, index === 0, person?.fullName || '');
       const data = res.data?.data;
       if (!data?.isAvailable) {
-        const errMsg = data?.message || duplicateMessage;
+        const label = index === 0
+          ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+          : (isRtl ? `المرشح رقم ${index}` : `Candidate #${index}`);
+        const errMsg = data?.message || (isRtl
+          ? `هذا الرقم مسجل بالفعل مسبقاً في النظام لـ ${label}، يرجى إدخال شخص آخر`
+          : `Phone number is already registered for ${label}`);
+
         setPeople((prev) => {
           const u = [...prev];
           u[index] = {
@@ -568,7 +591,7 @@ export default function RecommendationPage() {
           return u;
         });
         showToast(errMsg, 'error');
-        scrollToPerson(index);
+        scrollToPerson(index, 'phone');
       } else {
         setPeople((prev) => {
           const u = [...prev];
@@ -594,7 +617,7 @@ export default function RecommendationPage() {
   const completedCount = useMemo(() => {
     return people.filter((p) => {
       const nameValid = p.fullName.trim() && NAME_REGEX.test(p.fullName.trim()) && !p.nameError;
-      const phoneValid = p.phone.trim() && PHONE_REGEX.test(p.phone.trim()) && !p.phoneError;
+      const phoneValid = p.phone.trim() && PHONE_REGEX.test(p.phone.trim()) && !p.phoneError && !p.phoneExists;
       const titles = p.titles && p.titles.length > 0 ? p.titles : [];
       const titlesValid =
         titles.length > 0 &&
@@ -602,6 +625,72 @@ export default function RecommendationPage() {
       return nameValid && phoneValid && titlesValid;
     }).length;
   }, [people]);
+
+  // List of candidates with issues or incomplete data
+  const peopleWithIssues = useMemo(() => {
+    return people
+      .map((p, idx) => {
+        const issues = [];
+        const nameTrimmed = (p.fullName || '').trim();
+        const phoneTrimmed = (p.phone || '').trim();
+
+        if (!nameTrimmed) {
+          issues.push(isRtl ? 'الاسم' : 'Name');
+        } else if (!NAME_REGEX.test(nameTrimmed)) {
+          issues.push(isRtl ? 'صيغة الاسم' : 'Invalid name');
+        } else if (p.nameError) {
+          issues.push(p.nameError);
+        }
+
+        if (!phoneTrimmed) {
+          issues.push(isRtl ? 'رقم الهاتف' : 'Phone');
+        } else if (!PHONE_REGEX.test(phoneTrimmed)) {
+          issues.push(isRtl ? 'صيغة الهاتف' : 'Invalid phone');
+        } else if (p.phoneError) {
+          issues.push(p.phoneError);
+        } else if (p.phoneExists) {
+          issues.push(isRtl ? 'رقم الهاتف (مكرر)' : 'Duplicate phone');
+        }
+
+        const titles = p.titles && p.titles.length > 0 ? p.titles : [];
+        if (titles.length === 0) {
+          if (!p.jobId || p.jobError) issues.push(isRtl ? 'المسمى الوظيفي' : 'Job title');
+          if (!p.careerLevel || p.levelError) issues.push(isRtl ? 'مستوى الخبرة' : 'Career level');
+        } else {
+          titles.forEach((t, tIdx) => {
+            const titleLabel = titles.length > 1 ? ` (${tIdx + 1})` : '';
+            if (!t.jobId || t.jobError) issues.push(`${isRtl ? 'المسمى الوظيفي' : 'Job'}${titleLabel}`);
+            if (!t.careerLevel || t.levelError) issues.push(`${isRtl ? 'مستوى الخبرة' : 'Level'}${titleLabel}`);
+          });
+        }
+
+        const isComplete = issues.length === 0;
+        const hasError = Boolean(
+          p.phoneError ||
+          p.phoneExists ||
+          p.nameError ||
+          p.jobError ||
+          p.levelError ||
+          p.titles?.some((t) => t.jobError || t.levelError)
+        );
+
+        const label = idx === 0
+          ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+          : (isRtl ? `المرشح رقم ${idx}` : `Candidate #${idx}`);
+        const nameStr = p.fullName?.trim() ? ` (${p.fullName.trim()})` : '';
+
+        return {
+          index: idx,
+          isPrimary: idx === 0,
+          label: `${label}${nameStr}`,
+          fullName: p.fullName?.trim() || '',
+          issues,
+          isComplete,
+          hasError
+        };
+      })
+      .filter((p) => !p.isComplete);
+  }, [people, isRtl]);
 
   // Form validity: at least 2 people (submitter + at least 1 recommendation), all completed
   const isFormValid = useMemo(() => {
@@ -618,38 +707,46 @@ export default function RecommendationPage() {
     }
 
     if (!legalAccepted) {
-      showToast('يجب الموافقة والإقرار بالمسؤولية القانونية لتقديم الطلب', 'error');
+      showToast(isRtl ? 'يجب الموافقة والإقرار بالمسؤولية القانونية لتقديم الطلب' : 'You must accept legal responsibility to submit', 'error');
       return;
     }
 
     // Comprehensive client-side re-validation
     let hasErrors = false;
-    const duplicateMessage = isRtl
-      ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
-      : 'This person is already added, please enter someone else';
+    const errorsList = [];
 
     const validatedPeople = people.map((p, index) => {
       const copy = { ...p };
       const nameTrimmed = (copy.fullName || '').trim();
       const phoneTrimmed = (copy.phone || '').trim();
+      const personFieldErrors = [];
 
       if (!nameTrimmed) {
-        copy.nameError = 'الاسم بالكامل مطلوب';
+        copy.nameError = isRtl ? 'الاسم بالكامل مطلوب' : 'Full name is required';
+        personFieldErrors.push(isRtl ? 'الاسم بالكامل' : 'Full Name');
         hasErrors = true;
       } else if (!NAME_REGEX.test(nameTrimmed)) {
-        copy.nameError = 'الاسم يجب أن يحتوي على حروف فقط وبينهما مسافة واحدة على الأقل';
+        copy.nameError = isRtl ? 'الاسم يجب أن يحتوي على حروف فقط وبينهما مسافة واحدة على الأقل' : 'Name must contain letters only with at least one space';
+        personFieldErrors.push(isRtl ? 'صيغة الاسم' : 'Name format');
         hasErrors = true;
+      } else {
+        copy.nameError = '';
       }
 
       if (!phoneTrimmed) {
-        copy.phoneError = 'رقم الهاتف مطلوب';
+        copy.phoneError = isRtl ? 'رقم الهاتف مطلوب' : 'Phone is required';
+        personFieldErrors.push(isRtl ? 'رقم الهاتف' : 'Phone');
         hasErrors = true;
       } else if (!PHONE_REGEX.test(phoneTrimmed)) {
-        copy.phoneError = 'رقم الهاتف يجب أن يكون 11 رقماً (010, 011, 012, 015)';
+        copy.phoneError = isRtl ? 'رقم الهاتف يجب أن يكون 11 رقماً (010, 011, 012, 015)' : 'Phone must be 11 digits (010, 011, 012, 015)';
+        personFieldErrors.push(isRtl ? 'صيغة رقم الهاتف' : 'Phone format');
         hasErrors = true;
       } else if (copy.phoneExists) {
-        copy.phoneError = copy.phoneError || duplicateMessage;
+        copy.phoneError = copy.phoneError || (isRtl ? 'هذا الرقم مسجل مسبقاً' : 'Phone already registered');
+        personFieldErrors.push(isRtl ? 'رقم الهاتف (مسجل مسبقاً)' : 'Duplicate phone');
         hasErrors = true;
+      } else {
+        copy.phoneError = '';
       }
 
       // Validate all titles
@@ -657,12 +754,18 @@ export default function RecommendationPage() {
       const validatedTitles = currentTitles.map((t, tIdx) => {
         const tCopy = { ...t };
         if (!tCopy.jobId) {
-          tCopy.jobError = 'يرجى اختيار المسمى الوظيفي';
+          tCopy.jobError = isRtl ? 'يرجى اختيار المسمى الوظيفي' : 'Job title is required';
+          personFieldErrors.push(currentTitles.length > 1 ? `${isRtl ? 'المسمى الوظيفي' : 'Job'} (${tIdx + 1})` : (isRtl ? 'المسمى الوظيفي' : 'Job'));
           hasErrors = true;
+        } else {
+          tCopy.jobError = '';
         }
         if (!tCopy.careerLevel) {
-          tCopy.levelError = 'يرجى اختيار مستوى الخبرة';
+          tCopy.levelError = isRtl ? 'يرجى اختيار مستوى الخبرة' : 'Career level is required';
+          personFieldErrors.push(currentTitles.length > 1 ? `${isRtl ? 'مستوى الخبرة' : 'Level'} (${tIdx + 1})` : (isRtl ? 'مستوى الخبرة' : 'Level'));
           hasErrors = true;
+        } else {
+          tCopy.levelError = '';
         }
         return tCopy;
       });
@@ -673,21 +776,68 @@ export default function RecommendationPage() {
       copy.careerLevel = validatedTitles[0]?.careerLevel || '';
       copy.levelError = validatedTitles[0]?.levelError || '';
 
+      if (personFieldErrors.length > 0) {
+        const label = index === 0
+          ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+          : (isRtl ? `المرشح رقم ${index}` : `Candidate #${index}`);
+        const nameStr = copy.fullName?.trim() ? ` (${copy.fullName.trim()})` : '';
+        errorsList.push({
+          index,
+          label: `${label}${nameStr}`,
+          issues: personFieldErrors.join('، ')
+        });
+      }
+
       return copy;
     });
 
-    // Check intra-form duplicates across all 11 persons
+    // Check intra-form duplicates across all persons
     const seenPhonesInSubmission = new Map();
     validatedPeople.forEach((p, idx) => {
       const ph = p.phone?.trim();
       if (ph && PHONE_REGEX.test(ph)) {
         if (seenPhonesInSubmission.has(ph)) {
           const prevIdx = seenPhonesInSubmission.get(ph);
-          p.phoneError = duplicateMessage;
+          const prevPerson = validatedPeople[prevIdx];
+          const prevLabel = prevIdx === 0
+            ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+            : (isRtl ? `المرشح رقم ${prevIdx}` : `Candidate #${prevIdx}`);
+          const prevName = prevPerson.fullName?.trim() ? ` (${prevPerson.fullName.trim()})` : '';
+
+          const currLabel = idx === 0
+            ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+            : (isRtl ? `المرشح رقم ${idx}` : `Candidate #${idx}`);
+          const currName = p.fullName?.trim() ? ` (${p.fullName.trim()})` : '';
+
+          const dupMsgCurrent = isRtl
+            ? `رقم الهاتف مكرر: هذا الرقم مستخدم بالفعل لـ ${prevLabel}${prevName}`
+            : `Duplicate phone: already used by ${prevLabel}${prevName}`;
+
+          const dupMsgPrev = isRtl
+            ? `رقم الهاتف مكرر: هذا الرقم مستخدم بالفعل لـ ${currLabel}${currName}`
+            : `Duplicate phone: already used by ${currLabel}${currName}`;
+
+          p.phoneError = dupMsgCurrent;
           p.phoneExists = true;
-          validatedPeople[prevIdx].phoneError = duplicateMessage;
+
+          validatedPeople[prevIdx].phoneError = dupMsgPrev;
           validatedPeople[prevIdx].phoneExists = true;
           hasErrors = true;
+
+          if (!errorsList.some((e) => e.index === idx)) {
+            errorsList.push({
+              index: idx,
+              label: `${currLabel}${currName}`,
+              issues: isRtl ? `رقم الهاتف مكرر مع ${prevLabel}` : `Duplicate phone with ${prevLabel}`
+            });
+          }
+          if (!errorsList.some((e) => e.index === prevIdx)) {
+            errorsList.push({
+              index: prevIdx,
+              label: `${prevLabel}${prevName}`,
+              issues: isRtl ? `رقم الهاتف مكرر مع ${currLabel}` : `Duplicate phone with ${currLabel}`
+            });
+          }
         } else {
           seenPhonesInSubmission.set(ph, idx);
         }
@@ -696,13 +846,27 @@ export default function RecommendationPage() {
 
     if (hasErrors) {
       setPeople(validatedPeople);
-      const firstErrIdx = validatedPeople.findIndex(
-        (p) => p.phoneError || p.nameError || p.jobError || p.levelError || p.titles?.some((t) => t.jobError || t.levelError)
-      );
-      if (firstErrIdx !== -1) {
-        scrollToPerson(firstErrIdx);
+      const firstErr = errorsList[0];
+      if (firstErr) {
+        scrollToPerson(firstErr.index);
       }
-      showToast('يرجى تصحيح الأخطاء الموضحة باللون الأحمر في النموذج', 'error');
+
+      if (errorsList.length === 1) {
+        showToast(
+          isRtl
+            ? `يوجد خطأ في بيانات ${errorsList[0].label}: [${errorsList[0].issues}]. يرجى تصحيحه.`
+            : `Issue in ${errorsList[0].label}: [${errorsList[0].issues}]. Please fix it.`,
+          'error'
+        );
+      } else {
+        const namesSummary = errorsList.map((e) => e.label).join('، ');
+        showToast(
+          isRtl
+            ? `يوجد أخطاء في بيانات (${errorsList.length} أشخاص): ${namesSummary}. تم تحديدها باللون الأحمر.`
+            : `Errors found in (${errorsList.length} profiles): ${namesSummary}. Highlighted in red.`,
+          'error'
+        );
+      }
       return;
     }
 
@@ -729,16 +893,18 @@ export default function RecommendationPage() {
       submitThrottle.recordSuccess();
       setSubmittedData(res.data?.data);
       if (res.data?.data?.isPendingConflict || res.data?.data?.status === 'phone_duplicate_pending') {
-        showToast('تم تسجيل طلبك برقم مرجعي. الطلب قيد التدقيق الإداري (متابعة بعد 24 ساعة).', 'warning');
+        showToast(isRtl ? 'تم تسجيل طلبك برقم مرجعي. الطلب قيد التدقيق الإداري (متابعة بعد 24 ساعة).' : 'Request registered. Under administrative review.', 'warning');
       } else {
-        showToast('تم إرسال الطلب بنجاح وهو الآن قيد المراجعة والتدقيق', 'success');
+        showToast(isRtl ? 'تم إرسال الطلب بنجاح وهو الآن قيد المراجعة والتدقيق' : 'Request submitted successfully and is pending review', 'success');
       }
     } catch (err) {
       submitThrottle.recordFailure();
       const errData = err.response?.data;
+      const dupIndices = Array.isArray(errData?.duplicateIndices) ? errData.duplicateIndices : [];
+      const dupNames = Array.isArray(errData?.duplicateNames) ? errData.duplicateNames : [];
+
       if (errData?.code === 'DUPLICATE_PHONE') {
-        const dupIndices = errData.duplicateIndices || [];
-        const dupMessage =
+        const errorMsg =
           errData.message ||
           (isRtl
             ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
@@ -747,21 +913,68 @@ export default function RecommendationPage() {
         setPeople((prev) => {
           return prev.map((p, idx) => {
             if (dupIndices.includes(idx)) {
+              const label = idx === 0
+                ? (isRtl ? 'مقدم الطلب الأساسي' : 'Primary Submitter')
+                : (isRtl ? `المرشح رقم ${idx}` : `Candidate #${idx}`);
               return {
                 ...p,
-                phoneError: dupMessage,
+                phoneError: isRtl
+                  ? `هذا الرقم (${p.phone}) مسجل بالفعل مسبقاً في قاعدة البيانات لـ ${label}، يرجى إدخال رقم آخر`
+                  : `Phone number (${p.phone}) is already registered in the system for ${label}`,
                 phoneExists: true
               };
             }
             return p;
           });
         });
+
         if (dupIndices.length > 0) {
-          scrollToPerson(dupIndices[0]);
+          scrollToPerson(dupIndices[0], 'phone');
         }
-        showToast(dupMessage, 'error');
+
+        if (dupNames.length > 0) {
+          showToast(
+            isRtl
+              ? `رقم الهاتف مسجل بالفعل مسبقاً لـ: ${dupNames.join('، ')}. يرجى استبدال الرقم أو المرشح.`
+              : `Phone already registered for: ${dupNames.join(', ')}.`,
+            'error'
+          );
+        } else {
+          showToast(errorMsg, 'error');
+        }
+      } else if (errData?.code === 'VALIDATION_FAILED' && errData.errors) {
+        setPeople((prev) => {
+          return prev.map((p, idx) => {
+            const pErrors = errData.errors[idx];
+            if (!pErrors) return p;
+            return {
+              ...p,
+              nameError: pErrors.fullName || p.nameError,
+              phoneError: pErrors.phone || p.phoneError,
+              phoneExists: Boolean(pErrors.phone) || p.phoneExists,
+              jobError: pErrors.jobId || p.jobError,
+              levelError: pErrors.careerLevel || p.levelError,
+              titles: Array.isArray(p.titles) && Array.isArray(pErrors.titles)
+                ? p.titles.map((t, tIdx) => ({
+                    ...t,
+                    jobError: pErrors.titles[tIdx]?.jobId || t.jobError,
+                    levelError: pErrors.titles[tIdx]?.careerLevel || t.levelError
+                  }))
+                : p.titles
+            };
+          });
+        });
+
+        const firstErrIdx = Object.keys(errData.errors)[0];
+        if (firstErrIdx !== undefined) {
+          scrollToPerson(Number(firstErrIdx));
+        }
+        showToast(errData.message || (isRtl ? 'يوجد خطأ في بيانات أحد المرشحين' : 'Validation error in candidate data'), 'error');
+      } else if (errData?.invalidPersonIndex !== undefined) {
+        scrollToPerson(Number(errData.invalidPersonIndex));
+        showToast(errData.message || (isRtl ? 'حدث خطأ في بيانات المرشح' : 'Error in candidate data'), 'error');
       } else {
-        showToast(errData?.message || 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.', 'error');
+        showToast(errData?.message || (isRtl ? 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.' : 'Error submitting request. Please try again.'), 'error');
       }
     } finally {
       setSubmitting(false);
@@ -1066,83 +1279,182 @@ export default function RecommendationPage() {
                     background: '#ffffff',
                     border: '1px solid #e2e8f0',
                     borderRadius: '12px',
-                    padding: '1rem 1.5rem',
+                    padding: '1.25rem 1.5rem',
                     marginBottom: '2rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '1rem'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                   }}
                 >
-                  <div>
-                    <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
-                      {isRtl ? 'نسبة اكتمال بيانات الكوادر والترشيحات' : 'Candidate Profiles Progress'}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '1rem'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
+                        {isRtl ? 'نسبة اكتمال بيانات الكوادر والترشيحات' : 'Candidate Profiles Progress'}
+                      </div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#09090b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>
+                          {completedCount} {isRtl ? `من ${people.length} كادر مكتمل` : `of ${people.length} completed`}
+                        </span>
+                        {completedCount === people.length && (
+                          <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 700, background: '#dcfce7', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                            {isRtl ? 'جاهز للإرسال' : 'Ready'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#09090b' }}>
-                      {completedCount} {isRtl ? `من ${people.length} كادر مكتمل` : `of ${people.length} completed`}
+
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {people.map((p, idx) => {
+                        const nameValid = p.fullName.trim() && NAME_REGEX.test(p.fullName.trim()) && !p.nameError;
+                        const phoneValid = p.phone.trim() && PHONE_REGEX.test(p.phone.trim()) && !p.phoneError && !p.phoneExists;
+                        const titles = p.titles && p.titles.length > 0 ? p.titles : [];
+                        const titlesValid =
+                          titles.length > 0 &&
+                          titles.every((t) => t.jobId && t.careerLevel && !t.jobError && !t.levelError);
+                        const isComplete = nameValid && phoneValid && titlesValid;
+                        const hasError = Boolean(
+                          p.phoneError ||
+                          p.phoneExists ||
+                          p.nameError ||
+                          p.jobError ||
+                          p.levelError ||
+                          p.titles?.some((t) => t.jobError || t.levelError)
+                        );
+
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            title={
+                              idx === 0
+                                ? (hasError ? 'مقدم الطلب: يوجد مشكلة في البيانات' : isComplete ? 'مقدم الطلب: مكتمل' : 'مقدم الطلب: غير مكتمل')
+                                : (hasError ? `المرشح ${idx}: يوجد مشكلة في البيانات` : isComplete ? `المرشح ${idx}: مكتمل` : `المرشح ${idx}: غير مكتمل`)
+                            }
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '8px',
+                              border: hasError ? '2px solid #b91c1c' : isComplete ? '1px solid #16a34a' : '1px solid #cbd5e1',
+                              background: hasError ? '#ef4444' : isComplete ? '#22c55e' : '#f1f5f9',
+                              color: hasError || isComplete ? '#ffffff' : '#64748b',
+                              fontSize: '0.8rem',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              boxShadow: hasError ? '0 0 0 2px rgba(239, 68, 68, 0.25)' : 'none'
+                            }}
+                            onClick={() => {
+                              scrollToPerson(idx);
+                            }}
+                          >
+                            {hasError ? '!' : idx === 0 ? '★' : idx}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                    {people.map((p, idx) => {
-                      const isComplete =
-                        p.fullName.trim() &&
-                        NAME_REGEX.test(p.fullName.trim()) &&
-                        p.phone.trim() &&
-                        PHONE_REGEX.test(p.phone.trim()) &&
-                        !p.phoneError &&
-                        p.jobId &&
-                        p.careerLevel;
+                  {/* Issues bar if any candidate has problems */}
+                  {peopleWithIssues.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: '1rem',
+                        padding: '0.85rem 1rem',
+                        background: peopleWithIssues.some((p) => p.hasError) ? '#fef2f2' : '#fffbeb',
+                        border: peopleWithIssues.some((p) => p.hasError) ? '1px solid #fecaca' : '1px solid #fde68a',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem'
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          color: peopleWithIssues.some((p) => p.hasError) ? '#b91c1c' : '#b45309',
+                          fontSize: '0.85rem',
+                          fontWeight: 700
+                        }}
+                      >
+                        <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                        <span>
+                          {peopleWithIssues.some((p) => p.hasError)
+                            ? (isRtl ? 'يوجد أخطاء في بيانات المرشحين التاليين (انقر للانتقال للمرشح):' : 'Issues detected for the following (click to jump):')
+                            : (isRtl ? 'يتبقى استكمال بيانات المرشحين التاليين (انقر للانتقال):' : 'Incomplete profiles (click to jump):')}
+                        </span>
+                      </div>
 
-                      return (
-                        <div
-                          key={idx}
-                          title={idx === 0 ? 'مقدم الطلب' : `مرشح ${idx}`}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            background: isComplete ? '#22c55e' : p.phoneError ? '#ef4444' : '#e2e8f0',
-                            color: isComplete || p.phoneError ? '#ffffff' : '#64748b',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => {
-                            scrollToPerson(idx);
-                          }}
-                        >
-                          {idx === 0 ? '★' : idx}
-                        </div>
-                      );
-                    })}
-                  </div>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {peopleWithIssues.map((p) => (
+                          <button
+                            key={p.index}
+                            type="button"
+                            onClick={() => scrollToPerson(p.index)}
+                            style={{
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '6px',
+                              background: p.hasError ? '#ef4444' : '#ffffff',
+                              color: p.hasError ? '#ffffff' : '#b45309',
+                              border: p.hasError ? 'none' : '1px solid #fde68a',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span>{p.label}</span>
+                            <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>[{p.issues.join('، ')}]</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 11 People Cards */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {people.map((person, index) => {
                     const isPrimary = index === 0;
-                    const isDuplicate = Boolean(person.phoneExists || person.phoneError);
+                    const hasError = Boolean(
+                      person.phoneError ||
+                      person.phoneExists ||
+                      person.nameError ||
+                      person.jobError ||
+                      person.levelError ||
+                      person.titles?.some((t) => t.jobError || t.levelError)
+                    );
 
                     return (
                       <div
                         id={`person-card-${index}`}
                         key={index}
                         style={{
-                          background: isDuplicate ? '#fffbfb' : '#ffffff',
-                          border: isDuplicate
+                          background: hasError ? '#fffbfb' : '#ffffff',
+                          border: hasError
                             ? '2px solid #ef4444'
                             : isPrimary
                             ? '2px solid #09090b'
                             : '1px solid #e2e8f0',
                           borderRadius: '14px',
                           padding: '1.5rem',
-                          boxShadow: isDuplicate
+                          boxShadow: hasError
                             ? '0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 14px rgba(239, 68, 68, 0.08)'
                             : isPrimary
                             ? '0 4px 15px rgba(0, 0, 0, 0.05)'
@@ -1168,8 +1480,8 @@ export default function RecommendationPage() {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '8px',
-                                background: isDuplicate ? '#ef4444' : isPrimary ? '#09090b' : '#f1f5f9',
-                                color: isDuplicate || isPrimary ? '#ffffff' : '#475569',
+                                background: hasError ? '#ef4444' : isPrimary ? '#09090b' : '#f1f5f9',
+                                color: hasError || isPrimary ? '#ffffff' : '#475569',
                                 fontWeight: 800,
                                 fontSize: '0.9rem',
                                 display: 'flex',
@@ -1178,13 +1490,14 @@ export default function RecommendationPage() {
                                 transition: 'all 0.2s ease'
                               }}
                             >
-                              {isPrimary ? '1' : index + 1}
+                              {hasError ? '!' : isPrimary ? '★' : index + 1}
                             </div>
                             <div>
-                              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: isDuplicate ? '#b91c1c' : '#09090b' }}>
+                              <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: hasError ? '#b91c1c' : '#09090b' }}>
                                 {isPrimary
                                   ? (isRtl ? 'بيانات مقدم الطلب الأساسي' : 'Primary Submitter Profile')
                                   : (isRtl ? `المرشح رقم ${index} (موصى به)` : `Candidate Recommendation #${index}`)}
+                                {person.fullName?.trim() ? ` — ${person.fullName.trim()}` : ''}
                               </h4>
                               {isPrimary && (
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
@@ -1201,13 +1514,15 @@ export default function RecommendationPage() {
                               style={{
                                 padding: '0.25rem 0.65rem',
                                 borderRadius: '6px',
-                                background: isDuplicate ? '#fee2e2' : isPrimary ? '#09090b' : '#f8fafc',
-                                color: isDuplicate ? '#dc2626' : isPrimary ? '#ffffff' : '#64748b',
+                                background: hasError ? '#fee2e2' : isPrimary ? '#09090b' : '#f8fafc',
+                                color: hasError ? '#dc2626' : isPrimary ? '#ffffff' : '#64748b',
                                 fontSize: '0.75rem',
                                 fontWeight: 700
                               }}
                             >
-                              {isPrimary
+                              {hasError
+                                ? (isRtl ? '⚠️ يوجد مشكلة في البيانات' : '⚠️ Issue in Profile')
+                                : isPrimary
                                 ? (isRtl ? 'صاحب الطلب (الأساسي)' : 'Submitter')
                                 : (isRtl ? `مرشح موصى به رقم ${index}` : `Recommendation #${index}`)}
                             </div>
@@ -1245,8 +1560,8 @@ export default function RecommendationPage() {
                           </div>
                         </div>
 
-                        {/* Duplicate Alert Banner */}
-                        {isDuplicate && (
+                        {/* Issue / Duplicate Alert Banner */}
+                        {hasError && (
                           <div
                             style={{
                               background: '#fef2f2',
@@ -1255,20 +1570,30 @@ export default function RecommendationPage() {
                               padding: '0.65rem 0.85rem',
                               marginBottom: '1.25rem',
                               display: 'flex',
-                              alignItems: 'center',
+                              alignItems: 'flex-start',
                               gap: '0.5rem',
                               color: '#b91c1c',
                               fontSize: '0.85rem',
                               fontWeight: 700
                             }}
                           >
-                            <AlertCircle size={18} color="#dc2626" style={{ flexShrink: 0 }} />
-                            <span>
-                              {person.phoneError ||
-                                (isRtl
-                                  ? 'هذا الشخص مسجل بالفعل مسبقاً، يرجى إدخال شخص آخر'
-                                  : 'This person is already added, please enter someone else')}
-                            </span>
+                            <AlertCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div>
+                              <div style={{ fontWeight: 800 }}>
+                                {isRtl
+                                  ? `تنبيه في بيانات ${isPrimary ? 'مقدم الطلب الأساسي' : `المرشح رقم ${index}`}:`
+                                  : `Issue in ${isPrimary ? 'Primary Submitter' : `Candidate #${index}`}:`}
+                              </div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 600, marginTop: '0.2rem', color: '#991b1b' }}>
+                                {person.phoneError ||
+                                  person.nameError ||
+                                  person.jobError ||
+                                  person.levelError ||
+                                  person.titles?.find((t) => t.jobError || t.levelError)?.jobError ||
+                                  person.titles?.find((t) => t.jobError || t.levelError)?.levelError ||
+                                  (isRtl ? 'يرجى مراجعة وتصحيح الحقول المحددة باللون الأحمر' : 'Please fix the fields highlighted in red')}
+                              </div>
+                            </div>
                           </div>
                         )}
 
@@ -1306,12 +1631,10 @@ export default function RecommendationPage() {
                                 borderRadius: '8px',
                                 border: person.nameError
                                   ? '1.5px solid #ef4444'
-                                  : isDuplicate
-                                  ? '1.5px solid #f87171'
                                   : '1px solid #cbd5e1',
                                 outline: 'none',
                                 fontSize: '0.9rem',
-                                background: isDuplicate ? '#fff5f5' : '#ffffff',
+                                background: person.nameError ? '#fff5f5' : '#ffffff',
                                 color: '#09090b'
                               }}
                             />
@@ -1352,10 +1675,10 @@ export default function RecommendationPage() {
                                   width: '100%',
                                   padding: '0.65rem 0.85rem',
                                   borderRadius: '8px',
-                                  border: isDuplicate ? '2px solid #ef4444' : '1px solid #cbd5e1',
+                                  border: (person.phoneError || person.phoneExists) ? '2px solid #ef4444' : '1px solid #cbd5e1',
                                   outline: 'none',
                                   fontSize: '0.9rem',
-                                  background: isDuplicate ? '#fff5f5' : '#ffffff',
+                                  background: (person.phoneError || person.phoneExists) ? '#fff5f5' : '#ffffff',
                                   color: '#09090b',
                                   direction: 'ltr',
                                   textAlign: isRtl ? 'right' : 'left'
@@ -1708,6 +2031,49 @@ export default function RecommendationPage() {
                     </span>
                   </label>
 
+                  {peopleWithIssues.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: '1.25rem',
+                        padding: '0.75rem 1rem',
+                        background: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#b91c1c', fontSize: '0.85rem', fontWeight: 700 }}>
+                        <AlertCircle size={16} />
+                        <span>{isRtl ? 'بيانات تحتاج استكمال أو تصحيح (انقر للانتقال):' : 'Profiles needing completion (click to jump):'}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        {peopleWithIssues.map((p) => (
+                          <button
+                            key={p.index}
+                            type="button"
+                            onClick={() => scrollToPerson(p.index)}
+                            style={{
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '6px',
+                              background: p.hasError ? '#ef4444' : '#ffffff',
+                              color: p.hasError ? '#ffffff' : '#b91c1c',
+                              border: '1px solid #f87171',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     style={{
                       display: 'flex',
@@ -1738,20 +2104,25 @@ export default function RecommendationPage() {
 
                     <button
                       type="submit"
-                      disabled={!isFormValid || submitting || submitThrottle.isLockedOut}
+                      disabled={submitting || submitThrottle.isLockedOut}
                       style={{
                         padding: '0.875rem 2.5rem',
                         borderRadius: '10px',
-                        background: (isFormValid && !submitThrottle.isLockedOut) ? '#09090b' : '#94a3b8',
+                        background: submitThrottle.isLockedOut
+                          ? '#94a3b8'
+                          : isFormValid
+                          ? '#09090b'
+                          : '#1e293b',
                         color: '#ffffff',
                         fontWeight: 800,
                         fontSize: '1rem',
                         border: 'none',
-                        cursor: (isFormValid && !submitThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
+                        cursor: submitThrottle.isLockedOut ? 'not-allowed' : 'pointer',
                         transition: 'all 0.15s',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.5rem'
+                        gap: '0.5rem',
+                        boxShadow: isFormValid ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                       }}
                     >
                       {submitThrottle.isLockedOut ? (

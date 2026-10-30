@@ -37,7 +37,14 @@ const CAREER_LEVELS = [
 ];
 
 // Smart Searchable Job Dropdown Component
-function SearchableJobSelect({ jobs, selectedJobId, onSelect, isRtl, placeholder }) {
+function SearchableJobSelect({
+  jobs,
+  selectedJobId,
+  onSelect,
+  isRtl,
+  placeholder,
+  excludedJobIds = []
+}) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const wrapperRef = useRef(null);
@@ -47,16 +54,28 @@ function SearchableJobSelect({ jobs, selectedJobId, onSelect, isRtl, placeholder
     [jobs, selectedJobId]
   );
 
-  const filteredJobs = useMemo(() => {
-    if (!search.trim()) return jobs;
-    const q = search.trim().toLowerCase();
+  const availableJobs = useMemo(() => {
+    const excludedSet = new Set(
+      (excludedJobIds || []).map((id) => String(id)).filter(Boolean)
+    );
     return jobs.filter((j) => {
+      const idStr = String(j._id);
+      // Always allow the currently selected job in this row
+      if (selectedJobId && idStr === String(selectedJobId)) return true;
+      return !excludedSet.has(idStr);
+    });
+  }, [jobs, excludedJobIds, selectedJobId]);
+
+  const filteredJobs = useMemo(() => {
+    if (!search.trim()) return availableJobs;
+    const q = search.trim().toLowerCase();
+    return availableJobs.filter((j) => {
       const name = (j.name || '').toLowerCase();
       const nameAr = (j.nameAr || '').toLowerCase();
       const cat = (j.categoryId?.nameAr || j.categoryId?.name || '').toLowerCase();
       return name.includes(q) || nameAr.includes(q) || cat.includes(q);
     });
-  }, [jobs, search]);
+  }, [availableJobs, search]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -94,7 +113,34 @@ function SearchableJobSelect({ jobs, selectedJobId, onSelect, isRtl, placeholder
             ? (isRtl ? selectedJob.nameAr || selectedJob.name : selectedJob.name || selectedJob.nameAr)
             : (placeholder || (isRtl ? 'اختر المسمى الوظيفي المطلوب...' : 'Select job title...'))}
         </span>
-        <ChevronDown size={15} style={{ color: '#71717a', flexShrink: 0, marginInlineStart: 8 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginInlineStart: 8 }}>
+          {selectedJob && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(null);
+                setSearch('');
+              }}
+              title={isRtl ? 'إلغاء التحديد' : 'Clear selection'}
+              style={{
+                color: '#71717a',
+                padding: '2px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#71717a')}
+            >
+              <X size={14} />
+            </span>
+          )}
+          <ChevronDown size={15} style={{ color: '#71717a' }} />
+        </div>
       </button>
 
       {open && (
@@ -146,7 +192,9 @@ function SearchableJobSelect({ jobs, selectedJobId, onSelect, isRtl, placeholder
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {filteredJobs.length === 0 ? (
               <div style={{ padding: '0.85rem', textAlign: 'center', color: '#a1a1aa', fontSize: '0.85rem' }}>
-                {isRtl ? 'لا توجد وظائف مطابقة للبحث' : 'No matching jobs found'}
+                {search.trim()
+                  ? (isRtl ? 'لا توجد وظائف مطابقة للبحث' : 'No matching jobs found')
+                  : (isRtl ? 'تم تحديد جميع الوظائف المتاحة' : 'All available jobs are already selected')}
               </div>
             ) : (
               filteredJobs.map((j) => (
@@ -287,6 +335,31 @@ export default function CompanyCart() {
       prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
     );
   };
+
+  // Calculate job IDs that are already selected in other search rows or already in cart
+  const getExcludedJobIdsForRow = useCallback(
+    (rowId, currentRowJobId) => {
+      // 1. Other search rows with selected jobId
+      const otherRowJobIds = searchRows
+        .filter((r) => r.id !== rowId && r.jobId)
+        .map((r) => String(r.jobId));
+
+      // 2. Job IDs already present in current cart
+      const cartJobIds = (Array.isArray(cart) ? cart : [])
+        .map((item) => String(item.jobId?._id || item.jobId || ''))
+        .filter(Boolean);
+
+      const combined = new Set([...otherRowJobIds, ...cartJobIds]);
+
+      // Never exclude the current row's own selection
+      if (currentRowJobId) {
+        combined.delete(String(currentRowJobId));
+      }
+
+      return Array.from(combined);
+    },
+    [searchRows, cart]
+  );
 
   // Run Bulk Multi-Search and add candidates into cart
   const handleExecuteMultiSearch = async (replace = false) => {
@@ -868,7 +941,8 @@ export default function CompanyCart() {
                     <SearchableJobSelect
                       jobs={jobs}
                       selectedJobId={row.jobId}
-                      onSelect={(job) => handleRowFieldChange(row.id, 'jobId', job._id)}
+                      excludedJobIds={getExcludedJobIdsForRow(row.id, row.jobId)}
+                      onSelect={(job) => handleRowFieldChange(row.id, 'jobId', job ? job._id : '')}
                       isRtl={isRtl}
                       placeholder={isRtl ? 'اختر المسمى الوظيفي...' : 'Select job title...'}
                     />

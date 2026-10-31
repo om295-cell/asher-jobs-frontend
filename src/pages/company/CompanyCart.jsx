@@ -665,6 +665,71 @@ export default function CompanyCart() {
       }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
+      <style>{`
+        .cart-builder-row {
+          background: #f8fafc;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 1rem;
+          display: grid;
+          grid-template-columns: auto minmax(220px, 2.5fr) minmax(130px, 1fr) minmax(170px, 1.5fr) auto;
+          gap: 0.85rem;
+          align-items: center;
+          transition: border-color 0.15s ease;
+        }
+        .cart-builder-row:hover {
+          border-color: #cbd5e1;
+        }
+        .cart-builder-row-header-mobile {
+          display: none;
+        }
+        .cart-builder-fields-grid-mobile {
+          display: contents;
+        }
+
+        @media (max-width: 860px) {
+          .cart-builder-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            align-items: stretch;
+            padding: 0.9rem;
+          }
+          .cart-builder-row-header-desktop {
+            display: none !important;
+          }
+          .cart-builder-row-header-mobile {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+          }
+          .cart-builder-fields-grid-mobile {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .cart-builder-fields-grid-mobile {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        .cart-populated-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 360px;
+          gap: 1.75rem;
+          align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+          .cart-populated-layout {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
       <div className="container" style={{ maxWidth: '1240px' }}>
         {/* Header Bar */}
         <div
@@ -902,28 +967,64 @@ export default function CompanyCart() {
             {/* Criteria Rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
               {searchRows.map((row, idx) => (
-                <div
-                  key={row.id}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '1rem',
-                    display: 'grid',
-                    gridTemplateColumns: 'auto minmax(200px, 2fr) minmax(130px, 1fr) minmax(170px, 1.5fr) auto',
-                    gap: '0.85rem',
-                    alignItems: 'center'
-                  }}
-                >
-                  {/* Row Number Badge */}
+                <div key={row.id} className="cart-builder-row">
+                  {/* Mobile Row Header (Row # + Delete button) */}
+                  <div className="cart-builder-row-header-mobile">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '6px',
+                          background: '#09090b',
+                          color: '#ffffff',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        {idx + 1}
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#09090b' }}>
+                        {isRtl ? `التخصص رقم ${idx + 1}` : `Job Title #${idx + 1}`}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSearchRow(row.id)}
+                      title={isRtl ? 'حذف هذا المسمى من البحث' : 'Remove title row'}
+                      style={{
+                        background: '#fee2e2',
+                        border: '1px solid #fecaca',
+                        color: '#dc2626',
+                        padding: '0.3rem 0.65rem',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Trash2 size={13} />
+                      <span>{isRtl ? 'حذف' : 'Remove'}</span>
+                    </button>
+                  </div>
+
+                  {/* Desktop Row Number Badge */}
                   <div
+                    className="cart-builder-row-header-desktop"
                     style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '6px',
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '8px',
                       background: '#09090b',
                       color: '#ffffff',
-                      fontSize: '0.8rem',
+                      fontSize: '0.85rem',
                       fontWeight: 800,
                       display: 'flex',
                       alignItems: 'center',
@@ -934,7 +1035,7 @@ export default function CompanyCart() {
                   </div>
 
                   {/* 1. Job Title Select */}
-                  <div>
+                  <div style={{ width: '100%' }}>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
                       {isRtl ? 'المسمى الوظيفي المطلوب' : 'Job Title'} *
                     </label>
@@ -948,64 +1049,67 @@ export default function CompanyCart() {
                     />
                   </div>
 
-                  {/* 2. Number of people (Quantity: 1 to 10) */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
-                      {isRtl ? 'عدد الكوادر المطلوبة' : 'Number of People'} *
-                    </label>
-                    <select
-                      value={row.quantity}
-                      onChange={(e) => handleRowFieldChange(row.id, 'quantity', parseInt(e.target.value, 10))}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.75rem',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        background: '#ffffff',
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        outline: 'none'
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <option key={num} value={num}>
-                          {num} {isRtl ? 'مرشحين' : 'candidates'}
-                        </option>
-                      ))}
-                    </select>
+                  {/* 2 & 3. Grouped fields (Responsive grid on mobile) */}
+                  <div className="cart-builder-fields-grid-mobile">
+                    {/* 2. Number of people (Quantity: 1 to 10) */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
+                        {isRtl ? 'عدد الكوادر المطلوبة' : 'Number of People'} *
+                      </label>
+                      <select
+                        value={row.quantity}
+                        onChange={(e) => handleRowFieldChange(row.id, 'quantity', parseInt(e.target.value, 10))}
+                        style={{
+                          width: '100%',
+                          padding: '0.65rem 0.75rem',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          fontSize: '0.875rem',
+                          fontWeight: 700,
+                          outline: 'none'
+                        }}
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                          <option key={num} value={num}>
+                            {num} {isRtl ? 'مرشحين' : 'candidates'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 3. Career Level */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
+                        {isRtl ? 'مستوى الخبرة' : 'Career Level'}
+                      </label>
+                      <select
+                        value={row.careerLevel}
+                        onChange={(e) => handleRowFieldChange(row.id, 'careerLevel', e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '0.65rem 0.75rem',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          fontSize: '0.875rem',
+                          fontWeight: row.careerLevel ? 700 : 500,
+                          color: row.careerLevel ? '#09090b' : '#64748b',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">{isRtl ? 'الكل (أي مستوى خبرة)' : 'All Career Levels'}</option>
+                        {CAREER_LEVELS.map((lvl) => (
+                          <option key={lvl} value={lvl}>
+                            {lvl}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {/* 3. Career Level */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>
-                      {isRtl ? 'مستوى الخبرة' : 'Career Level'}
-                    </label>
-                    <select
-                      value={row.careerLevel}
-                      onChange={(e) => handleRowFieldChange(row.id, 'careerLevel', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.75rem',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        background: '#ffffff',
-                        fontSize: '0.875rem',
-                        fontWeight: row.careerLevel ? 700 : 500,
-                        color: row.careerLevel ? '#09090b' : '#64748b',
-                        outline: 'none'
-                      }}
-                    >
-                      <option value="">{isRtl ? 'الكل (أي مستوى خبرة)' : 'All Career Levels'}</option>
-                      {CAREER_LEVELS.map((lvl) => (
-                        <option key={lvl} value={lvl}>
-                          {lvl}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* 4. Remove Button */}
-                  <div>
+                  {/* 4. Desktop Remove Button */}
+                  <div className="cart-builder-row-header-desktop">
                     <button
                       type="button"
                       onClick={() => handleRemoveSearchRow(row.id)}
@@ -1150,16 +1254,9 @@ export default function CompanyCart() {
             </button>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
-              gap: '1.75rem',
-              alignItems: 'start'
-            }}
-          >
-            {/* Left 2-col area: Candidate Buckets by Job Title */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', gridColumn: 'span 2' }}>
+          <div className="cart-populated-layout">
+            {/* Left area: Candidate Buckets by Job Title */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#09090b', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span>{isRtl ? 'الكوادر المتطابقة في السلة' : 'Matched Candidates in Cart'}</span>

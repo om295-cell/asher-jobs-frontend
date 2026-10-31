@@ -16,46 +16,102 @@ const BILLING_CYCLES = [
   { months: 3,  label: '3 أشهر',            discount: 5  },
   { months: 6,  label: '6 أشهر',            discount: 10 },
   { months: 9,  label: '9 أشهر',            discount: 15 },
-  { months: 12, label: 'سنة كاملة (12 شهر)', discount: 20 },
+  { months: 12, label: 'سنة (12 شهر)',       discount: 20 },
 ];
 
 // ── Plan icon and feature helpers ────────────────────────────
 const PLAN_META = {
-  Basic:    { icon: <Shield size={22} strokeWidth={2} />,  rank: 1 },
-  Gold:     { icon: <Star size={22} strokeWidth={2} />,    rank: 2 },
-  Platinum: { icon: <Zap size={22} strokeWidth={2} />,     rank: 3 },
+  Basic:    { icon: <Shield size={22} strokeWidth={2.2} />,  rank: 1 },
+  Gold:     { icon: <Star size={22} strokeWidth={2.2} />,    rank: 2 },
+  Platinum: { icon: <Zap size={22} strokeWidth={2.2} />,     rank: 3 },
 };
 
 function PlanFeatures({ plan }) {
+  const isGold = plan.planName === 'Gold';
+  const isPlatinum = plan.planName === 'Platinum';
+
   const features = [
     {
-      icon: <Search size={15} />,
-      text: `بحث بالمسميات الوظيفية — ${plan.dailySearchLimit} مسمى / يوم`
+      icon: <Search size={16} />,
+      text: `بحث بالمسميات الوظيفية — ${plan.dailySearchLimit} مسمى / يوم`,
+      highlight: false
     },
     {
-      icon: <Download size={15} />,
-      text: `تحميل بيانات المرشحين — حتى ${plan.dailyDownloadLimitPerTitle} مرات لكل مسمى / يوم`
+      icon: <Download size={16} />,
+      text: `تحميل بيانات المرشحين — حتى ${plan.dailyDownloadLimitPerTitle} مرات لكل مسمى / يوم`,
+      highlight: isGold || isPlatinum
     },
     {
-      icon: <Eye size={15} />,
-      text: `عرض حتى ${plan.maxCandidatesPerTitle} مرشح لكل مسمى وظيفي`
+      icon: <Eye size={16} />,
+      text: `عرض حتى ${plan.maxCandidatesPerTitle} مرشح لكل مسمى وظيفي`,
+      highlight: isPlatinum
     },
     ...(plan.cartEnabled ? [{
-      icon: <ShoppingCart size={15} />,
-      text: 'سلة المرشحين — جمع عدة مسميات وتحميلها في ملف واحد'
+      icon: <ShoppingCart size={16} />,
+      text: 'سلة المرشحين والبحث المجمع المتعدد — جمع عدة تخصصات وتنزيلها إكسيل متعدد الصفحات أو ZIP',
+      highlight: true,
+      badge: isGold ? '⭐ ميزة حصرية' : null
     }] : []),
     ...(plan.platinumBrowseEnabled ? [{
-      icon: <Eye size={15} />,
-      text: 'تصفح قاعدة البيانات بحرية — مشاهدة وتحميل مرشح واحد في كل مرة'
+      icon: <Zap size={16} />,
+      text: 'تصفح قاعدة البيانات الحية بحرية — استعراض وتحميل المرشحين فرادى بضغطة زر واحدة (Platinum Portal)',
+      highlight: true,
+      badge: '👑 ميزة VIP حصرية'
     }] : []),
   ];
 
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {features.map((f, i) => (
-        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--slate-700)' }}>
-          <span style={{ flexShrink: 0, marginTop: '0.1rem', color: '#000' }}>{f.icon}</span>
-          <span>{f.text}</span>
+        <li
+          key={i}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.65rem',
+            fontSize: '0.825rem',
+            lineHeight: 1.5,
+            color: f.highlight ? '#09090b' : '#334155',
+            fontWeight: f.highlight ? 700 : 500,
+            background: f.highlight
+              ? (isPlatinum ? '#f8fafc' : isGold ? '#fffdf0' : '#f8fafc')
+              : 'transparent',
+            padding: f.highlight ? '0.45rem 0.65rem' : '0.15rem 0',
+            borderRadius: f.highlight ? '8px' : '0',
+            border: f.highlight
+              ? (isPlatinum ? '1px solid #e2e8f0' : isGold ? '1px solid #fef3c7' : 'none')
+              : 'none'
+          }}
+        >
+          <span
+            style={{
+              flexShrink: 0,
+              marginTop: '0.15rem',
+              color: isPlatinum && f.highlight ? '#09090b' : isGold && f.highlight ? '#d97706' : '#000'
+            }}
+          >
+            {f.icon}
+          </span>
+          <div style={{ flex: 1 }}>
+            <span>{f.text}</span>
+            {f.badge && (
+              <span
+                style={{
+                  display: 'inline-block',
+                  marginInlineStart: '0.4rem',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  padding: '0.1rem 0.45rem',
+                  borderRadius: '4px',
+                  background: isPlatinum ? '#09090b' : '#f59e0b',
+                  color: '#ffffff',
+                  verticalAlign: 'middle'
+                }}
+              >
+                {f.badge}
+              </span>
+            )}
+          </div>
         </li>
       ))}
     </ul>
@@ -271,47 +327,61 @@ export default function CompanySubscription() {
         </div>
 
         {/* ── Billing Cycle Selector ── */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#000', marginBottom: '0.65rem' }}>
+        <div style={{ marginBottom: '1.75rem' }}>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#09090b', marginBottom: '0.75rem' }}>
             مدة الاشتراك — اختر للحصول على خصم أكبر:
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {BILLING_CYCLES.map(cycle => (
-              <button
-                key={cycle.months}
-                type="button"
-                onClick={() => setSelectedMonths(cycle.months)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8125rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  border: selectedMonths === cycle.months ? '2px solid #000' : '1.5px solid var(--border)',
-                  background: selectedMonths === cycle.months ? '#000' : '#fff',
-                  color: selectedMonths === cycle.months ? '#fff' : 'var(--slate-700)',
-                  transition: 'all 0.15s ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem'
-                }}
-              >
-                <span>{cycle.label}</span>
-                {cycle.discount > 0 && (
-                  <span style={{
-                    background: selectedMonths === cycle.months ? '#fff' : '#000',
-                    color: selectedMonths === cycle.months ? '#000' : '#fff',
-                    fontSize: '0.65rem',
-                    fontWeight: 900,
-                    padding: '0.1rem 0.35rem',
-                    borderRadius: '4px',
-                    lineHeight: 1.2
-                  }}>
-                    -{cycle.discount}%
-                  </span>
-                )}
-              </button>
-            ))}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
+              gap: '0.6rem'
+            }}
+          >
+            {BILLING_CYCLES.map(cycle => {
+              const isSelected = selectedMonths === cycle.months;
+              return (
+                <button
+                  key={cycle.months}
+                  type="button"
+                  onClick={() => setSelectedMonths(cycle.months)}
+                  style={{
+                    padding: '0.65rem 0.75rem',
+                    borderRadius: '10px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: isSelected ? '2px solid #000' : '1.5px solid var(--border)',
+                    background: isSelected ? '#000' : '#fff',
+                    color: isSelected ? '#fff' : '#1e293b',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    minHeight: '44px'
+                  }}
+                >
+                  <span>{cycle.label}</span>
+                  {cycle.discount > 0 && (
+                    <span
+                      style={{
+                        background: isSelected ? '#fff' : '#dcfce7',
+                        color: isSelected ? '#000' : '#15803d',
+                        fontSize: '0.72rem',
+                        fontWeight: 900,
+                        padding: '0.15rem 0.4rem',
+                        borderRadius: '4px',
+                        lineHeight: 1.1,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      -{cycle.discount}%
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -321,13 +391,16 @@ export default function CompanySubscription() {
             لا توجد باقات متاحة حالياً. تواصل مع الإدارة.
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-            gap: '1.75rem',
-            marginBottom: '2rem',
-            paddingTop: '0.85rem'
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+              gap: '2rem',
+              marginBottom: '2.5rem',
+              paddingTop: '0.5rem',
+              alignItems: 'stretch'
+            }}
+          >
             {plans.map((plan) => {
               const meta = PLAN_META[plan.planName] || {};
               const now = new Date();
@@ -340,8 +413,9 @@ export default function CompanySubscription() {
 
               const pricing = calcPrice(plan.priceEgp || plan.priceMonthlyEgp, selectedMonths, effectivePlanDiscountPct);
               const isCurrent = currentPlan === plan.planName && hasActiveSub;
-              // Real calculation from backend based on actual subscribers & paid orders
-              const isMostChosen = Boolean(plan.isMostChosen);
+              const isGold = plan.planName === 'Gold';
+              const isPlatinum = plan.planName === 'Platinum';
+              const isMostChosen = Boolean(plan.isMostChosen) || isGold;
               const isInitiating = initiating === plan.planName;
 
               return (
@@ -349,84 +423,169 @@ export default function CompanySubscription() {
                   key={plan._id}
                   className="card"
                   style={{
-                    padding: '1.5rem',
+                    padding: 'clamp(1.25rem, 3.5vw, 1.75rem)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '1.1rem',
-                    border: isMostChosen ? '2px solid #000' : '1px solid #000',
+                    gap: '1.25rem',
+                    border: isPlatinum
+                      ? '2.5px solid #09090b'
+                      : isGold
+                      ? '2.5px solid #d97706'
+                      : '1.5px solid #cbd5e1',
+                    borderRadius: '16px',
                     position: 'relative',
-                    transition: 'box-shadow 0.2s ease',
-                    background: '#fff'
+                    transition: 'all 0.2s ease',
+                    background: isPlatinum
+                      ? 'linear-gradient(180deg, #f8fafc 0%, #ffffff 180px)'
+                      : isGold
+                      ? 'linear-gradient(180deg, #fffdf0 0%, #ffffff 180px)'
+                      : '#ffffff',
+                    boxShadow: isPlatinum
+                      ? '0 12px 30px -5px rgba(0, 0, 0, 0.12)'
+                      : isGold
+                      ? '0 10px 25px -5px rgba(217, 119, 6, 0.12)'
+                      : '0 4px 12px rgba(0, 0, 0, 0.04)'
                   }}
                 >
-                  {/* Popular badge - Centered on top border with star icon */}
-                  {isMostChosen && (
-                    <div style={{
-                      position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
-                      background: '#000', color: '#fff',
-                      fontSize: '0.72rem', fontWeight: 900, padding: '0.22rem 0.95rem',
-                      borderRadius: 'var(--radius-full)', letterSpacing: '0.03em',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
-                      border: '1.5px solid #000',
-                      whiteSpace: 'nowrap',
-                      zIndex: 3,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem'
-                    }}>
-                      <Star size={11} fill="#fff" strokeWidth={0} />
-                      الأكثر اختياراً
+                  {/* Popular / VIP badge */}
+                  {isPlatinum ? (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-14px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: '#09090b',
+                        color: '#ffffff',
+                        fontSize: '0.72rem',
+                        fontWeight: 900,
+                        padding: '0.25rem 1rem',
+                        borderRadius: 'var(--radius-full)',
+                        letterSpacing: '0.03em',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                        border: '1.5px solid #27272a',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                      }}
+                    >
+                      <Zap size={12} fill="#ffffff" strokeWidth={0} />
+                      VIP — الباقة الشاملة الأعلى
                     </div>
-                  )}
+                  ) : isMostChosen ? (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-14px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%)',
+                        color: '#ffffff',
+                        fontSize: '0.72rem',
+                        fontWeight: 900,
+                        padding: '0.25rem 1rem',
+                        borderRadius: 'var(--radius-full)',
+                        letterSpacing: '0.03em',
+                        boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)',
+                        border: '1.5px solid #f59e0b',
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                      }}
+                    >
+                      <Star size={12} fill="#ffffff" strokeWidth={0} />
+                      الأكثر اختياراً وطلباً
+                    </div>
+                  ) : null}
 
                   {/* Plan header */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 'var(--radius-md)',
-                      background: '#000', color: '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: isPlatinum || isMostChosen ? '0.35rem' : '0' }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '12px',
+                        background: isPlatinum
+                          ? '#09090b'
+                          : isGold
+                          ? 'linear-gradient(135deg, #d97706, #f59e0b)'
+                          : '#0f172a',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        boxShadow: isPlatinum ? '0 4px 12px rgba(0,0,0,0.2)' : isGold ? '0 4px 12px rgba(217, 119, 6, 0.25)' : 'none'
+                      }}
+                    >
                       {meta.icon}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 900, fontSize: '1.05rem', color: '#000' }}>
+                      <div style={{ fontWeight: 900, fontSize: '1.15rem', color: '#09090b' }}>
                         {plan.displayNameAr || plan.displayName}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--slate-500)', fontWeight: 600 }}>
-                        {plan.planName}
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: isGold ? '#b45309' : isPlatinum ? '#52525b' : '#64748b',
+                          fontWeight: 700
+                        }}
+                      >
+                        {isPlatinum ? 'صلاحيات غير محدودة + تصفح مباشر' : isGold ? 'سلة المرشحين + بحث مجمع' : 'البحث والتحميل الأساسي'}
                       </div>
                     </div>
                   </div>
 
-                  {/* Plan Discount & Countdown Banner - Clean, 2 separate rows so nothing overlaps */}
+                  {/* Plan Discount & Countdown Banner */}
                   {isDiscountActive && (
-                    <div style={{
-                      background: '#000', color: '#fff',
-                      borderRadius: 'var(--radius-md)', padding: '0.75rem 0.85rem',
-                      display: 'flex', flexDirection: 'column', gap: '0.45rem',
-                      border: '1px solid #000'
-                    }}>
+                    <div
+                      style={{
+                        background: isGold ? '#fffbeb' : '#09090b',
+                        color: isGold ? '#92400e' : '#ffffff',
+                        borderRadius: '10px',
+                        padding: '0.75rem 0.85rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.45rem',
+                        border: isGold ? '1.5px solid #fde68a' : '1px solid #27272a'
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <span style={{
-                          background: '#fff', color: '#000',
-                          padding: '0.15rem 0.45rem', borderRadius: '4px',
-                          fontSize: '0.75rem', fontWeight: 900, lineHeight: 1.2
-                        }}>
+                        <span
+                          style={{
+                            background: isGold ? '#d97706' : '#ffffff',
+                            color: isGold ? '#ffffff' : '#09090b',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 900,
+                            lineHeight: 1.2
+                          }}
+                        >
                           خصم {plan.discountPct}%
                         </span>
                         {plan.discountLabel && (
-                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f4f4f5' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: isGold ? '#78350f' : '#f4f4f5' }}>
                             {plan.discountLabel}
                           </span>
                         )}
                       </div>
                       {remainingTime && (
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                          fontSize: '0.72rem', fontWeight: 700, color: '#a1a1aa'
-                        }}>
-                          <Clock size={12} style={{ color: '#d4d4d8' }} />
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            color: isGold ? '#b45309' : '#a1a1aa'
+                          }}
+                        >
+                          <Clock size={12} style={{ color: isGold ? '#d97706' : '#d4d4d8' }} />
                           <span>باقي على انتهاء العرض: {remainingTime}</span>
                         </div>
                       )}
@@ -434,28 +593,30 @@ export default function CompanySubscription() {
                   )}
 
                   {/* Pricing */}
-                  <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#000' }}>
+                  <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '0.85rem 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 'clamp(1.6rem, 5vw, 2rem)', fontWeight: 900, color: '#09090b' }}>
                         {pricing.total.toLocaleString()}
                       </span>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--slate-500)' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#64748b' }}>
                         ج.م
                       </span>
                       {selectedMonths > 1 && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginRight: 'auto' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b', marginRight: 'auto', fontWeight: 600 }}>
                           / {selectedMonths} أشهر
                         </span>
                       )}
                     </div>
                     {pricing.discountPct > 0 && (
-                      <div style={{ fontSize: '0.78rem', color: '#000', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <s style={{ color: 'var(--slate-400)', fontWeight: 500 }}>{pricing.originalTotal.toLocaleString()} ج.م</s>
-                        <span style={{ fontWeight: 800 }}>وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)</span>
+                      <div style={{ fontSize: '0.78rem', color: '#09090b', marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <s style={{ color: '#94a3b8', fontWeight: 500 }}>{pricing.originalTotal.toLocaleString()} ج.م</s>
+                        <span style={{ fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                          وفر {pricing.discount.toLocaleString()} ج.م ({pricing.discountPct}% خصم)
+                        </span>
                       </div>
                     )}
                     {selectedMonths > 1 && (
-                      <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', marginTop: '0.15rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', fontWeight: 600 }}>
                         يعادل {Math.round(pricing.total / selectedMonths).toLocaleString()} ج.م / شهر
                       </div>
                     )}
@@ -466,15 +627,21 @@ export default function CompanySubscription() {
                     <PlanFeatures plan={plan} />
                   </div>
 
-                  {/* CTA */}
+                  {/* CTA Button */}
                   <div>
                     {isCurrent ? (
-                      <div style={{
-                        padding: '0.65rem', textAlign: 'center',
-                        background: 'var(--slate-100)', color: 'var(--slate-600)',
-                        borderRadius: 'var(--radius-md)', fontWeight: 700, fontSize: '0.875rem',
-                        border: '1px dashed var(--slate-400)'
-                      }}>
+                      <div
+                        style={{
+                          padding: '0.85rem',
+                          textAlign: 'center',
+                          background: '#f1f5f9',
+                          color: '#09090b',
+                          borderRadius: '10px',
+                          fontWeight: 800,
+                          fontSize: '0.9rem',
+                          border: '1.5px dashed #94a3b8'
+                        }}
+                      >
                         ✓ باقتك الحالية النشطة
                       </div>
                     ) : (
@@ -482,13 +649,35 @@ export default function CompanySubscription() {
                         type="button"
                         disabled={!!initiating}
                         onClick={() => handleSubscribe(plan.planName)}
-                        className="btn btn-primary"
-                        style={{ width: '100%', fontWeight: 700, fontSize: '0.9rem', gap: '0.5rem' }}
+                        className="btn"
+                        style={{
+                          width: '100%',
+                          minHeight: '48px',
+                          fontWeight: 800,
+                          fontSize: '0.925rem',
+                          gap: '0.5rem',
+                          borderRadius: '10px',
+                          background: isPlatinum
+                            ? '#09090b'
+                            : isGold
+                            ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
+                            : '#0f172a',
+                          color: '#ffffff',
+                          border: isPlatinum ? '1.5px solid #09090b' : isGold ? '1.5px solid #d97706' : '1.5px solid #0f172a',
+                          boxShadow: isPlatinum ? '0 4px 12px rgba(0,0,0,0.2)' : isGold ? '0 4px 12px rgba(217, 119, 6, 0.25)' : 'none',
+                          cursor: initiating ? 'not-allowed' : 'pointer'
+                        }}
                       >
                         {isInitiating ? (
-                          <><RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> جاري التوجيه للدفع...</>
+                          <>
+                            <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                            <span>جاري التوجيه للدفع...</span>
+                          </>
                         ) : (
-                          <><CreditCard size={15} /> اشترك الآن — ادفع بأمان عبر Paymob</>
+                          <>
+                            <CreditCard size={17} />
+                            <span>{isPlatinum ? 'اشترك في باقة VIP الآن' : isGold ? 'اشترك في الباقة الذهبية' : 'اشترك في الباقة الأساسية'}</span>
+                          </>
                         )}
                       </button>
                     )}

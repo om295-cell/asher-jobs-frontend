@@ -16,6 +16,8 @@ export default function CompanyGuard({ children }) {
 
   if (loading) return <LoadingSpinner fullScreen />
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  // Admins can preview company views
+  if (role === 'admin') return children
   if (role !== 'company') return <Navigate to="/" replace />
 
   if (profile && profile.verificationStatus !== 'Approved') {

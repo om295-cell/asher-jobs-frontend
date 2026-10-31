@@ -14,9 +14,9 @@ import CompanyBrowse from '../pages/company/CompanyBrowse'
 
 // Shorthand for company-approved guard (includes subscription check)
 const CG = ({ children }) => <CompanyGuard>{children}</CompanyGuard>
-// Shorthand for basic company auth (no approval / subscription check)
+// Shorthand for basic company auth (or admin preview)
 const PR = ({ children }) => (
-  <ProtectedRoute roles={['company']}>{children}</ProtectedRoute>
+  <ProtectedRoute roles={['company', 'admin']}>{children}</ProtectedRoute>
 )
 
 export default function CompanyRoutes() {

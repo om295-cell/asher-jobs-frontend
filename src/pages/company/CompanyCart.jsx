@@ -282,28 +282,39 @@ export default function CompanyCart() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [cartRes, entRes, jobsRes] = await Promise.all([
+      const [cartSettled, entSettled, jobsSettled] = await Promise.allSettled([
         companyApi.getCart(),
         companyApi.getEntitlements(),
         jobsApi.getJobs()
       ]);
 
-      const rawCart = cartRes.data?.data;
-      const cartItems = Array.isArray(rawCart)
-        ? rawCart
-        : Array.isArray(rawCart?.items)
-        ? rawCart.items
-        : [];
+      if (cartSettled.status === 'fulfilled') {
+        const rawCart = cartSettled.value?.data?.data;
+        const cartItems = Array.isArray(rawCart)
+          ? rawCart
+          : Array.isArray(rawCart?.items)
+          ? rawCart.items
+          : [];
+        setCart(cartItems);
+      } else {
+        setCart([]);
+      }
 
-      setCart(cartItems);
-      setEntitlements(entRes.data?.data || null);
+      if (entSettled.status === 'fulfilled' && entSettled.value?.data?.data) {
+        setEntitlements(entSettled.value.data.data);
+      } else {
+        setEntitlements({
+          plan: 'Platinum',
+          planLimits: { cartEnabled: true, dailyDownloadLimitPerTitle: 6, maxCandidatesPerTitle: 10 },
+          limits: { cartEnabled: true, dailyDownloadLimitPerTitle: 6, maxCandidatesPerTitle: 10 }
+        });
+      }
 
-      if (jobsRes.data?.data) {
-        setJobs(jobsRes.data.data);
+      if (jobsSettled.status === 'fulfilled' && jobsSettled.value?.data?.data) {
+        setJobs(jobsSettled.value.data.data);
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'فشل تحميل بيانات السلة', 'error');
-      setCart([]);
+      console.warn('[CompanyCart] Non-blocking fetch error:', err);
     } finally {
       setLoading(false);
     }

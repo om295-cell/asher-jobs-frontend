@@ -44,6 +44,7 @@ export default function AdminCandidates() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
   const [availability, setAvailability] = useState(searchParams.get('availability') || '')
   const [categoryId, setCategoryId] = useState(searchParams.get('categoryId') || '')
+  const [jobId, setJobId] = useState(searchParams.get('jobId') || '')
 
   // Modal actions
   const [selectedCandidate, setSelectedCandidate] = useState(null)
@@ -72,6 +73,7 @@ export default function AdminCandidates() {
     if (keyword) params.keyword = keyword
     if (availability) params.availability = availability
     if (categoryId) params.categoryId = categoryId
+    if (jobId) params.jobId = jobId
 
     adminApi.listCandidates(params)
       .then(res => {
@@ -84,7 +86,7 @@ export default function AdminCandidates() {
         showToast(err.response?.data?.message || (isRtl ? 'فشل تحميل بيانات المرشحين' : 'Failed to load candidates'), 'error')
       })
       .finally(() => setLoading(false))
-  }, [keyword, availability, categoryId, isRtl, showToast])
+  }, [keyword, availability, categoryId, jobId, isRtl, showToast])
 
   useEffect(() => {
     fetchCandidates(1)
@@ -216,6 +218,18 @@ export default function AdminCandidates() {
             </div>
 
             <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">{isRtl ? 'المسمى الوظيفي' : 'Job Title'}</label>
+              <select className="form-control" value={jobId} onChange={(e) => setJobId(e.target.value)}>
+                <option value="">{isRtl ? 'جميع المسميات الوظيفية' : 'All Positions'}</option>
+                {jobs.map((j) => (
+                  <option key={j._id} value={j._id}>
+                    {isRtl ? (j.nameAr || j.name) : (j.name || j.nameAr)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">{isRtl ? 'حالة التوفر' : 'Availability'}</label>
               <select className="form-control" value={availability} onChange={(e) => setAvailability(e.target.value)}>
                 <option value="">{isRtl ? 'الكل' : 'All'}</option>
@@ -237,7 +251,9 @@ export default function AdminCandidates() {
                 onClick={() => {
                   setKeyword('')
                   setCategoryId('')
+                  setJobId('')
                   setAvailability('')
+                  setSearchParams({})
                   setTimeout(() => fetchCandidates(1), 0)
                 }}
               >
@@ -246,6 +262,45 @@ export default function AdminCandidates() {
             </div>
           </form>
         </div>
+
+        {/* Active Job Filter Banner */}
+        {jobId && (
+          <div style={{
+            marginBottom: '1.25rem',
+            padding: '0.75rem 1rem',
+            background: 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
+            border: '1px solid #93c5fd',
+            borderRadius: 'var(--radius-md, 10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.5rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.1rem' }}>🎯</span>
+              <span style={{ fontSize: '0.9375rem', color: '#1e40af', fontWeight: 700 }}>
+                {isRtl ? 'تصفية المرشحين حسب المسمى الوظيفي:' : 'Filtered by position:'}{' '}
+                <span style={{ color: '#0f172a', background: '#fff', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+                  {jobs.find(j => j._id === jobId)?.nameAr || jobs.find(j => j._id === jobId)?.name || jobId}
+                </span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setJobId('')
+                const newParams = new URLSearchParams(searchParams)
+                newParams.delete('jobId')
+                setSearchParams(newParams)
+              }}
+              className="btn btn-sm"
+              style={{ background: '#fff', color: '#1e40af', borderColor: '#93c5fd', fontWeight: 700, padding: '0.3rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+            >
+              <X size={14} />
+              {isRtl ? 'إلغاء تصفية المسمى وعرض الجميع' : 'Show All Candidates'}
+            </button>
+          </div>
+        )}
 
         {/* Candidates Table */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

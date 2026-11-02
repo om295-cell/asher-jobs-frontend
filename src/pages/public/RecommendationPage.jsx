@@ -1160,26 +1160,49 @@ export default function RecommendationPage() {
                   style={{
                     background: '#f8fafc',
                     border: '2px dashed #09090b',
-                    borderRadius: '12px',
-                    padding: '1.5rem',
-                    maxWidth: '440px',
-                    margin: '0 auto 2rem'
+                    borderRadius: '14px',
+                    padding: 'clamp(1rem, 3vw, 1.5rem)',
+                    maxWidth: '520px',
+                    width: '100%',
+                    margin: '0 auto 2rem',
+                    boxSizing: 'border-box'
                   }}
                 >
-                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 600 }}>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.75rem', fontWeight: 600 }}>
                     {isRtl ? 'رقم الطلب الرسمي الخاص بك' : 'Your Official Request Number'}
                   </div>
                   <div
                     style={{
-                      fontSize: '2rem',
-                      fontWeight: 900,
-                      color: '#09090b',
-                      letterSpacing: '2px',
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '0.75rem 1rem',
                       marginBottom: '1rem',
-                      fontFamily: 'monospace'
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      boxSizing: 'border-box',
+                      width: '100%'
                     }}
                   >
-                    {submittedData.requestNumber}
+                    <span
+                      dir="ltr"
+                      style={{
+                        fontSize: 'clamp(1.05rem, 4vw, 1.35rem)',
+                        fontWeight: 900,
+                        color: '#09090b',
+                        letterSpacing: '1px',
+                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                        wordBreak: 'break-all',
+                        overflowWrap: 'anywhere',
+                        userSelect: 'all',
+                        lineHeight: 1.3,
+                        textAlign: 'center'
+                      }}
+                    >
+                      {submittedData.requestNumber}
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -2325,7 +2348,18 @@ export default function RecommendationPage() {
                     <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
                       {isRtl ? 'رقم الطلب' : 'Request Number'}
                     </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#09090b', fontFamily: 'monospace' }}>
+                    <div
+                      dir="ltr"
+                      style={{
+                        fontSize: 'clamp(1rem, 3.5vw, 1.35rem)',
+                        fontWeight: 900,
+                        color: '#09090b',
+                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                        wordBreak: 'break-all',
+                        overflowWrap: 'anywhere',
+                        userSelect: 'all'
+                      }}
+                    >
                       {trackResult.requestNumber}
                     </div>
                   </div>

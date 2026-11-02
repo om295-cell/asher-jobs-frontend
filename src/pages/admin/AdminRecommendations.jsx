@@ -467,7 +467,18 @@ export default function AdminRecommendations() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #f1f5f9' }}>
               <div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{isRtl ? 'فحص تفاصيل طلب الترشيح' : 'Review Recommendation Request'}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#09090b', fontFamily: 'monospace' }}>
+                <div
+                  dir="ltr"
+                  style={{
+                    fontSize: 'clamp(1.1rem, 3.5vw, 1.5rem)',
+                    fontWeight: 900,
+                    color: '#09090b',
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    wordBreak: 'break-all',
+                    overflowWrap: 'anywhere',
+                    userSelect: 'all'
+                  }}
+                >
                   {selectedReq.requestNumber}
                 </div>
               </div>

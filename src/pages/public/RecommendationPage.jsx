@@ -274,7 +274,6 @@ export default function RecommendationPage() {
 
   // Tracking state
   const [trackReqNumber, setTrackReqNumber] = useState('');
-  const [trackPhone, setTrackPhone] = useState('');
   const [trackLoading, setTrackLoading] = useState(false);
   const [trackResult, setTrackResult] = useState(null);
   const [trackError, setTrackError] = useState('');
@@ -1002,22 +1001,18 @@ export default function RecommendationPage() {
       showToast(isRtl ? 'يرجى إدخال رقم الطلب أو رمز التتبع للاستعلام' : 'Please enter the request number or tracking code', 'error');
       return;
     }
-    if (!trackPhone.trim()) {
-      showToast(isRtl ? 'يرجى إدخال رقم هاتف مقدم الطلب للتحقق من الهوية' : 'Please enter the submitter phone number to verify identity', 'error');
-      return;
-    }
 
     setTrackLoading(true);
     setTrackError('');
     setTrackResult(null);
 
     try {
-      const res = await recommendationApi.trackStatus(trackReqNumber.trim(), trackPhone.trim());
+      const res = await recommendationApi.trackStatus(trackReqNumber.trim());
       trackThrottle.recordSuccess();
       setTrackResult(res.data?.data);
     } catch (err) {
       trackThrottle.recordFailure();
-      const msg = err.response?.data?.message || 'لم يتم العثور على طلب بهذا الرقم. تأكد من صحة رقم الطلب.';
+      const msg = err.response?.data?.message || (isRtl ? 'لم يتم العثور على طلب بهذا الرقم. تأكد من صحة رقم الطلب.' : 'No request found with this number. Please check the request number.');
       setTrackError(msg);
       showToast(msg, 'error');
     } finally {
@@ -2206,66 +2201,43 @@ export default function RecommendationPage() {
               </p>
 
               <form onSubmit={handleTrackSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.35rem' }}>
-                      {isRtl ? 'رقم الطلب' : 'Request Number'} *
-                    </label>
-                    <input
-                      type="text"
-                      value={trackReqNumber}
-                      onChange={(e) => setTrackReqNumber(e.target.value.toUpperCase())}
-                      placeholder="REC-XXXXXX"
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '8px',
-                        border: '1.5px solid #cbd5e1',
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        letterSpacing: '1px',
-                        outline: 'none',
-                        direction: 'ltr',
-                        textAlign: isRtl ? 'right' : 'left'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.35rem' }}>
-                      {isRtl ? 'رقم هاتف مقدم الطلب (مطلوب للتحقق من الهوية)' : 'Submitter Phone (Required for verification)'} *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={trackPhone}
-                      onChange={(e) => setTrackPhone(e.target.value)}
-                      placeholder="01012345678"
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.95rem',
-                        outline: 'none',
-                        direction: 'ltr',
-                        textAlign: isRtl ? 'right' : 'left'
-                      }}
-                    />
-                  </div>
+                <div style={{ maxWidth: '480px', marginBottom: '1.25rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.45rem' }}>
+                    {isRtl ? 'رقم الطلب' : 'Request Number'} *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={trackReqNumber}
+                    onChange={(e) => setTrackReqNumber(e.target.value.toUpperCase())}
+                    placeholder="REC-XXXXXX"
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem 1.1rem',
+                      borderRadius: '10px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      letterSpacing: '1px',
+                      outline: 'none',
+                      direction: 'ltr',
+                      textAlign: isRtl ? 'right' : 'left',
+                      boxSizing: 'border-box'
+                    }}
+                  />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={trackLoading || !trackReqNumber.trim() || !trackPhone.trim() || trackThrottle.isLockedOut}
+                  disabled={trackLoading || !trackReqNumber.trim() || trackThrottle.isLockedOut}
                   style={{
                     padding: '0.75rem 2rem',
                     borderRadius: '8px',
-                    background: (!trackThrottle.isLockedOut && trackReqNumber.trim() && trackPhone.trim()) ? '#09090b' : '#94a3b8',
+                    background: (!trackThrottle.isLockedOut && trackReqNumber.trim()) ? '#09090b' : '#94a3b8',
                     color: '#ffffff',
                     fontWeight: 700,
                     border: 'none',
-                    cursor: (trackReqNumber.trim() && trackPhone.trim() && !trackThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
+                    cursor: (trackReqNumber.trim() && !trackThrottle.isLockedOut) ? 'pointer' : 'not-allowed',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem'

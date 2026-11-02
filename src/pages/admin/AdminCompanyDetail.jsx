@@ -451,7 +451,7 @@ export default function AdminCompanyDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Receipt size={20} color="var(--primary)" />
               <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--slate-900)', margin: 0 }}>
-                {isRtl ? 'سجل مدفوعات واشتراكات الشركة (Paymob)' : 'Payment Transactions & Invoices'}
+                {isRtl ? 'سجل مدفوعات واشتراكات الشركة (فوري - Fawry)' : 'Payment Transactions & Invoices (Fawry)'}
               </h2>
             </div>
             <span style={{ fontSize: '0.8rem', color: 'var(--slate-500)', fontWeight: 600 }}>
@@ -486,6 +486,7 @@ export default function AdminCompanyDetail() {
                     const isRefunded = order.status === 'refunded'
                     const isPending = order.status === 'pending'
                     const isFailed = order.status === 'failed'
+                    const txnId = order.fawryRefNumber || order.fawryTransactionId || order.paymobTransactionId || order.merchantRefNumber
 
                     return (
                       <tr key={order._id}>
@@ -493,9 +494,9 @@ export default function AdminCompanyDetail() {
                           <div style={{ fontWeight: 800, color: 'var(--slate-900)' }}>
                             {order.planName === 'Platinum' ? (isRtl ? 'البلاتينية' : 'Platinum') : order.planName === 'Gold' ? (isRtl ? 'الذهبية' : 'Gold') : (isRtl ? 'الأساسية' : 'Basic')}
                           </div>
-                          {order.paymobTransactionId && (
+                          {txnId && (
                             <div style={{ fontSize: '0.72rem', color: 'var(--slate-400)', fontFamily: 'monospace' }}>
-                              Tx: {order.paymobTransactionId}
+                              Tx: {txnId}
                             </div>
                           )}
                         </td>

@@ -42,7 +42,7 @@ export const companyApi = {
   downloadPlatinumCandidate: (id) =>
     api.get(`/candidates/platinum/candidate/${id}/download`, { responseType: 'blob' }),
 
-  // ── Subscription & Payment (Paymob) ──────────────────────────
+  // ── Subscription & Payment (Fawry) ──────────────────────────
   getPlans: () => api.get('/payments/plans'),
   initiatePayment: (planName, billingMonths) =>
     api.post('/payments/initiate', { planName, billingMonths }),

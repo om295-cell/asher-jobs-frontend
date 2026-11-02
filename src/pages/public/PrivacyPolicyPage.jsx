@@ -9,16 +9,16 @@ const sections = {
       'Asher Jobs (accessible at asherjobs.com) is operated by Asher Media for Electronic Services, an Egyptian registered enterprise (Commercial Register No. 11615), headquartered in 10th of Ramadan City, Sharqia Governorate, Arab Republic of Egypt. In this Privacy Policy, "we", "us", "our", and "Asher Jobs" refer to Asher Media for Electronic Services. We are committed to protecting the privacy, security, and confidentiality of all users, employers, and job seekers who access our platform.'
     ],
     [
-      'Payment Information & Paymob PCI-DSS Compliance',
-      'Asher Jobs does NOT store, collect, or process sensitive payment card information—including complete credit or debit card numbers, expiration dates, card verification codes (CVV/CVC), or 3D Secure one-time passwords (OTPs). All electronic payment transactions are securely handled directly by our certified third-party payment aggregator, Paymob (Paymob Solutions for Digital Payments), in full compliance with Payment Card Industry Data Security Standards (PCI-DSS Level 1). When you initiate a subscription payment, you are redirected to Paymob’s secure, 256-bit SSL/TLS encrypted checkout environment. We only receive a cryptographic transaction token, the masked payment method, transaction status, and payment order reference from Paymob to fulfill your service order.'
+      'Payment Information & Fawry PCI-DSS Compliance',
+      'Asher Jobs does NOT store, collect, or process sensitive payment card information—including complete credit or debit card numbers, expiration dates, card verification codes (CVV/CVC), or 3D Secure one-time passwords (OTPs). All electronic payment transactions are securely handled directly by our certified third-party payment aggregator, Fawry (Fawry for Banking Technology and Electronic Payments), in full compliance with Payment Card Industry Data Security Standards (PCI-DSS Level 1). When you initiate a subscription payment, you are redirected to Fawry’s secure, 256-bit SSL/TLS encrypted checkout environment. We only receive a cryptographic transaction token, the masked payment method, transaction status, and payment order reference from Fawry to fulfill your service order.'
     ],
     [
       'Information We Collect',
-      'Depending on how you interact with our platform, we collect the following categories of information:\n• Account & Identity Information: Full name, business or company name, commercial registration number, tax identification (where applicable), work email address, and mobile phone number.\n• Candidate Profiles & Recruitment Data: Contact details, professional work experience, vocational skills, educational background, job title preferences, current employment availability, and uploaded CV/resume files submitted voluntarily by job seekers for recruitment matching.\n• Transaction & Billing Records: Paymob transaction IDs, package purchased, billing cycle duration, amount paid in Egyptian Pounds (EGP), payment timestamp, and transaction fulfillment status.\n• Technical & Usage Logs: IP address, device model, operating system, browser type, referral URLs, access timestamps, and interaction logs for system stability and security monitoring.'
+      'Depending on how you interact with our platform, we collect the following categories of information:\n• Account & Identity Information: Full name, business or company name, commercial registration number, tax identification (where applicable), work email address, and mobile phone number.\n• Candidate Profiles & Recruitment Data: Contact details, professional work experience, vocational skills, educational background, job title preferences, current employment availability, and uploaded CV/resume files submitted voluntarily by job seekers for recruitment matching.\n• Transaction & Billing Records: Fawry transaction and reference numbers, package purchased, billing cycle duration, amount paid in Egyptian Pounds (EGP), payment timestamp, and transaction fulfillment status.\n• Technical & Usage Logs: IP address, device model, operating system, browser type, referral URLs, access timestamps, and interaction logs for system stability and security monitoring.'
     ],
     [
       'How We Use Your Information',
-      'We process collected information in accordance with applicable Egyptian laws, including Law No. 151 of 2020 on the Protection of Personal Data, for the following legitimate business purposes:\n• Creating, verifying, and administering employer and candidate accounts.\n• Delivering digital subscription services, candidate searches, and recruitment matching.\n• Verifying the legitimate commercial identity of employers prior to granting access to candidate details.\n• Processing payments and transaction invoices via Paymob.\n• Preventing fraud, unauthorized scraping, abuse, and security threats.\n• Providing customer support and responding to technical or operational inquiries.\n• Fulfilling legal, tax, accounting, and regulatory compliance obligations in Egypt.'
+      'We process collected information in accordance with applicable Egyptian laws, including Law No. 151 of 2020 on the Protection of Personal Data, for the following legitimate business purposes:\n• Creating, verifying, and administering employer and candidate accounts.\n• Delivering digital subscription services, candidate searches, and recruitment matching.\n• Verifying the legitimate commercial identity of employers prior to granting access to candidate details.\n• Processing payments and transaction invoices via Fawry.\n• Preventing fraud, unauthorized scraping, abuse, and security threats.\n• Providing customer support and responding to technical or operational inquiries.\n• Fulfilling legal, tax, accounting, and regulatory compliance obligations in Egypt.'
     ],
     [
       'Candidate Data Protection & Access Controls',
@@ -26,7 +26,7 @@ const sections = {
     ],
     [
       'Data Sharing & Third-Party Disclosure',
-      'We do not sell, rent, trade, or monetize personal information to third parties. Information is shared strictly on a need-to-know basis with:\n1. Payment Aggregator: Paymob, strictly for processing, authorizing, and resolving payment transactions and refunds.\n2. Cloud & Hosting Infrastructure: Trusted, encrypted cloud service providers under binding confidentiality and data protection agreements.\n3. Legal & Regulatory Authorities: Egyptian governmental, judicial, or law enforcement entities only when compelled by valid subpoena, official court order, or binding legal statute.'
+      'We do not sell, rent, trade, or monetize personal information to third parties. Information is shared strictly on a need-to-know basis with:\n1. Payment Aggregator: Fawry, strictly for processing, authorizing, and resolving payment transactions and refunds.\n2. Cloud & Hosting Infrastructure: Trusted, encrypted cloud service providers under binding confidentiality and data protection agreements.\n3. Legal & Regulatory Authorities: Egyptian governmental, judicial, or law enforcement entities only when compelled by valid subpoena, official court order, or binding legal statute.'
     ],
     [
       'Cookies & Session Storage',
@@ -51,16 +51,16 @@ const sections = {
       'تُدار منصة عاشر جوبز (المتاحة عبر asherjobs.com) بواسطة عاشر ميديا للخدمات الإلكترونية، وهي منشأة مسجلة بجمهورية مصر العربية بموجب السجل التجاري رقم 11615، ومقرها الإداري في مدينة العاشر من رمضان، محافظة الشرقية. ويُقصد بضمائر المتكلم («نحن» و«عاشر جوبز») عاشر ميديا للخدمات الإلكترونية. ونحن نلتزم بحماية خصوصية وأمان وسرية بيانات كافة المستخدمين من ممثلي الشركات والباحثين عن عمل.'
     ],
     [
-      'بيانات الدفع والامتثال لمعايير Paymob وPCI-DSS',
-      'لا تقوم عاشر جوبز نهائياً بتخزين أو جمع أو معالجة أي بيانات بنكية أو تفاصيل خاصة ببطاقات الدفع الإلكتروني، بما في ذلك رقم البطاقة الكامل (16 رقماً)، أو تاريخ الانتهاء، أو كود التحقق الأمني (CVV/CVC)، أو رمز التحقق السري المؤقت (OTP). وتتم جميع معاملات الدفع الإلكتروني ومعالجة بطاقات الدفع مباشرة وبشكل آمن عبر بوابة الدفع الإلكتروني المعتمدة والمرخصة Paymob (شركة بايموب لحلول المدفوعات الرقمية) المتوافقة مع أعلى معايير أمان مدفوعات البطاقات العالمية (PCI-DSS المستوى الأول). يتم تحويل المستخدم إلى صفحة الدفع الآمنة والمشفرة بتشفير 256-bit SSL/TLS الخاصة بـ Paymob، ولا تستلم عاشر جوبز سوى رمز تعريف المعاملة المشفر وحالة الدفع ورقم الطلب لإتمام تفعيل الخدمة المطلوبة.'
+      'بيانات الدفع والامتثال لمعايير فوري (Fawry) وPCI-DSS',
+      'لا تقوم عاشر جوبز نهائياً بتخزين أو جمع أو معالجة أي بيانات بنكية أو تفاصيل خاصة ببطاقات الدفع الإلكتروني، بما في ذلك رقم البطاقة الكامل (16 رقماً)، أو تاريخ الانتهاء، أو كود التحقق الأمني (CVV/CVC)، أو رمز التحقق السري المؤقت (OTP). وتتم جميع معاملات الدفع الإلكتروني ومعالجة بطاقات الدفع مباشرة وبشكل آمن عبر بوابة الدفع الإلكتروني المعتمدة والمرخصة فوري (شركة فوري لتكنولوجيا البنوك والمدفوعات الإلكترونية Fawry) المتوافقة مع أعلى معايير أمان مدفوعات البطاقات العالمية (PCI-DSS المستوى الأول). يتم تحويل المستخدم إلى صفحة الدفع الآمنة والمشفرة بتشفير 256-bit SSL/TLS الخاصة بـ Fawry، ولا تستلم عاشر جوبز سوى رمز تعريف المعاملة المشفر وحالة الدفع ورقم الطلب لإتمام تفعيل الخدمة المطلوبة.'
     ],
     [
       'المعلومات التي نجمعها',
-      'تبعاً لطريقة استخدامك للمنصة، نقوم بجمع الفئات التالية من المعلومات:\n• بيانات الهوية والحساب: الاسم الكامل، اسم المنشأة أو الشركة، رقم السجل التجاري أو البطاقة الضريبية (عند الاقتضاء)، البريد الإلكتروني للعمل، ورقم الهاتف المحمول.\n• بيانات المرشحين وملفات التوظيف: بيانات التواصل، الخبرات المهنية السابقة، المهارات، المؤهلات العلمية، المسميات الوظيفية المستهدفة، حالة التوفر للعمل، وملفات السيرة الذاتية (CV) المقدمة طوعياً لغرض التوظيف.\n• سجلات المعاملات والفوترة: رقم طلب المعاملة الصادر من Paymob، باقة الاشتراك المشتراة، مدة الباقة، المبلغ المدفوع بالجنيه المصري (EGP)، توقيت السداد، وحالة تأكيد المعاملة.\n• البيانات التقنية وسجلات النظام: عنوان بروتوكول الإنترنت (IP)، نوع المتصفح والجهاز ونظام التشغيل، وتوقيت الدخول وسجلات النشاط المخصصة لمراقبة أمان واستقرار النظام.'
+      'تبعاً لطريقة استخدامك للمنصة، نقوم بجمع الفئات التالية من المعلومات:\n• بيانات الهوية والحساب: الاسم الكامل، اسم المنشأة أو الشركة، رقم السجل التجاري أو البطاقة الضريبية (عند الاقتضاء)، البريد الإلكتروني للعمل، ورقم الهاتف المحمول.\n• بيانات المرشحين وملفات التوظيف: بيانات التواصل، الخبرات المهنية السابقة، المهارات، المؤهلات العلمية، المسميات الوظيفية المستهدفة، حالة التوفر للعمل، وملفات السيرة الذاتية (CV) المقدمة طوعياً لغرض التوظيف.\n• سجلات المعاملات والفوترة: رقم طلب المعاملة والمرجع الصادر من Fawry، باقة الاشتراك المشتراة، مدة الباقة، المبلغ المدفوع بالجنيه المصري (EGP)، توقيت السداد، وحالة تأكيد المعاملة.\n• البيانات التقنية وسجلات النظام: عنوان بروتوكول الإنترنت (IP)، نوع المتصفح والجهاز ونظام التشغيل، وتوقيت الدخول وسجلات النشاط المخصصة لمراقبة أمان واستقرار النظام.'
     ],
     [
       'أغراض واستخدام المعلومات المسجلة',
-      'نقوم بمعالجة واستخدام البيانات المجمعة وفقاً للقوانين المصرية السارية، وبخاصة القانون رقم 151 لسنة 2020 بشأن حماية البيانات الشخصية، للأغراض التالية:\n• إنشاء وتفعيل وإدارة حسابات الشركات والمرشحين.\n• تقديم وتفعيل باقات الاشتراك الرقمية وإتاحة خدمات البحث في قاعدة بيانات المرشحين.\n• التحقق الإداري من الهوية القانونية والتجارية للشركات قبل السماح بالوصول لبيانات التواصل للمرشحين.\n• معالجة المدفوعات الرقمية وربط العمليات عبر بوابة Paymob.\n• حماية المنصة من عمليات الاحتيال والسحب الآلي غير المصرح به وضمان أمان البيانات.\n• تقديم خدمات الدعم الفني وخدمة العملاء والرد على استفسارات المشتركين.\n• الامتثال للالتزامات المحاسبية والضريبية والتنظيمية المقررة قانوناً في مصر.'
+      'نقوم بمعالجة واستخدام البيانات المجمعة وفقاً للقوانين المصرية السارية، وبخاصة القانون رقم 151 لسنة 2020 بشأن حماية البيانات الشخصية، للأغراض التالية:\n• إنشاء وتفعيل وإدارة حسابات الشركات والمرشحين.\n• تقديم وتفعيل باقات الاشتراك الرقمية وإتاحة خدمات البحث في قاعدة بيانات المرشحين.\n• التحقق الإداري من الهوية القانونية والتجارية للشركات قبل السماح بالوصول لبيانات التواصل للمرشحين.\n• معالجة المدفوعات الرقمية وربط العمليات عبر بوابة Fawry.\n• حماية المنصة من عمليات الاحتيال والسحب الآلي غير المصرح به وضمان أمان البيانات.\n• تقديم خدمات الدعم الفني وخدمة العملاء والرد على استفسارات المشتركين.\n• الامتثال للالتزامات المحاسبية والضريبية والتنظيمية المقررة قانوناً في مصر.'
     ],
     [
       'حماية بيانات المرشحين وضوابط الوصول',
@@ -68,7 +68,7 @@ const sections = {
     ],
     [
       'مشاركة البيانات والجهات الخارجية',
-      'نحن لا نبيع أو نؤجر أو نتاجر ببيانات المستخدمين مع أي طرف ثالث لأغراض تسويقية أو تجارية. وتقتصر مشاركة البيانات المحدودة جداً على:\n1. مزود خدمات الدفع الإلكتروني: شركة Paymob، لغرض إتمام وتوثيق عمليات الدفع ورد المبالغ المستردة.\n2. مزودو خدمات البنية التحتية والاستضافة السحابية: بموجب اتفاقيات سرية صارمة لحماية وتشفير البيانات.\n3. الجهات القانونية والرقابية: السلطات القضائية أو الحكومية المصرية المختصة متى كان ذلك ملزماً بموجب أمر قضائي أو نص تشريعي نافذ.'
+      'نحن لا نبيع أو نؤجر أو نتاجر ببيانات المستخدمين مع أي طرف ثالث لأغراض تسويقية أو تجارية. وتقتصر مشاركة البيانات المحدودة جداً على:\n1. مزود خدمات الدفع الإلكتروني: شركة Fawry، لغرض إتمام وتوثيق عمليات الدفع ورد المبالغ المستردة.\n2. مزودو خدمات البنية التحتية والاستضافة السحابية: بموجب اتفاقيات سرية صارمة لحماية وتشفير البيانات.\n3. الجهات القانونية والرقابية: السلطات القضائية أو الحكومية المصرية المختصة متى كان ذلك ملزماً بموجب أمر قضائي أو نص تشريعي نافذ.'
     ],
     [
       'ملفات تعريف الارتباط والتخزين المحلي',
@@ -84,7 +84,7 @@ const sections = {
     ],
     [
       'التعديلات وبيانات الاتصال الرسمية',
-      'يجوز لنا تحديث سياسة الخصوصية هذه من حين لآخر لتلائم التطورات التقنية أو متطلبات بوابة الدفع Paymob أو التشريعات القانونية، وتُعد أي تعديلات سارية فور نشرها على هذه الصفحة.\n\nللاستفسارات والطلبات المتعلقة بالخصوصية وأمان المعاملات، يرجى التواصل معنا:\n• المنشأة: عاشر ميديا للخدمات الإلكترونية (سجل تجاري 11615)\n• البريد الإلكتروني: omarhassan@asher-jobs.com\n• الهاتف: 4666 645 155 20+\n• المقر الرئيسي: مدينة العاشر من رمضان، محافظة الشرقية، جمهورية مصر العربية.'
+      'يجوز لنا تحديث سياسة الخصوصية هذه من حين لآخر لتلائم التطورات التقنية أو متطلبات بوابة الدفع Fawry أو التشريعات القانونية، وتُعد أي تعديلات سارية فور نشرها على هذه الصفحة.\n\nللاستفسارات والطلبات المتعلقة بالخصوصية وأمان المعاملات، يرجى التواصل معنا:\n• المنشأة: عاشر ميديا للخدمات الإلكترونية (سجل تجاري 11615)\n• البريد الإلكتروني: omarhassan@asher-jobs.com\n• الهاتف: 4666 645 155 20+\n• المقر الرئيسي: مدينة العاشر من رمضان، محافظة الشرقية، جمهورية مصر العربية.'
     ]
   ]
 };
@@ -102,8 +102,8 @@ export default function PrivacyPolicyPage() {
           </h1>
           <p style={{ margin: 0, color: 'var(--slate-600)', lineHeight: 1.8 }}>
             {isRtl
-              ? 'توضح هذه السياسة التزام عاشر جوبز بحماية بياناتك والامتثال لمعايير بوابة الدفع Paymob والقوانين المصرية لحماية البيانات.'
-              : 'This policy details how Asher Jobs collects, uses, and safeguards information in compliance with Paymob standards and Egyptian data privacy laws.'}
+              ? 'توضح هذه السياسة التزام عاشر جوبز بحماية بياناتك والامتثال لمعايير بوابة الدفع Fawry والقوانين المصرية لحماية البيانات.'
+              : 'This policy details how Asher Jobs collects, uses, and safeguards information in compliance with Fawry standards and Egyptian data privacy laws.'}
           </p>
         </header>
 

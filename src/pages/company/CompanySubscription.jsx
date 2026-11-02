@@ -242,9 +242,10 @@ export default function CompanySubscription() {
     setInitiating(planName);
     try {
       const res = await companyApi.initiatePayment(planName, selectedMonths);
-      const { iframeUrl } = res.data?.data || {};
-      if (iframeUrl) {
-        window.location.href = iframeUrl; // redirect to Paymob iframe
+      const { paymentUrl, iframeUrl } = res.data?.data || {};
+      const redirectUrl = paymentUrl || iframeUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl; // redirect to Fawry checkout
       }
     } catch (err) {
       alert(err.response?.data?.message || 'فشل بدء عملية الدفع. حاول مرة أخرى.');
@@ -275,7 +276,7 @@ export default function CompanySubscription() {
             الاشتراك والباقات
           </h1>
           <p style={{ fontSize: '0.8125rem', color: 'var(--slate-500)', marginTop: '0.35rem' }}>
-            اختر الباقة المناسبة — يتم الدفع عبر بوابة Paymob الآمنة
+            اختر الباقة المناسبة — يتم الدفع بأمان عبر بوابة فوري (Fawry)
           </p>
         </div>
 
@@ -775,7 +776,7 @@ export default function CompanySubscription() {
         }}>
           <Shield size={14} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
           <span>
-            جميع المدفوعات تتم عبر بوابة <strong>Paymob</strong> المعتمدة. بطاقات Visa وMastercard مقبولة.
+            جميع المدفوعات تتم بأمان عبر بوابة <strong>فوري (Fawry)</strong> المعتمدة. تقبل البطاقات البنكية (Visa وMastercard وميزة)، المحافظ الإلكترونية، ونقاط فوري في جميع أنحاء مصر.
             تبدأ الباقة فور تأكيد الدفع. لا يوجد تجديد تلقائي — ستتلقى تذكيراً قبل انتهاء الاشتراك.
           </span>
         </div>
